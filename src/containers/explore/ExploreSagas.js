@@ -7,15 +7,20 @@ import moment from 'moment';
 import { Constants, SearchApi } from 'lattice';
 import { call, put, takeEvery } from 'redux-saga/effects';
 
+import { getSearchFields } from './ExploreReducer';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
+import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import {
   EXECUTE_SEARCH,
   GEOCODE_ADDRESS,
   LOAD_ENTITY_NEIGHBORS,
+  SEARCH_AGENCIES,
   executeSearch,
   geocodeAddress,
-  loadEntityNeighbors
+  loadEntityNeighbors,
+  searchAgencies
 } from './ExploreActionFactory';
 
 const { OPENLATTICE_ID_FQN } = Constants;
@@ -69,8 +74,7 @@ export function* loadEntityNeighborsWatcher() :Generator<*, *, *> {
 
 const getSearchRequest = (
   entitySetId,
-  timestampPropertyTypeId,
-  coordinatePropertyTypeId,
+  propertyTypesByFqn,
   searchParameters
 ) => {
   const baseSearch = {
@@ -79,14 +83,23 @@ const getSearchRequest = (
     maxHits: 3000
   };
 
+  const searchFields = getSearchFields(searchParameters);
+
+  const timestampPropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.TIMESTAMP, 'id']);
+  const coordinatePropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.COORDINATE, 'id']);
+  const platePropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.PLATE, 'id']);
+  const namePropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.NAME, 'id']);
+  const agencyIdPropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.AGENCY_NAME, 'id']);
+  const deviceIdPropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.CAMERA_ID, 'id']);
+
   const constraintGroups = [];
 
   /* handle time constraints */
-  const start = moment(searchParameters.get(PARAMETERS.START));
-  const end = moment(searchParameters.get(PARAMETERS.END));
-  const startStr = start.isValid() ? start.toISOString(true) : '*';
-  const endStr = end.isValid() ? end.toISOString(true) : '*';
-  if (startStr.length > 1 || endStr.length > 1) {
+  if (searchFields.includes(SEARCH_TYPES.TIME_RANGE)) {
+    const start = moment(searchParameters.get(PARAMETERS.START));
+    const end = moment(searchParameters.get(PARAMETERS.END));
+    const startStr = start.isValid() ? start.toISOString(true) : '*';
+    const endStr = end.isValid() ? end.toISOString(true) : '*';
     constraintGroups.push({
       constraints: [{
         type: 'simple',
@@ -95,35 +108,70 @@ const getSearchRequest = (
     });
   }
 
-  const zones = searchParameters.get(PARAMETERS.SEARCH_ZONES, []);
-
   /* handle geo polygon constraints */
-  if (zones.length) {
+  if (searchFields.includes(SEARCH_TYPES.GEO_ZONES)) {
     constraintGroups.push({
-      min: 2,
+      min: 1,
       constraints: [{
         type: 'geoPolygon',
         propertyTypeId: coordinatePropertyTypeId,
-        zones
+        zones: searchParameters.get(PARAMETERS.SEARCH_ZONES, [])
       }]
     });
   }
 
   /* handle geo radius + distance constraints */
-  else {
-    const latitude = searchParameters.get(PARAMETERS.LATITUDE);
-    const longitude = searchParameters.get(PARAMETERS.LONGITUDE);
-    const radius = searchParameters.get(PARAMETERS.RADIUS);
-    const unit = 'miles';
-
+  if (searchFields.includes(SEARCH_TYPES.GEO_RADIUS)) {
     constraintGroups.push({
       constraints: [{
         type: 'geoDistance',
         propertyTypeId: coordinatePropertyTypeId,
-        latitude,
-        longitude,
-        radius,
-        unit
+        latitude: searchParameters.get(PARAMETERS.LATITUDE),
+        longitude: searchParameters.get(PARAMETERS.LONGITUDE),
+        radius: searchParameters.get(PARAMETERS.RADIUS),
+        unit: 'miles'
+      }]
+    });
+  }
+
+  /* Handle license plate constraints */
+  if (searchFields.includes(SEARCH_TYPES.PLATE)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.PLATE),
+          property: platePropertyTypeId,
+          exact: false
+        }]
+      }]
+    });
+  }
+
+  /* Handle department/agency constraints */
+  if (searchFields.includes(SEARCH_TYPES.DEPARTMENT)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.DEPARTMENT_ID),
+          property: agencyIdPropertyTypeId,
+          exact: true
+        }]
+      }]
+    });
+  }
+
+  /* Handle device constraints */
+  if (searchFields.includes(SEARCH_TYPES.DEVICE)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.DEVICE),
+          property: deviceIdPropertyTypeId,
+          exact: false
+        }]
       }]
     });
   }
@@ -136,15 +184,13 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
     yield put(executeSearch.request(action.id));
     const {
       entitySetId,
-      timestampPropertyTypeId,
-      coordinatePropertyTypeId,
+      propertyTypesByFqn,
       searchParameters
     } = action.value;
 
     const results = yield call(SearchApi.executeSearch, getSearchRequest(
       entitySetId,
-      timestampPropertyTypeId,
-      coordinatePropertyTypeId,
+      propertyTypesByFqn,
       searchParameters
     ));
 
@@ -156,7 +202,7 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
     }));
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(executeSearch.failure(action.id, error));
   }
   finally {
@@ -166,4 +212,30 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
 
 export function* executeSearchWatcher() :Generator<*, *, *> {
   yield takeEvery(EXECUTE_SEARCH, executeSearchWorker);
+}
+
+function* searchAgenciesWorker(action :SequenceAction) :Generator<*, *, *> {
+  try {
+    yield put(searchAgencies.request(action.id));
+    const { value, entitySetId } = action.value;
+
+    const results = yield call(SearchApi.searchEntitySetData, entitySetId, {
+      start: 0,
+      maxHits: 20,
+      searchTerm: value
+    });
+
+    const { hits } = results;
+    yield put(searchAgencies.success(action.id, hits));
+  }
+  catch (error) {
+    yield put(searchAgencies.failure(action.id, error));
+  }
+  finally {
+    yield put(searchAgencies.finally(action.id));
+  }
+}
+
+export function* searchAgenciesWatcher() :Generator<*, *, *> {
+  yield takeEvery(SEARCH_AGENCIES, searchAgenciesWorker);
 }

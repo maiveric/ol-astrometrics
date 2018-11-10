@@ -67,8 +67,8 @@ export const isPersonType = ({ selectedEntitySet, entityTypesById }) => !!select
 ) === PERSON_ENTITY_TYPE_FQN;
 
 export const getCoordinates = (entity) => {
-  const longitude = entity.getIn([PROPERTY_TYPES.LONGITUDE, 0]);
-  const latitude = entity.getIn([PROPERTY_TYPES.LATITUDE, 0]);
+  const coords = entity.getIn([PROPERTY_TYPES.COORDINATE, 0], '').split(',');
+  const [latitude, longitude] = coords;
   if (Number.isNaN(Number.parseFloat(longitude, 0), 10) || Number.isNaN(Number.parseFloat(latitude, 0), 10)) {
     return undefined;
   }

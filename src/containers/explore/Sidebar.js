@@ -4,11 +4,14 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import moment from 'moment';
 import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
+import DropdownButton from '../../components/buttons/DropdownButton';
+import Spinner from '../../components/spinner/Spinner';
 import VehicleCard from '../../components/vehicles/VehicleCard';
 import {
   EDM,
@@ -23,14 +26,15 @@ import * as ExploreActionFactory from './ExploreActionFactory';
 
 type Props = {
   recordEntitySetId :string,
-  coordinatePropertyTypeId :string,
   displayFullSearchOptions :boolean,
   isLoadingResults :boolean,
+  isLoadingNeighbors :boolean,
   results :List<*>,
   selectedEntityKeyIds :Set<*>,
   neighborsById :List<*>,
   searchParameters :Map<*, *>,
   geocodedAddresses :List<*>,
+  filter :string,
   actions :{
     editSearchParameters :(editing :boolean) => void,
     executeSearch :(searchParameters :Object) => void,
@@ -38,12 +42,13 @@ type Props = {
     selectAddress :(address :Object) => void,
     selectEntity :(entityKeyId :string) => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
-    updateSearchParameters :({ field :string, value :string }) => void
+    updateSearchParameters :({ field :string, value :string }) => void,
+    setFilter :(filter :string) => void
   }
 };
 
 type State = {
-
+  sort :string
 };
 
 const SidebarWrapper = styled.div`
@@ -75,13 +80,19 @@ const FilterGroup = styled.div`
   width: 50%;
   display: flex;
   flex-direction: row;
+  align-items: center;
   color: #ffffff;
   font-size: 15px;
   font-weight: 600;
 
   span {
     font-weight: 300;
-    margin-right: 10px;
+    padding-right: 10px;
+    width: 30%;
+  }
+
+  article {
+    width: 70%;
   }
 `;
 
@@ -96,12 +107,20 @@ const VehicleListWrapper = styled.div`
   }
 `;
 
+const SORT_TYPE = {
+  RELEVANCE: 'Relevance',
+  NUM_APPEARANCES: '# Appearances',
+  LICENSE_PLATE: 'License Plate',
+  NEWEST: 'Newest',
+  OLDEST: 'Oldest'
+};
+
 class Sidebar extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
     this.state = {
-
+      sort: SORT_TYPE.RELEVANCE
     };
   }
 
@@ -110,66 +129,140 @@ class Sidebar extends React.Component<Props, State> {
     actions.loadDataModel();
   }
 
-  onSearchSubmit = () => {
-    const {
-      recordEntitySetId,
-      timestampPropertyTypeId,
-      coordinatePropertyTypeId,
-      searchParameters,
-      actions
-    } = this.props;
-    actions.executeSearch({
-      entitySetId: recordEntitySetId,
-      timestampPropertyTypeId,
-      coordinatePropertyTypeId,
-      searchParameters
-    });
+  getFilterOptions = (records) => {
+    const { actions } = this.props;
+    let hitTypes = List();
+    records
+      .forEach(recordList => recordList
+        .forEach(record => record.get(PROPERTY_TYPES.HIT_TYPE, List())
+          .forEach((hitType) => {
+            if (!hitTypes.includes(hitType)) {
+              hitTypes = hitTypes.push(hitType);
+            }
+          })));
+    return [
+      {
+        label: 'All',
+        onClick: () => actions.setFilter('')
+      },
+      ...hitTypes.map(hitType => ({
+        label: hitType,
+        onClick: () => actions.setFilter(hitType)
+      })).toJS()
+    ];
   }
 
-  renderFilters = () => {
+  renderFilters = (records) => {
+    const { filter } = this.props;
+    const { sort } = this.state;
+    const filterTitle = filter.length ? filter : 'All';
+
+    const sortOptions = Object.values(SORT_TYPE).map(label => ({
+      label,
+      onClick: () => this.setState({ sort: label })
+    }));
     return (
       <FilterBar>
         <FilterGroup>
           <span>Sort by: </span>
-          <div>Relevance</div>
+          <DropdownButton title={sort} options={sortOptions} invisible />
         </FilterGroup>
         <FilterGroup>
           <span>Filter: </span>
-          <div>Stolen vehicles</div>
+          <article>
+            <DropdownButton title={filterTitle} options={this.getFilterOptions(records)} invisible />
+          </article>
         </FilterGroup>
       </FilterBar>
-    )
+    );
   }
 
   getVehicleList = () => {
-    const { results, neighborsById } = this.props;
+    const { filter, results, neighborsById } = this.props;
 
-    let counts = Map();
+    let recordsByVehicleId = Map();
     let seen = Set();
     const vehicleList = results.flatMap((record) => {
-      return neighborsById.get(getEntityKeyId(record), List())
-    }).filter(neighbor => neighbor.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS);
+      return neighborsById.get(getEntityKeyId(record), List()).map(neighbor => [neighbor, record]);
+    }).filter(([neighbor]) => neighbor.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS);
 
-    vehicleList.forEach((neighbor) => {
+    vehicleList.forEach(([neighbor, record]) => {
       const entityKeyId = getEntityKeyId(neighbor.get('neighborDetails'));
       seen = seen.add(entityKeyId);
-      counts = counts.set(entityKeyId, counts.get(entityKeyId, 0) + 1);
+      recordsByVehicleId = recordsByVehicleId.set(
+        entityKeyId,
+        recordsByVehicleId.get(entityKeyId, List()).push(record)
+      );
     });
 
-    const vehicles = vehicleList.filter((entity) => {
+    const vehicles = vehicleList.map(([val]) => val).filter((entity) => {
       const entityKeyId = getEntityKeyId(entity.get('neighborDetails'));
-      const shouldInclude = seen.has(entityKeyId);
+
+      const matchesFilter = !filter.length || recordsByVehicleId
+        .get(entityKeyId)
+        .flatMap(record => record.get(PROPERTY_TYPES.HIT_TYPE, List()))
+        .filter(hitType => hitType === filter).size > 0;
+      const shouldInclude = seen.has(entityKeyId) && matchesFilter;
       seen = seen.delete(entityKeyId);
       return shouldInclude;
     });
 
-    return { vehicles, counts };
+    return { vehicles, recordsByVehicleId };
   }
 
   onVehicleClick = (entityKeyId) => {
     const { actions, selectedEntityKeyIds } = this.props;
     const value = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
     actions.selectEntity(value);
+  }
+
+  sortVehicles = (vehicles, recordsByVehicleId) => {
+    const { sort } = this.state;
+
+    const getLicensePlate = vehicle => vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
+
+    const getTimestamps = vehicle => recordsByVehicleId.get(getEntityKeyId(vehicle), List())
+      .flatMap(record => record.get(PROPERTY_TYPES.TIMESTAMP, List()))
+      .map(timestamp => moment(timestamp))
+      .filter(datetime => datetime.isValid());
+
+    const getNumResults = vehicle => recordsByVehicleId.get(getEntityKeyId(vehicle), List()).size;
+
+    switch (sort) {
+      case SORT_TYPE.LICENSE_PLATE:
+        return vehicles.sort((v1, v2) => (getLicensePlate(v1) < getLicensePlate(v2) ? -1 : 1));
+
+      case SORT_TYPE.NUM_APPEARANCES:
+        return vehicles.sort((v1, v2) => (getNumResults(v1) > getNumResults(v2) ? -1 : 1));
+
+      case SORT_TYPE.NEWEST:
+        return vehicles.map((vehicle) => {
+          let latest;
+          getTimestamps(vehicle).forEach((datetime) => {
+            if (!latest || datetime.isAfter(latest)) {
+              latest = datetime;
+            }
+          });
+          return [vehicle, latest];
+        }).sort(([v1, latest1], [v2, latest2]) => (latest1.isAfter(latest2) ? -1 : 1))
+          .map(([vehicle]) => vehicle);
+
+      case SORT_TYPE.OLDEST:
+        return vehicles.map((vehicle) => {
+          let earliest;
+          getTimestamps(vehicle).forEach((datetime) => {
+            if (!earliest || datetime.isBefore(earliest)) {
+              earliest = datetime;
+            }
+          });
+          return [vehicle, earliest];
+        }).sort(([v1, earliest1], [v2, earliest2]) => (earliest1.isBefore(earliest2) ? -1 : 1))
+          .map(([vehicle]) => vehicle);
+
+      case SORT_TYPE.RELEVANCE:
+      default:
+        return vehicles;
+    }
   }
 
   render() {
@@ -179,18 +272,29 @@ class Sidebar extends React.Component<Props, State> {
       geocodedAddresses,
       results,
       selectedEntityKeyIds,
-      searchParameters
+      searchParameters,
+      isLoadingResults,
+      isLoadingNeighbors
     } = this.props;
+    const { sort } = this.state;
 
-    const { vehicles, counts } = this.getVehicleList();
+    if (isLoadingResults || isLoadingNeighbors) {
+      return <SidebarWrapper><Spinner /></SidebarWrapper>;
+    }
+
+    const { vehicles, recordsByVehicleId } = this.getVehicleList();
+
+    const sortedVehicles = this.sortVehicles(
+      vehicles.map(vehicle => vehicle.get('neighborDetails', Map())),
+      recordsByVehicleId
+    );
 
     return (
       <SidebarWrapper>
         <h1>{vehicles.size} vehicles found</h1>
-        {this.renderFilters()}
+        {this.renderFilters(recordsByVehicleId.valueSeq())}
         <VehicleListWrapper>
-          {vehicles.map((vehicleNeighbor) => {
-            const vehicle = vehicleNeighbor.get('neighborDetails', Map());
+          {sortedVehicles.map((vehicle) => {
             const entityKeyId = getEntityKeyId(vehicle);
             return (
               <VehicleCard
@@ -198,7 +302,9 @@ class Sidebar extends React.Component<Props, State> {
                   isUnselected={selectedEntityKeyIds.size && !selectedEntityKeyIds.has(entityKeyId)}
                   onClick={() => this.onVehicleClick(entityKeyId)}
                   vehicle={vehicle}
-                  count={counts.get(entityKeyId)} />
+                  records={recordsByVehicleId.get(entityKeyId, List())}
+                  count={recordsByVehicleId.get(entityKeyId).size}
+                  timestampDesc={sort === SORT_TYPE.NEWEST} />
             );
           })}
         </VehicleListWrapper>
@@ -213,15 +319,15 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const edm = state.get(STATE.EDM);
   return {
     recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
-    timestampPropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.TIMESTAMP, 'id']),
-    coordinatePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.COORDINATE, 'id']),
     displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
+    isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
     searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS),
-    geocodedAddresses: explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS)
+    geocodedAddresses: explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS),
+    filter: explore.get(EXPLORE.FILTER)
   };
 }
 

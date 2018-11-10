@@ -22,14 +22,21 @@ import {
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
+import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 
 type Props = {
+  isReadyToSubmit :boolean,
+  entitySets :Map<*, *>,
   editSearchParameters :(editing :boolean) => void,
   geocodeAddress :(address :string) => void,
   geocodedAddresses :List<*>,
+  agencySearchResults :List<*>,
+  searchAgencies :({ entitySetId :string, value :string }) => void,
+  selectAgency :(agency :Map) => void,
   onInputChange :({ field :string, value :string }) => void,
   selectAddress :(address :Object) => void,
+  selectAgency :(agency :Map) => void,
   values :Map,
   onSubmit :(searchParameters :Object) => void,
   setDrawMode :(drawMode :boolean) => void,
@@ -280,7 +287,8 @@ class SearchParameters extends React.Component<Props> {
 
   constructor(props :Props) {
     super(props);
-    this.searchTimeout = null;
+    this.addressSearchTimeout = null;
+    this.departmentSearchTimeout = null;
   }
 
   handleAddressChange = (e :SyntheticEvent) => {
@@ -292,10 +300,44 @@ class SearchParameters extends React.Component<Props> {
       value
     });
 
-    clearTimeout(this.searchTimeout);
+    clearTimeout(this.addressSearchTimeout);
 
-    this.searchTimeout = setTimeout(() => {
+    this.addressSearchTimeout = setTimeout(() => {
       geocodeAddress(value);
+    }, 500);
+  }
+
+  handleAddressChange = (e :SyntheticEvent) => {
+    const { geocodeAddress, onInputChange } = this.props;
+    const { value } = e.target;
+
+    onInputChange({
+      field: PARAMETERS.ADDRESS,
+      value
+    });
+
+    clearTimeout(this.addressSearchTimeout);
+
+    this.addressSearchTimeout = setTimeout(() => {
+      geocodeAddress(value);
+    }, 500);
+  }
+
+  handleDepartmentChange = (e :SyntheticEvent) => {
+    const { searchAgencies, onInputChange, entitySets } = this.props;
+    const { value } = e.target;
+
+    onInputChange({
+      field: PARAMETERS.DEPARTMENT,
+      value
+    });
+
+    const entitySetId = entitySets.getIn([ENTITY_SETS.AGENCIES, 'id']);
+
+    clearTimeout(this.departmentSearchTimeout);
+
+    this.departmentSearchTimeout = setTimeout(() => {
+      searchAgencies({ value, entitySetId });
     }, 500);
   }
 
@@ -334,11 +376,33 @@ class SearchParameters extends React.Component<Props> {
     return options;
   }
 
+  getDepartmentsAsMap = () => {
+    const { agencySearchResults } = this.props;
+    let options = OrderedMap();
+    agencySearchResults.forEach((agency) => {
+      const id = agency.getIn([PROPERTY_TYPES.ID, 0], '');
+      const title = agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], agency.getIn([PROPERTY_TYPES.NAME, 0], id));
+      options = options.set(title, { id, title });
+    });
+
+    return options;
+  }
+
+  onDateTimeChange = (newDate, field) => {
+    const { onInputChange } = this.props;
+    const value = newDate.endsWith('T')
+      ? moment(newDate.slice(0, newDate.length - 1)).toISOString(true)
+      : newDate;
+    onInputChange({ field, value });
+  }
+
   renderFullSearchParameters() {
     const {
+      isReadyToSubmit,
       onInputChange,
       values,
       selectAddress,
+      selectAgency,
       setDrawMode,
       onSubmit
     } = this.props;
@@ -418,7 +482,7 @@ class SearchParameters extends React.Component<Props> {
                 <span>Time start</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
-                      onChange={value => onInputChange({ field: PARAMETERS.START, value })}
+                      onChange={value => this.onDateTimeChange(value, PARAMETERS.START)}
                       value={values.get(PARAMETERS.START)}
                       dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
@@ -432,7 +496,7 @@ class SearchParameters extends React.Component<Props> {
                 <span>Time end</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
-                      onChange={value => onInputChange({ field: PARAMETERS.END, value })}
+                      onChange={value => this.onDateTimeChange(value, PARAMETERS.END)}
                       value={values.get(PARAMETERS.END)}
                       dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
@@ -445,7 +509,14 @@ class SearchParameters extends React.Component<Props> {
               <Row width={46}>
                 <InputGroup>
                   <span>Department (optional)</span>
-                  {this.renderInput(PARAMETERS.DEPARTMENT)}
+                  <StyledSearchableSelect
+                      value={values.get(PARAMETERS.DEPARTMENT)}
+                      onInputChange={this.handleDepartmentChange}
+                      onSelect={selectAgency}
+                      options={this.getDepartmentsAsMap()}
+                      transparent
+                      short />
+                  {/* {this.renderInput(PARAMETERS.DEPARTMENT)} */}
                 </InputGroup>
               </Row>
               <Row width={46}>
@@ -458,7 +529,7 @@ class SearchParameters extends React.Component<Props> {
           </Row>
           <Row marginTop>
             <div>todo</div>
-            <InfoButton onClick={onSubmit}>Search for vehicles</InfoButton>
+            <InfoButton onClick={onSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
           </Row>
         </InnerWrapper>
       </SearchParameterWrapper>

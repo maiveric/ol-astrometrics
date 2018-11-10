@@ -4,7 +4,8 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Map } from 'immutable';
+import moment from 'moment';
+import { List, Map } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-light-svg-icons';
 
@@ -14,7 +15,8 @@ type Props = {
   vehicle :Map<*, *>,
   count :number,
   isUnselected :boolean,
-  onClick: () => void
+  onClick: () => void,
+  timestampDesc? :boolean
 };
 
 const Card = styled.div`
@@ -34,7 +36,7 @@ const Card = styled.div`
 `;
 
 const Photos = styled.div`
-  width: 100px;
+  width: 25%;
   display: flex;
   flex-direction: column;
 `;
@@ -42,7 +44,7 @@ const Photos = styled.div`
 const Details = styled.div`
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: 75%;
   font-size: 14px;
   color: #000000;
 `;
@@ -113,13 +115,20 @@ const DetailsBody = styled.div`
     justify-content: flex-start;
 
     span {
-      width: 100px;
+      min-width: 100px;
       color: rgb(145, 145, 145);
       font-weight: 300;
     }
 
     div {
       font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      i {
+        font-weight: 300;
+      }
     }
   }
 
@@ -133,8 +142,10 @@ const DetailsBody = styled.div`
 const VehicleCard = ({
   vehicle,
   count,
+  records,
   onClick,
-  isUnselected
+  isUnselected,
+  timestampDesc
 } :Props) => {
 
   const make = vehicle.getIn([PROPERTY_TYPES.MAKE, 0], '');
@@ -143,10 +154,39 @@ const VehicleCard = ({
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
   const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'California');
 
+  const makeModelString = `${make} ${model}`.trim();
+
   const addToReport = (e) => {
     e.stopPropagation();
     console.log('add to report!')
   }
+
+  const getUniqueValues = (fqn) => {
+    const allValues = records.flatMap(record => record.get(fqn, List()));
+    return allValues.filter((val, index) => allValues.indexOf(val) === index);
+  };
+
+  let timestamp;
+  records
+    .flatMap(record => record.get(PROPERTY_TYPES.TIMESTAMP, List()))
+    .map(dt => moment(dt))
+    .filter(dt => dt.isValid())
+    .forEach((dt) => {
+      if (!timestamp) {
+        timestamp = dt;
+      }
+      else {
+        const shouldReplace = timestampDesc ? dt.isAfter(timestamp) : dt.isBefore(timestamp);
+        if (shouldReplace) {
+          timestamp = dt;
+        }
+      }
+    });
+
+  const timestampStr = timestamp ? timestamp.format('MM/DD/YY hh:mm A') : '';
+
+  const devices = getUniqueValues(PROPERTY_TYPES.CAMERA_ID);
+  const departments = getUniqueValues(PROPERTY_TYPES.AGENCY_NAME);
 
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
@@ -167,20 +207,28 @@ const VehicleCard = ({
         <DetailsBody>
           <section>
             <span>Make / Model</span>
-            <div>{`${make} ${model}`}</div>
+            <div>{makeModelString.length ? makeModelString : <i>Unknown</i>}</div>
           </section>
           <section>
             <span>Timestamp</span>
-            <div>12/13/18 01:23 AM</div>
+            <div>{timestampStr}</div>
           </section>
           <section>
-            <span>Dept / Device</span>
-            <div>OPD / Device name</div>
+            <span>Dept</span>
+            <div>{departments.join(', ')}</div>
+          </section>
+          <section>
+            <span>Device</span>
+            <div>{devices.join(', ')}</div>
           </section>
         </DetailsBody>
       </Details>
     </Card>
   );
+};
+
+VehicleCard.defaultProps = {
+  timestampDesc: false
 }
 
 export default VehicleCard;

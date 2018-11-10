@@ -21,6 +21,7 @@ export const EXPLORE = {
   DRAW_MODE: 'drawMode',
   ENTITIES_BY_ID: 'entitiesById',
   ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById',
+  FILTER: 'filter',
   IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
   IS_SEARCHING_DATA: 'isSearchingData',
   SEARCH_RESULTS: 'searchResults',
@@ -28,6 +29,7 @@ export const EXPLORE = {
   SEARCH_PARAMETERS: 'searchParameters',
   SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds',
   ADDRESS_SEARCH_RESULTS: 'addressSearchResults',
+  AGENCY_SEARCH_RESULTS: 'agencySearchResults',
   DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions'
 };
 
@@ -43,5 +45,6 @@ export const PARAMETERS = {
   START: 'start',
   END: 'end',
   DEPARTMENT: 'department',
+  DEPARTMENT_ID: 'departmentId',
   DEVICE: 'device'
 };

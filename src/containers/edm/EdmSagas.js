@@ -19,24 +19,19 @@ import {
 
 import { ENTITY_SETS } from '../../utils/constants/DataModelConstants';
 
-
-const getProjectionRequest = id => ({
-  id,
-  type: 'EntitySet',
-  include: ['EntitySet', 'PropertyTypeInEntitySet']
-});
-
 function* loadDataModelWorker(action :SequenceAction) {
   try {
     yield put(loadDataModel.request(action.id));
-    const [recordEntitySetId, carsEntitySetId] = yield all([
-      call(EntityDataModelApi.getEntitySetId, ENTITY_SETS.RECORDS),
-      call(EntityDataModelApi.getEntitySetId, ENTITY_SETS.CARS)
-    ]);
-    const projection = yield call(EntityDataModelApi.getEntityDataModelProjection, [
-      getProjectionRequest(recordEntitySetId),
-      getProjectionRequest(carsEntitySetId)
-    ]);
+    const entitySetIds = yield all(
+      Object.values(ENTITY_SETS).map(name => call(EntityDataModelApi.getEntitySetId, name))
+    );
+    const projection = yield call(EntityDataModelApi.getEntityDataModelProjection, entitySetIds
+      .filter(id => !!id)
+      .map(id => ({
+        id,
+        type: 'EntitySet',
+        include: ['EntitySet', 'PropertyTypeInEntitySet']
+      })));
 
     let entitySets = Map();
     let propertyTypes = Map();
