@@ -79,20 +79,6 @@ class ExploreContainer extends React.Component<Props, State> {
     actions.loadDataModel();
   }
 
-  onSearchSubmit = () => {
-    const {
-      recordEntitySetId,
-      propertyTypesByFqn,
-      searchParameters,
-      actions
-    } = this.props;
-    actions.executeSearch({
-      entitySetId: recordEntitySetId,
-      propertyTypesByFqn,
-      searchParameters
-    });
-  }
-
   setSearchZones = (searchZones) => {
     const { actions } = this.props;
     actions.updateSearchParameters({
@@ -124,21 +110,7 @@ class ExploreContainer extends React.Component<Props, State> {
 
     return (
       <Wrapper>
-        <SearchParameters
-            entitySets={entitySets}
-            onInputChange={actions.updateSearchParameters}
-            geocodedAddresses={geocodedAddresses}
-            agencySearchResults={agencySearchResults}
-            geocodeAddress={actions.geocodeAddress}
-            selectAddress={actions.selectAddress}
-            searchAgencies={actions.searchAgencies}
-            selectAgency={actions.selectAgency}
-            isReadyToSubmit={isReadyToSubmit}
-            onSubmit={this.onSearchSubmit}
-            values={searchParameters}
-            editSearchParameters={actions.editSearchParameters}
-            setDrawMode={actions.setDrawMode}
-            isTopNav={!displayFullSearchOptions || drawMode} />
+        <SearchParameters isTopNav={!displayFullSearchOptions || drawMode} />
         {displayFullSearchOptions ? null : <Sidebar />}
         <SimpleMap
             drawMode={drawMode}

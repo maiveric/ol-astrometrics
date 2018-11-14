@@ -5,13 +5,15 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
+import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { List, Map, OrderedMap } from 'immutable';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChevronLeft,
-  faPrint,
-  faPlus
+  faPrint
 } from '@fortawesome/pro-regular-svg-icons';
 
 import {
@@ -22,26 +24,41 @@ import {
 
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
+import { getSearchFields } from './ExploreReducer';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { PARAMETERS } from '../../utils/constants/StateConstants';
+import {
+  EDM,
+  STATE,
+  EXPLORE,
+  PARAMETERS
+} from '../../utils/constants/StateConstants';
+import * as EdmActionFactory from '../edm/EdmActionFactory';
+import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
+import * as ExploreActionFactory from './ExploreActionFactory';
 
 type Props = {
-  isReadyToSubmit :boolean,
   entitySets :Map<*, *>,
-  editSearchParameters :(editing :boolean) => void,
-  geocodeAddress :(address :string) => void,
+  recordEntitySetId :string,
+  propertyTypesByFqn :Map<*, *>,
+  searchParameters :Map<*, *>,
   geocodedAddresses :List<*>,
+  isLoadingAddresses :boolean,
+  noAddressResults :boolean,
   agencySearchResults :List<*>,
-  searchAgencies :({ entitySetId :string, value :string }) => void,
-  selectAgency :(agency :Map) => void,
-  onInputChange :({ field :string, value :string }) => void,
-  selectAddress :(address :Object) => void,
-  selectAgency :(agency :Map) => void,
-  values :Map,
-  onSubmit :(searchParameters :Object) => void,
-  setDrawMode :(drawMode :boolean) => void,
-  isTopNav? :boolean
+  isLoadingAgencies :boolean,
+  noAgencyResults :boolean,
+  isTopNav? :boolean,
+  actions :{
+    editSearchParameters :(editing :boolean) => void,
+    geocodeAddress :(address :string) => void,
+    searchAgencies :({ entitySetId :string, value :string }) => void,
+    selectAgency :(agency :Map) => void,
+    updateSearchParameters :({ field :string, value :string }) => void,
+    selectAddress :(address :Object) => void,
+    executeSearch :(searchParameters :Object) => void,
+    setDrawMode :(drawMode :boolean) => void
+  }
 };
 
 const SearchParameterWrapper = styled.div`
@@ -280,10 +297,6 @@ const DrawWrapperButton = styled.button`
 
 `;
 
-const VehicleDetailsButton = styled(DrawWrapperButton)`
-  width: fit-content;
-`;
-
 class SearchParameters extends React.Component<Props> {
 
   static defaultProps = {
@@ -297,10 +310,10 @@ class SearchParameters extends React.Component<Props> {
   }
 
   handleAddressChange = (e :SyntheticEvent) => {
-    const { geocodeAddress, onInputChange } = this.props;
+    const { actions } = this.props;
     const { value } = e.target;
 
-    onInputChange({
+    actions.updateSearchParameters({
       field: PARAMETERS.ADDRESS,
       value
     });
@@ -308,15 +321,15 @@ class SearchParameters extends React.Component<Props> {
     clearTimeout(this.addressSearchTimeout);
 
     this.addressSearchTimeout = setTimeout(() => {
-      geocodeAddress(value);
+      actions.geocodeAddress(value);
     }, 500);
   }
 
   handleAddressChange = (e :SyntheticEvent) => {
-    const { geocodeAddress, onInputChange } = this.props;
+    const { actions } = this.props;
     const { value } = e.target;
 
-    onInputChange({
+    actions.updateSearchParameters({
       field: PARAMETERS.ADDRESS,
       value
     });
@@ -324,15 +337,15 @@ class SearchParameters extends React.Component<Props> {
     clearTimeout(this.addressSearchTimeout);
 
     this.addressSearchTimeout = setTimeout(() => {
-      geocodeAddress(value);
+      actions.geocodeAddress(value);
     }, 500);
   }
 
   handleDepartmentChange = (e :SyntheticEvent) => {
-    const { searchAgencies, onInputChange, entitySets } = this.props;
+    const { actions, entitySets } = this.props;
     const { value } = e.target;
 
-    onInputChange({
+    actions.updateSearchParameters({
       field: PARAMETERS.DEPARTMENT,
       value
     });
@@ -342,22 +355,22 @@ class SearchParameters extends React.Component<Props> {
     clearTimeout(this.departmentSearchTimeout);
 
     this.departmentSearchTimeout = setTimeout(() => {
-      searchAgencies({ value, entitySetId });
+      actions.searchAgencies({ value, entitySetId });
     }, 500);
   }
 
   getOnChange = (field) => {
-    const { onInputChange } = this.props;
+    const { actions } = this.props;
     return (e :SyntheticEvent) => {
       const { value } = e.target;
-      onInputChange({ field, value });
+      actions.updateSearchParameters({ field, value });
     };
   }
 
   renderInput = (field) => {
-    const { values } = this.props;
+    const { searchParameters } = this.props;
 
-    const value = values.get(field, '');
+    const value = searchParameters.get(field, '');
     const onChange = this.getOnChange(field);
 
     return <StyledInput value={value} onChange={onChange} />;
@@ -394,23 +407,38 @@ class SearchParameters extends React.Component<Props> {
   }
 
   onDateTimeChange = (newDate, field) => {
-    const { onInputChange } = this.props;
+    const { actions } = this.props;
     const value = newDate.endsWith('T')
       ? moment(newDate.slice(0, newDate.length - 1)).toISOString(true)
       : newDate;
-    onInputChange({ field, value });
+    actions.updateSearchParameters({ field, value });
+  }
+
+  onSearchSubmit = () => {
+    const {
+      recordEntitySetId,
+      propertyTypesByFqn,
+      searchParameters,
+      actions
+    } = this.props;
+    actions.executeSearch({
+      entitySetId: recordEntitySetId,
+      propertyTypesByFqn,
+      searchParameters
+    });
   }
 
   renderFullSearchParameters() {
     const {
-      isReadyToSubmit,
-      onInputChange,
-      values,
-      selectAddress,
-      selectAgency,
-      setDrawMode,
-      onSubmit
+      actions,
+      searchParameters,
+      isLoadingAddresses,
+      noAddressResults,
+      isLoadingAgencies,
+      noAgencyResults
     } = this.props;
+
+    const isReadyToSubmit = getSearchFields(searchParameters).length > 0;
 
     return (
       <SearchParameterWrapper>
@@ -427,9 +455,9 @@ class SearchParameters extends React.Component<Props> {
               <InputGroup>
                 <span>Search Reason</span>
                 <StyledSearchableSelect
-                    value={values.get(PARAMETERS.REASON)}
+                    value={searchParameters.get(PARAMETERS.REASON)}
                     searchPlaceholder="Select"
-                    onSelect={value => onInputChange({ field: PARAMETERS.REASON, value })}
+                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.REASON, value })}
                     options={this.getAsMap(SEARCH_REASONS)}
                     selectOnly
                     transparent
@@ -449,11 +477,13 @@ class SearchParameters extends React.Component<Props> {
               <InputGroup>
                 <span>Street Address</span>
                 <StyledSearchableSelect
-                    value={values.get(PARAMETERS.ADDRESS)}
+                    value={searchParameters.get(PARAMETERS.ADDRESS)}
                     searchPlaceholder="Enter address"
                     onInputChange={this.handleAddressChange}
-                    onSelect={selectAddress}
+                    onSelect={actions.selectAddress}
                     options={this.getAddressesAsMap()}
+                    isLoadingResults={isLoadingAddresses}
+                    noResults={noAddressResults}
                     transparent
                     short />
               </InputGroup>
@@ -470,10 +500,7 @@ class SearchParameters extends React.Component<Props> {
               </Row>
               <Row width={46}>
                 <span />
-                <DrawWrapperButton
-                    // TODO uncomment this
-                    // disabled={!values.get(PARAMETERS.LATITUDE) || !values.get(PARAMETERS.LONGITUDE)}
-                    onClick={() => setDrawMode(true)}>
+                <DrawWrapperButton onClick={() => actions.setDrawMode(true)}>
                   <FontAwesomeIcon icon={faPencil} />
                   <span>Draw on map</span>
                 </DrawWrapperButton>
@@ -488,7 +515,7 @@ class SearchParameters extends React.Component<Props> {
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.START)}
-                      value={values.get(PARAMETERS.START)}
+                      value={searchParameters.get(PARAMETERS.START)}
                       dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
                         placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
@@ -502,7 +529,7 @@ class SearchParameters extends React.Component<Props> {
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.END)}
-                      value={values.get(PARAMETERS.END)}
+                      value={searchParameters.get(PARAMETERS.END)}
                       dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
                         placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
@@ -515,13 +542,14 @@ class SearchParameters extends React.Component<Props> {
                 <InputGroup>
                   <span>Department (optional)</span>
                   <StyledSearchableSelect
-                      value={values.get(PARAMETERS.DEPARTMENT)}
+                      value={searchParameters.get(PARAMETERS.DEPARTMENT)}
                       onInputChange={this.handleDepartmentChange}
-                      onSelect={selectAgency}
+                      onSelect={actions.selectAgency}
                       options={this.getDepartmentsAsMap()}
+                      isLoadingResults={isLoadingAgencies}
+                      noResults={noAgencyResults}
                       transparent
                       short />
-                  {/* {this.renderInput(PARAMETERS.DEPARTMENT)} */}
                 </InputGroup>
               </Row>
               <Row width={46}>
@@ -533,11 +561,8 @@ class SearchParameters extends React.Component<Props> {
             </Row>
           </Row>
           <Row marginTop>
-            <VehicleDetailsButton>
-              <FontAwesomeIcon icon={faPlus} />
-              <span>Additional vehicle details</span>
-            </VehicleDetailsButton>
-            <InfoButton onClick={onSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
+            <div>todo</div>
+            <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
           </Row>
         </InnerWrapper>
       </SearchParameterWrapper>
@@ -550,14 +575,14 @@ class SearchParameters extends React.Component<Props> {
   }
 
   renderTopNav = () => {
-    const { editSearchParameters, values, setDrawMode } = this.props;
+    const { actions, searchParameters } = this.props;
 
     return (
       <TopNavBar>
         <TopNavSection width="230px">
           <button onClick={() => {
-            editSearchParameters(true);
-            setDrawMode(false);
+            actions.editSearchParameters(true);
+            actions.setDrawMode(false);
           }}>
             <span><FontAwesomeIcon icon={faChevronLeft} /></span>
             <div>Update search</div>
@@ -566,19 +591,19 @@ class SearchParameters extends React.Component<Props> {
         <TopNavSection>
           <TopNavButtonGroup>
             <span>Reason</span>
-            <div>{values.get(PARAMETERS.REASON)}</div>
+            <div>{searchParameters.get(PARAMETERS.REASON)}</div>
           </TopNavButtonGroup>
           <TopNavButtonGroup>
             <span>Plate number</span>
-            <div>{values.get(PARAMETERS.PLATE)}</div>
+            <div>{searchParameters.get(PARAMETERS.PLATE)}</div>
           </TopNavButtonGroup>
           <TopNavButtonGroup>
             <span>Time start</span>
-            <div>{this.formatDateTime(values.get(PARAMETERS.START))}</div>
+            <div>{this.formatDateTime(searchParameters.get(PARAMETERS.START))}</div>
           </TopNavButtonGroup>
           <TopNavButtonGroup>
             <span>Time end</span>
-            <div>{this.formatDateTime(values.get(PARAMETERS.END))}</div>
+            <div>{this.formatDateTime(searchParameters.get(PARAMETERS.END))}</div>
           </TopNavButtonGroup>
         </TopNavSection>
         <TopNavSection width="480px" distribute>
@@ -606,4 +631,53 @@ class SearchParameters extends React.Component<Props> {
   }
 }
 
-export default SearchParameters;
+function mapStateToProps(state :Map<*, *>) :Object {
+  const explore = state.get(STATE.EXPLORE);
+  const edm = state.get(STATE.EDM);
+
+  const geocodedAddresses = explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS, List());
+  const agencySearchResults = explore.get(EXPLORE.AGENCY_SEARCH_RESULTS, List());
+
+  return {
+    entitySets: edm.get(EDM.ENTITY_SETS),
+    recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
+    propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES),
+    displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
+    drawMode: explore.get(EXPLORE.DRAW_MODE),
+    filter: explore.get(EXPLORE.FILTER),
+    results: explore.get(EXPLORE.SEARCH_RESULTS),
+    selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
+    isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
+    searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS),
+    geocodedAddresses,
+    isLoadingAddresses: explore.get(EXPLORE.IS_LOADING_ADDRESSES),
+    noAddressResults: explore.get(EXPLORE.DONE_LOADING_ADDRESSES) && !geocodedAddresses.size,
+    agencySearchResults,
+    isLoadingAgencies: explore.get(EXPLORE.IS_LOADING_AGENCIES),
+    noAgencyResults: explore.get(EXPLORE.DONE_LOADING_AGENCIES) && !agencySearchResults.size
+  };
+}
+
+function mapDispatchToProps(dispatch :Function) :Object {
+  const actions :{ [string] :Function } = {};
+
+  Object.keys(EdmActionFactory).forEach((action :string) => {
+    actions[action] = EdmActionFactory[action];
+  });
+
+  Object.keys(EntitySetActionFactory).forEach((action :string) => {
+    actions[action] = EntitySetActionFactory[action];
+  });
+
+  Object.keys(ExploreActionFactory).forEach((action :string) => {
+    actions[action] = ExploreActionFactory[action];
+  });
+
+  return {
+    actions: {
+      ...bindActionCreators(actions, dispatch)
+    }
+  };
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SearchParameters));
