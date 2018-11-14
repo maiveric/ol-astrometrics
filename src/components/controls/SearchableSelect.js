@@ -8,6 +8,8 @@ import Immutable from 'immutable';
 import styled, { css } from 'styled-components';
 import { faTimes } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+import Spinner from '../spinner/Spinner';
 import downArrowIcon from '../../assets/svg/down-arrow.svg';
 
 /*
@@ -107,6 +109,18 @@ const DataTableWrapper = styled.div`
   bottom: ${props => (props.openAbove ? '45px' : 'auto')};
 `;
 
+const NoContentWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: ${props => (props.searching ? 50 : 30)}px;
+  font-size: 14px;
+  font-weight: 600;
+  font-style: italic;
+  color: #2e2e34;
+`;
+
 const SearchOption = styled.div`
   padding: 10px 20px;
 
@@ -147,7 +161,9 @@ type Props = {
   transparent? :boolean,
   openAbove? :boolean,
   selectOnly? :boolean,
-  disabled? :boolean
+  disabled? :boolean,
+  isLoadingResults? :boolean,
+  noResults? :boolean
 }
 
 type State = {
@@ -171,6 +187,8 @@ class SearchableSelect extends React.Component<Props, State> {
     openAbove: false,
     selectOnly: false,
     disabled: false,
+    isLoadingResults: false,
+    noResults: false
   };
 
   constructor(props :Props) {
@@ -232,7 +250,8 @@ class SearchableSelect extends React.Component<Props, State> {
   }
 
   renderTable = () => {
-    const options = this.state.filteredTypes.map(type => (
+    const { filteredTypes } = this.state;
+    const options = filteredTypes.map(type => (
       <SearchOption
           key={type}
           onMouseDown={() => this.handleOnSelect(type)}>
@@ -240,6 +259,36 @@ class SearchableSelect extends React.Component<Props, State> {
       </SearchOption>
     ));
     return <SearchOptionContainer>{options}</SearchOptionContainer>;
+  }
+
+  renderDropdownContents = () => {
+    const { isVisibleDataTable, searchQuery } = this.state;
+    const {
+      openAbove,
+      value,
+      isLoadingResults,
+      noResults
+    } = this.props;
+
+    if (isLoadingResults) {
+      return (
+        <DataTableWrapper isVisible openAbove={openAbove}>
+          <NoContentWrapper searching>
+            <Spinner />
+          </NoContentWrapper>
+        </DataTableWrapper>
+      );
+    }
+
+    if (isVisibleDataTable) {
+      return (
+        <DataTableWrapper isVisible={isVisibleDataTable} openAbove={openAbove}>
+          {noResults ? <NoContentWrapper>No results</NoContentWrapper> : this.renderTable()}
+        </DataTableWrapper>
+      );
+    }
+
+    return null;
   }
 
   render() {
@@ -285,15 +334,7 @@ class SearchableSelect extends React.Component<Props, State> {
               )
           }
         </SearchInputWrapper>
-        {
-          !this.state.isVisibleDataTable
-            ? null
-            : (
-              <DataTableWrapper isVisible={this.state.isVisibleDataTable} openAbove={this.props.openAbove}>
-                {this.renderTable()}
-              </DataTableWrapper>
-            )
-        }
+        {this.renderDropdownContents()}
       </SearchableSelectWrapper>
     );
   }

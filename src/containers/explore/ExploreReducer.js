@@ -40,7 +40,11 @@ const {
   IS_SEARCHING_DATA,
   SEARCH_PARAMETERS,
   SELECTED_ENTITY_KEY_IDS,
+  IS_LOADING_ADDRESSES,
+  DONE_LOADING_ADDRESSES,
   ADDRESS_SEARCH_RESULTS,
+  IS_LOADING_AGENCIES,
+  DONE_LOADING_AGENCIES,
   AGENCY_SEARCH_RESULTS,
   SEARCH_RESULTS,
   TOTAL_RESULTS
@@ -87,7 +91,11 @@ const INITIAL_STATE :Map<> = fromJS({
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
   [IS_SEARCHING_DATA]: false,
   [SEARCH_PARAMETERS]: INITIAL_SEARCH_PARAMETERS,
+  [IS_LOADING_ADDRESSES]: false,
+  [DONE_LOADING_ADDRESSES]: false,
   [ADDRESS_SEARCH_RESULTS]: List(),
+  [IS_LOADING_AGENCIES]: false,
+  [DONE_LOADING_AGENCIES]: false,
   [AGENCY_SEARCH_RESULTS]: List(),
   [SEARCH_RESULTS]: List(),
   [SELECTED_ENTITY_KEY_IDS]: Set(),
@@ -125,13 +133,17 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case geocodeAddress.case(action.type): {
       return geocodeAddress.reducer(state, action, {
-        SUCCESS: () => state.set(ADDRESS_SEARCH_RESULTS, fromJS(action.value))
+        REQUEST: () => state.set(IS_LOADING_ADDRESSES, true).set(DONE_LOADING_ADDRESSES, false),
+        SUCCESS: () => state.set(ADDRESS_SEARCH_RESULTS, fromJS(action.value)),
+        FINALLY: () => state.set(IS_LOADING_ADDRESSES, false).set(DONE_LOADING_ADDRESSES, true)
       });
     }
 
     case searchAgencies.case(action.type): {
       return searchAgencies.reducer(state, action, {
-        SUCCESS: () => state.set(AGENCY_SEARCH_RESULTS, fromJS(action.value))
+        REQUEST: () => state.set(IS_LOADING_AGENCIES, true).set(DONE_LOADING_AGENCIES, false),
+        SUCCESS: () => state.set(AGENCY_SEARCH_RESULTS, fromJS(action.value)),
+        FINALLY: () => state.set(IS_LOADING_AGENCIES, false).set(DONE_LOADING_AGENCIES, true)
       });
     }
 

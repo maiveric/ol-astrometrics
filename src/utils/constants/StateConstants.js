@@ -28,7 +28,11 @@ export const EXPLORE = {
   TOTAL_RESULTS: 'numResults',
   SEARCH_PARAMETERS: 'searchParameters',
   SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds',
+  IS_LOADING_ADDRESSES: 'isLoadingAddresses',
+  DONE_LOADING_ADDRESSES: 'doneLoadingAddresses',
   ADDRESS_SEARCH_RESULTS: 'addressSearchResults',
+  IS_LOADING_AGENCIES: 'isLoadingAgencies',
+  DONE_LOADING_AGENCIES: 'doneLoadingAgencies',
   AGENCY_SEARCH_RESULTS: 'agencySearchResults',
   DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions'
 };
