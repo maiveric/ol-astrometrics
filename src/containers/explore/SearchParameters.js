@@ -325,22 +325,6 @@ class SearchParameters extends React.Component<Props> {
     }, 500);
   }
 
-  handleAddressChange = (e :SyntheticEvent) => {
-    const { actions } = this.props;
-    const { value } = e.target;
-
-    actions.updateSearchParameters({
-      field: PARAMETERS.ADDRESS,
-      value
-    });
-
-    clearTimeout(this.addressSearchTimeout);
-
-    this.addressSearchTimeout = setTimeout(() => {
-      actions.geocodeAddress(value);
-    }, 500);
-  }
-
   handleDepartmentChange = (e :SyntheticEvent) => {
     const { actions, entitySets } = this.props;
     const { value } = e.target;
@@ -580,10 +564,12 @@ class SearchParameters extends React.Component<Props> {
     return (
       <TopNavBar>
         <TopNavSection width="230px">
-          <button onClick={() => {
-            actions.editSearchParameters(true);
-            actions.setDrawMode(false);
-          }}>
+          <button
+              type="button"
+              onClick={() => {
+                actions.editSearchParameters(true);
+                actions.setDrawMode(false);
+              }}>
             <span><FontAwesomeIcon icon={faChevronLeft} /></span>
             <div>Update search</div>
           </button>
