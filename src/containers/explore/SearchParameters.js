@@ -10,7 +10,8 @@ import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChevronLeft,
-  faPrint
+  faPrint,
+  faPlus
 } from '@fortawesome/pro-regular-svg-icons';
 
 import {
@@ -279,6 +280,10 @@ const DrawWrapperButton = styled.button`
 
 `;
 
+const VehicleDetailsButton = styled(DrawWrapperButton)`
+  width: fit-content;
+`;
+
 class SearchParameters extends React.Component<Props> {
 
   static defaultProps = {
@@ -528,7 +533,10 @@ class SearchParameters extends React.Component<Props> {
             </Row>
           </Row>
           <Row marginTop>
-            <div>todo</div>
+            <VehicleDetailsButton>
+              <FontAwesomeIcon icon={faPlus} />
+              <span>Additional vehicle details</span>
+            </VehicleDetailsButton>
             <InfoButton onClick={onSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
           </Row>
         </InnerWrapper>

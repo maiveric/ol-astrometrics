@@ -175,8 +175,17 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case EDIT_SEARCH_PARAMETERS:
-      return state.set(DISPLAY_FULL_SEARCH_OPTIONS, action.value);
+    case EDIT_SEARCH_PARAMETERS: {
+      if (action.value) {
+        return state
+          .set(DISPLAY_FULL_SEARCH_OPTIONS, action.value)
+          .setIn([SEARCH_PARAMETERS, SEARCH_ZONES], List())
+          .set(IS_SEARCHING_DATA, false)
+          .set(SEARCH_RESULTS, List())
+          .set(TOTAL_RESULTS, 0);
+      }
+      return state.set(DISPLAY_FULL_SEARCH_OPTIONS, false);
+    }
 
     case SELECT_ADDRESS:
       return state
