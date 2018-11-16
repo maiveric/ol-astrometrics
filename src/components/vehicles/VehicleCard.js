@@ -47,16 +47,16 @@ const Photos = styled.div`
 const VehicleImg = styled.img.attrs({
   alt: ''
 })`
-  width: 100%;
-  height: 48%;
+  max-width: 100%;
+  max-height: 48%;
   top: 0;
 `;
 
 const PlateImg = styled.img.attrs({
   alt: ''
 })`
-  width: 100%;
-  height: 49%;
+  max-width: 100%;
+  max-height: 49%;
   bottom: 0;
 `;
 
