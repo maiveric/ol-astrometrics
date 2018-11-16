@@ -13,6 +13,7 @@ import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 type Props = {
   vehicle :Map<*, *>,
+  records :List<*>,
   count :number,
   isUnselected :boolean,
   onClick: () => void,
@@ -39,6 +40,24 @@ const Photos = styled.div`
   width: 25%;
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
+  padding-right: 10px;
+`;
+
+const VehicleImg = styled.img.attrs({
+  alt: ''
+})`
+  width: 100%;
+  height: 48%;
+  top: 0;
+`;
+
+const PlateImg = styled.img.attrs({
+  alt: ''
+})`
+  width: 100%;
+  height: 49%;
+  bottom: 0;
 `;
 
 const Details = styled.div`
@@ -154,6 +173,9 @@ const VehicleCard = ({
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
   const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'California');
 
+  const vehicleImages = records.flatMap(record => record.get(PROPERTY_TYPES.VEHICLE_IMAGE, List()));
+  const plateImages = records.flatMap(record => record.get(PROPERTY_TYPES.LICENSE_PLATE_IMAGE, List()));
+
   const makeModelString = `${make} ${model}`.trim();
 
   const addToReport = (e) => {
@@ -191,6 +213,8 @@ const VehicleCard = ({
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
       <Photos>
+        { vehicleImages.size ? <VehicleImg src={vehicleImages.get(0)} alt="" /> : null }
+        { plateImages.size ? <PlateImg src={plateImages.get(0)} alt="" /> : null }
 
       </Photos>
       <Details>
