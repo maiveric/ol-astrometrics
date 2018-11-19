@@ -22,6 +22,13 @@ import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 
 declare var __MAPBOX_TOKEN__ :boolean;
 
+const COORDS = {
+  CONTINENTAL_US: [[-124.7844079, 24.7433195], [-66.9513812, 49.3457868]],
+  BAY_AREA: [[-123.025192, 38.117602], [-121.170329, 37.086658]]
+};
+
+const DEFAULT_COORDS = COORDS.BAY_AREA;
+
 type Props = {
   drawMode :boolean,
   entities :List<Map<*, *>>,
@@ -138,9 +145,9 @@ class SimpleMap extends React.Component<Props, State> {
   getBounds = () => {
     const { entities } = this.props;
 
-    /* Show continental US if no entities present to display */
+    /* Show bay area if no entities present to display */
     if (!entities.size) {
-      return [[-124.7844079, 24.7433195], [-66.9513812, 49.3457868]];
+      return DEFAULT_COORDS;
     }
 
     let minX;
