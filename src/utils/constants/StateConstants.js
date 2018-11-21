@@ -1,7 +1,8 @@
 export const STATE = {
   EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
-  EXPLORE: 'EXPLORE'
+  EXPLORE: 'EXPLORE',
+  PARAMETERS: 'PARAMETERS'
 };
 
 export const EDM = {
@@ -18,7 +19,6 @@ export const ENTITY_SETS = {
 
 export const EXPLORE = {
   BREADCRUMBS: 'breadcrumbs',
-  DRAW_MODE: 'drawMode',
   ENTITIES_BY_ID: 'entitiesById',
   ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById',
   FILTER: 'filter',
@@ -26,15 +26,19 @@ export const EXPLORE = {
   IS_SEARCHING_DATA: 'isSearchingData',
   SEARCH_RESULTS: 'searchResults',
   TOTAL_RESULTS: 'numResults',
-  SEARCH_PARAMETERS: 'searchParameters',
-  SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds',
+  SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds'
+};
+
+export const SEARCH_PARAMETERS = {
+  DRAW_MODE: 'drawMode',
   IS_LOADING_ADDRESSES: 'isLoadingAddresses',
   DONE_LOADING_ADDRESSES: 'doneLoadingAddresses',
   ADDRESS_SEARCH_RESULTS: 'addressSearchResults',
   IS_LOADING_AGENCIES: 'isLoadingAgencies',
   DONE_LOADING_AGENCIES: 'doneLoadingAgencies',
   AGENCY_SEARCH_RESULTS: 'agencySearchResults',
-  DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions'
+  DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions',
+  SEARCH_PARAMETERS: 'searchParameters'
 };
 
 export const PARAMETERS = {

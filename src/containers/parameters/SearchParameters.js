@@ -24,20 +24,21 @@ import {
 
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
-import { getSearchFields } from './ExploreReducer';
+import { getSearchFields } from './ParametersReducer';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   EDM,
   STATE,
   EXPLORE,
-  PARAMETERS
+  PARAMETERS,
+  SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
-import * as EdmActionFactory from '../edm/EdmActionFactory';
-import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
-import * as ExploreActionFactory from './ExploreActionFactory';
+import * as ExploreActionFactory from '../explore/ExploreActionFactory';
+import * as ParametersActionFactory from './ParametersActionFactory';
 
 type Props = {
+  isTopNav :boolean,
   entitySets :Map<*, *>,
   recordEntitySetId :string,
   propertyTypesByFqn :Map<*, *>,
@@ -48,7 +49,6 @@ type Props = {
   agencySearchResults :List<*>,
   isLoadingAgencies :boolean,
   noAgencyResults :boolean,
-  isTopNav? :boolean,
   actions :{
     editSearchParameters :(editing :boolean) => void,
     geocodeAddress :(address :string) => void,
@@ -298,10 +298,6 @@ const DrawWrapperButton = styled.button`
 `;
 
 class SearchParameters extends React.Component<Props> {
-
-  static defaultProps = {
-    isTopNav: false
-  }
 
   constructor(props :Props) {
     super(props);
@@ -620,43 +616,41 @@ class SearchParameters extends React.Component<Props> {
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const edm = state.get(STATE.EDM);
+  const params = state.get(STATE.PARAMETERS);
 
-  const geocodedAddresses = explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS, List());
-  const agencySearchResults = explore.get(EXPLORE.AGENCY_SEARCH_RESULTS, List());
+  const geocodedAddresses = params.get(SEARCH_PARAMETERS.ADDRESS_SEARCH_RESULTS, List());
+  const agencySearchResults = params.get(SEARCH_PARAMETERS.AGENCY_SEARCH_RESULTS, List());
 
   return {
     entitySets: edm.get(EDM.ENTITY_SETS),
     recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES),
-    displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
-    drawMode: explore.get(EXPLORE.DRAW_MODE),
+
     filter: explore.get(EXPLORE.FILTER),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
-    selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
-    searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS),
+    selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
+
+    searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     geocodedAddresses,
-    isLoadingAddresses: explore.get(EXPLORE.IS_LOADING_ADDRESSES),
-    noAddressResults: explore.get(EXPLORE.DONE_LOADING_ADDRESSES) && !geocodedAddresses.size,
+    isLoadingAddresses: params.get(SEARCH_PARAMETERS.IS_LOADING_ADDRESSES),
+    noAddressResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_ADDRESSES) && !geocodedAddresses.size,
     agencySearchResults,
-    isLoadingAgencies: explore.get(EXPLORE.IS_LOADING_AGENCIES),
-    noAgencyResults: explore.get(EXPLORE.DONE_LOADING_AGENCIES) && !agencySearchResults.size
+    isLoadingAgencies: params.get(SEARCH_PARAMETERS.IS_LOADING_AGENCIES),
+    noAgencyResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_AGENCIES) && !agencySearchResults.size,
+    isTopNav: params.get(SEARCH_PARAMETERS.DRAW_MODE) || !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS)
   };
 }
 
 function mapDispatchToProps(dispatch :Function) :Object {
   const actions :{ [string] :Function } = {};
 
-  Object.keys(EdmActionFactory).forEach((action :string) => {
-    actions[action] = EdmActionFactory[action];
-  });
-
-  Object.keys(EntitySetActionFactory).forEach((action :string) => {
-    actions[action] = EntitySetActionFactory[action];
-  });
-
   Object.keys(ExploreActionFactory).forEach((action :string) => {
     actions[action] = ExploreActionFactory[action];
+  });
+
+  Object.keys(ParametersActionFactory).forEach((action :string) => {
+    actions[action] = ParametersActionFactory[action];
   });
 
   return {

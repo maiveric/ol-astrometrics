@@ -10,31 +10,30 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import Sidebar from './Sidebar';
-import SearchParameters from './SearchParameters';
+import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';
-import { STATE, EXPLORE, PARAMETERS } from '../../utils/constants/StateConstants';
+import {
+  STATE,
+  EXPLORE,
+  PARAMETERS,
+  SEARCH_PARAMETERS
+} from '../../utils/constants/StateConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import * as EdmActionFactory from '../edm/EdmActionFactory';
-import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
+import * as EdmActionFactory from '../edm/EdmActionFactory';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 
 type Props = {
-  displayFullSearchOptions :boolean,
   drawMode :boolean,
+  displayFullSearchOptions :boolean,
   results :List<*>,
   selectedEntityKeyIds :Set<*>,
   searchParameters :Map<*, *>,
   filter :string,
   actions :{
-    editSearchParameters :(editing :boolean) => void,
-    executeSearch :(searchParameters :Object) => void,
-    geocodeAddress :(address :string) => void,
-    selectAddress :(address :Object) => void,
-    selectEntitySet :(entitySet? :Map<*, *>) => void,
-    setDrawMode :(drawMode :boolean) => void,
-    updateSearchParameters :({ field :string, value :string }) => void,
-    searchAgencies :({ entitySetId :string, value :string }) => void,
-    selectAgency :(agency :Map) => void
+    loadDataModel :() => void,
+    setDrawMode :(isDrawMode :boolen) => void,
+    updateSearchParameters :({ field :string, value :string }) => void
   }
 };
 
@@ -75,8 +74,8 @@ class ExploreContainer extends React.Component<Props, State> {
   render() {
     const {
       actions,
-      displayFullSearchOptions,
       drawMode,
+      displayFullSearchOptions,
       filter,
       results,
       searchParameters,
@@ -89,13 +88,13 @@ class ExploreContainer extends React.Component<Props, State> {
 
     return (
       <Wrapper>
-        <SearchParameters isTopNav={!displayFullSearchOptions || drawMode} />
+        <SearchParameters />
         {displayFullSearchOptions ? null : <Sidebar />}
         <SimpleMap
             drawMode={drawMode}
+            searchParameters={searchParameters}
             setDrawMode={actions.setDrawMode}
             setSearchZones={this.setSearchZones}
-            searchParameters={searchParameters}
             entities={entities}
             selectEntity={actions.selectEntity}
             selectedEntityKeyIds={selectedEntityKeyIds}
@@ -108,13 +107,16 @@ class ExploreContainer extends React.Component<Props, State> {
 
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
+  const params = state.get(STATE.PARAMETERS);
+
   return {
     displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
-    drawMode: explore.get(EXPLORE.DRAW_MODE),
     filter: explore.get(EXPLORE.FILTER),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
-    searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS)
+
+    searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
+    drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE)
   };
 }
 
@@ -125,12 +127,12 @@ function mapDispatchToProps(dispatch :Function) :Object {
     actions[action] = EdmActionFactory[action];
   });
 
-  Object.keys(EntitySetActionFactory).forEach((action :string) => {
-    actions[action] = EntitySetActionFactory[action];
-  });
-
   Object.keys(ExploreActionFactory).forEach((action :string) => {
     actions[action] = ExploreActionFactory[action];
+  });
+
+  Object.keys(ParametersActionFactory).forEach((action :string) => {
+    actions[action] = ParametersActionFactory[action];
   });
 
   return {

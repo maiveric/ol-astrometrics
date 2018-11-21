@@ -140,6 +140,7 @@ class Sidebar extends React.Component<Props, State> {
               hitTypes = hitTypes.push(hitType);
             }
           })));
+
     return [
       {
         label: 'All',
