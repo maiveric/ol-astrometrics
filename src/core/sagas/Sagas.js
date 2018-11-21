@@ -9,6 +9,7 @@ import * as AppSagas from '../../containers/app/AppSagas';
 import * as EdmSagas from '../../containers/edm/EdmSagas';
 import * as EntitySetSagas from '../../containers/entitysets/EntitySetSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
+import * as ParametersSagas from '../../containers/parameters/ParametersSagas';
 
 export default function* sagas() :Generator<*, *, *> {
 
@@ -31,9 +32,11 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* ExploreSagas */
     fork(ExploreSagas.executeSearchWatcher),
-    fork(ExploreSagas.geocodeAddressWatcher),
     fork(ExploreSagas.loadEntityNeighborsWatcher),
-    fork(ExploreSagas.searchAgenciesWatcher)
+
+    /* ParametersSagas */
+    fork(ParametersSagas.geocodeAddressWatcher),
+    fork(ParametersSagas.searchAgenciesWatcher)
 
   ];
 }
