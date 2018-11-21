@@ -110,11 +110,11 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const params = state.get(STATE.PARAMETERS);
 
   return {
-    displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
     filter: explore.get(EXPLORE.FILTER),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
 
+    displayFullSearchOptions: params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE)
   };
