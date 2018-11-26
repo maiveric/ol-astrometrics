@@ -16,13 +16,15 @@ import VehicleCard from '../../components/vehicles/VehicleCard';
 import {
   EDM,
   STATE,
-  EXPLORE
+  EXPLORE,
+  REPORT
 } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
+import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
   recordEntitySetId :string,
@@ -43,7 +45,9 @@ type Props = {
     selectEntity :(entityKeyId :string) => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
     updateSearchParameters :({ field :string, value :string }) => void,
-    setFilter :(filter :string) => void
+    setFilter :(filter :string) => void,
+    addVehicleToReport :(entityKeyId :string) => void,
+    removeVehicleFromReport :(entityKeyId :string) => void,
   }
 };
 
@@ -275,7 +279,8 @@ class Sidebar extends React.Component<Props, State> {
       selectedEntityKeyIds,
       searchParameters,
       isLoadingResults,
-      isLoadingNeighbors
+      isLoadingNeighbors,
+      reportVehicles
     } = this.props;
     const { sort } = this.state;
 
@@ -297,12 +302,18 @@ class Sidebar extends React.Component<Props, State> {
         <VehicleListWrapper>
           {sortedVehicles.map((vehicle) => {
             const entityKeyId = getEntityKeyId(vehicle);
+            const isInReport = reportVehicles.has(entityKeyId);
+            const toggleReport = isInReport
+              ? () => actions.removeVehicleFromReport(entityKeyId)
+              : () => actions.addVehicleToReport(entityKeyId);
             return (
               <VehicleCard
                   key={entityKeyId}
                   isUnselected={selectedEntityKeyIds.size && !selectedEntityKeyIds.has(entityKeyId)}
                   onClick={() => this.onVehicleClick(entityKeyId)}
                   vehicle={vehicle}
+                  isInReport={isInReport}
+                  toggleReport={toggleReport}
                   records={recordsByVehicleId.get(entityKeyId, List())}
                   count={recordsByVehicleId.get(entityKeyId).size}
                   timestampDesc={sort === SORT_TYPE.NEWEST} />
@@ -318,6 +329,7 @@ class Sidebar extends React.Component<Props, State> {
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const edm = state.get(STATE.EDM);
+  const report = state.get(STATE.REPORT);
   return {
     recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
     displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
@@ -328,7 +340,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
     searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS),
     geocodedAddresses: explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS),
-    filter: explore.get(EXPLORE.FILTER)
+    filter: explore.get(EXPLORE.FILTER),
+    reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };
 }
 
@@ -345,6 +358,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ExploreActionFactory).forEach((action :string) => {
     actions[action] = ExploreActionFactory[action];
+  });
+
+  Object.keys(ReportActionFactory).forEach((action :string) => {
+    actions[action] = ReportActionFactory[action];
   });
 
   return {

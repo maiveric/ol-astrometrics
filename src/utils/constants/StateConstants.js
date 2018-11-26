@@ -2,7 +2,8 @@ export const STATE = {
   EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
   EXPLORE: 'EXPLORE',
-  PARAMETERS: 'PARAMETERS'
+  PARAMETERS: 'PARAMETERS',
+  REPORT: 'REPORT'
 };
 
 export const EDM = {
@@ -39,6 +40,10 @@ export const SEARCH_PARAMETERS = {
   AGENCY_SEARCH_RESULTS: 'agencySearchResults',
   DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions',
   SEARCH_PARAMETERS: 'searchParameters'
+};
+
+export const REPORT = {
+  VEHICLE_ENTITY_KEY_IDS: 'vehicleEntityKeyIds'
 };
 
 export const PARAMETERS = {

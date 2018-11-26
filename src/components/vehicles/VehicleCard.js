@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-light-svg-icons';
+import { faTimes, faPlus } from '@fortawesome/pro-light-svg-icons';
 
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
@@ -17,7 +17,9 @@ type Props = {
   count :number,
   isUnselected :boolean,
   onClick: () => void,
-  timestampDesc? :boolean
+  timestampDesc? :boolean,
+  isInReport :boolean,
+  toggleReport :() => void
 };
 
 const Card = styled.div`
@@ -94,25 +96,25 @@ const DetailsHeader = styled.div`
 
   button {
     border-radius: 3px;
-    background-color: #f0f0f7;
+    background-color: ${props => (props.isInReport ? '#8e929b' : '#f0f0f7')};
     height: 30px;
     padding: 0 10px;
     border: none;
-    color: #b7bbc6;
+    color: ${props => (props.isInReport ? '#ffffff' : '#b7bbc6')};
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
 
     span {
-      color: #414345;
+      color: ${props => (props.isInReport ? '#ffffff' : '#414345')};
       margin-left: 5px;
       font-size: 12px;
       font-weight: 400;
     }
 
     &:hover {
-      background-color: #dcdce7;
+      background-color: ${props => (props.isInReport ? '#555e6f' : '#dcdce7')};
       cursor: pointer;
     }
 
@@ -164,7 +166,9 @@ const VehicleCard = ({
   records,
   onClick,
   isUnselected,
-  timestampDesc
+  timestampDesc,
+  isInReport,
+  toggleReport
 } :Props) => {
 
   const make = vehicle.getIn([PROPERTY_TYPES.MAKE, 0], '');
@@ -178,10 +182,10 @@ const VehicleCard = ({
 
   const makeModelString = `${make} ${model}`.trim();
 
-  const addToReport = (e) => {
+  const onToggleReport = (e) => {
     e.stopPropagation();
-    console.log('add to report!')
-  }
+    toggleReport();
+  };
 
   const getUniqueValues = (fqn) => {
     const allValues = records.flatMap(record => record.get(fqn, List()));
@@ -209,6 +213,8 @@ const VehicleCard = ({
 
   const devices = getUniqueValues(PROPERTY_TYPES.CAMERA_ID);
   const departments = getUniqueValues(PROPERTY_TYPES.AGENCY_NAME);
+  const reportText = isInReport ? 'Remove from report' : 'Add to report';
+  const reportIcon = isInReport ? faTimes : faPlus;
 
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
@@ -218,14 +224,14 @@ const VehicleCard = ({
 
       </Photos>
       <Details>
-        <DetailsHeader>
+        <DetailsHeader isInReport={isInReport}>
           <section>
             <span>{state}</span>
             <span>{plate}</span>
           </section>
-          <button onClick={addToReport}>
-            <FontAwesomeIcon icon={faPlus} />
-            <span>Add to report</span>
+          <button onClick={onToggleReport}>
+            <FontAwesomeIcon icon={reportIcon} />
+            <span>{reportText}</span>
           </button>
         </DetailsHeader>
         <DetailsBody>

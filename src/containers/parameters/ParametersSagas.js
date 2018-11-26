@@ -13,7 +13,7 @@ import {
   searchAgencies
 } from './ParametersActionFactory';
 
-const GEOCODER_URL_PREFIX = 'http://ec2-160-1-30-195.us-gov-west-1.compute.amazonaws.com/nominatim/search/';
+const GEOCODER_URL_PREFIX = 'https://osm.openlattice.com/nominatim/search/';
 const GEOCODER_URL_SUFFIX = '?format=json';
 
 function* geocodeAddressWorker(action :SequenceAction) :Generator<*, *, *> {
