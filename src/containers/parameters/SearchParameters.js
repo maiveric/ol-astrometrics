@@ -32,9 +32,11 @@ import {
   STATE,
   EXPLORE,
   PARAMETERS,
+  REPORT,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
+import * as ReportActionFactory from '../report/ReportActionFactory';
 import * as ParametersActionFactory from './ParametersActionFactory';
 
 type Props = {
@@ -49,6 +51,7 @@ type Props = {
   agencySearchResults :List<*>,
   isLoadingAgencies :boolean,
   noAgencyResults :boolean,
+  recordVehicles :Set<*>,
   actions :{
     editSearchParameters :(editing :boolean) => void,
     geocodeAddress :(address :string) => void,
@@ -57,7 +60,8 @@ type Props = {
     updateSearchParameters :({ field :string, value :string }) => void,
     selectAddress :(address :Object) => void,
     executeSearch :(searchParameters :Object) => void,
-    setDrawMode :(drawMode :boolean) => void
+    setDrawMode :(drawMode :boolean) => void,
+    exportReport :(vehicleIds :Set) => void
   }
 };
 
@@ -597,7 +601,7 @@ class SearchParameters extends React.Component<Props> {
             <FontAwesomeIcon icon={faBell} />
             <div>Set alerts</div>
           </TopNavLargeButton>
-          <TopNavLargeButton>
+          <TopNavLargeButton onClick={actions.exportReport}>
             <FontAwesomeIcon icon={faPrint} />
             <div>Export</div>
           </TopNavLargeButton>
@@ -617,6 +621,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const edm = state.get(STATE.EDM);
   const params = state.get(STATE.PARAMETERS);
+  const report = state.get(STATE.REPORT);
 
   const geocodedAddresses = params.get(SEARCH_PARAMETERS.ADDRESS_SEARCH_RESULTS, List());
   const agencySearchResults = params.get(SEARCH_PARAMETERS.AGENCY_SEARCH_RESULTS, List());
@@ -638,7 +643,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
     agencySearchResults,
     isLoadingAgencies: params.get(SEARCH_PARAMETERS.IS_LOADING_AGENCIES),
     noAgencyResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_AGENCIES) && !agencySearchResults.size,
-    isTopNav: params.get(SEARCH_PARAMETERS.DRAW_MODE) || !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS)
+    isTopNav: params.get(SEARCH_PARAMETERS.DRAW_MODE) || !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
+
+    reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };
 }
 
@@ -651,6 +658,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ParametersActionFactory).forEach((action :string) => {
     actions[action] = ParametersActionFactory[action];
+  });
+
+  Object.keys(ReportActionFactory).forEach((action :string) => {
+    actions[action] = ReportActionFactory[action];
   });
 
   return {
