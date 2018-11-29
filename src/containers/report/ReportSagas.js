@@ -38,16 +38,6 @@ const X_MAX = 200;
 const Y_INC = 5;
 const Y_INC_SMALL = 4;
 const Y_INC_LARGE = 7;
-const SCORE_OFFSET = 5;
-const RESPONSE_OFFSET = (X_MAX * 2) / 3;
-const GENERATED_RISK_FACTOR_OFFSET = X_MARGIN + 5;
-const BOX_MARGIN = X_MARGIN + 5;
-const BOX_HEIGHT = 8;
-const BOX_WIDTH = ((X_MAX / 2) - (2 * BOX_MARGIN)) / 6;
-
-const X_COL_1 = X_MARGIN;
-const X_COL_2 = (X_MAX / 2) - 30;
-const X_COL_3 = (X_MAX / 2) + 10;
 
 const getReportTitle = (searchParameters) => {
   const now = moment().format('MM-DD-YYYY-h:mma');
@@ -60,7 +50,7 @@ const newPage = (doc :Object, pageInit :number, name? :string) :number[] => {
   if (name) {
     doc.setFontSize(12);
     doc.setFontType('normal');
-    doc.text(10, X_COL_1, `${name} - ${page}`);
+    doc.text(10, X_MARGIN, `${name} - ${page}`);
   }
   doc.setFontSize(10);
   thickLine(doc, 15);
@@ -79,7 +69,7 @@ const tryIncrementPage = (doc :Object, yInit :number, pageInit :number, name :st
 const thinLine = (doc :Object, y :number, xOffset? :number) :void => {
   doc.setLineWidth(0.1);
   doc.setDrawColor(152);
-  const x = xOffset || X_COL_1;
+  const x = xOffset || X_MARGIN;
   doc.line(x, y, X_MAX - X_MARGIN, y);
   doc.setFont('helvetica', 'normal');
 };
@@ -264,18 +254,6 @@ function* exportReportWorker(action :SequenceAction) :Generator<*, *, *> {
 
   try {
     yield put(exportReport.request(action.id));
-
-    // const resp = yield call(axios, {
-    //   method: 'get',
-    //   url: MOCK_URL,
-    //   responseType: 'arraybuffer'
-    // });
-    //
-    // const arr = new Uint8Array(resp.data);
-    // const raw = String.fromCharCode.apply(null, arr);
-    // const b64 = btoa(raw);
-    // const dataURL = `data:image/jpeg;base64,${b64}`;
-
 
     const caseNum = searchParameters.get(PARAMETERS.CASE_NUMBER, '');
     const headerText = `Vehicle Report - ${caseNum} - ${moment().format(DATE_FORMAT)}`;
