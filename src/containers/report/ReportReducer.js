@@ -3,7 +3,6 @@
  */
 
 import {
-  List,
   Map,
   Set,
   fromJS

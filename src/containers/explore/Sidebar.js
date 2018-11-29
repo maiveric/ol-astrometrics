@@ -21,6 +21,7 @@ import {
 } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
+import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
@@ -47,7 +48,7 @@ type Props = {
     updateSearchParameters :({ field :string, value :string }) => void,
     setFilter :(filter :string) => void,
     addVehicleToReport :(entityKeyId :string) => void,
-    removeVehicleFromReport :(entityKeyId :string) => void,
+    removeVehicleFromReport :(entityKeyId :string) => void
   }
 };
 
@@ -185,32 +186,9 @@ class Sidebar extends React.Component<Props, State> {
   getVehicleList = () => {
     const { filter, results, neighborsById } = this.props;
 
-    let recordsByVehicleId = Map();
-    let seen = Set();
-    const vehicleList = results.flatMap((record) => {
-      return neighborsById.get(getEntityKeyId(record), List()).map(neighbor => [neighbor, record]);
-    }).filter(([neighbor]) => neighbor.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS);
-
-    vehicleList.forEach(([neighbor, record]) => {
-      const entityKeyId = getEntityKeyId(neighbor.get('neighborDetails'));
-      seen = seen.add(entityKeyId);
-      recordsByVehicleId = recordsByVehicleId.set(
-        entityKeyId,
-        recordsByVehicleId.get(entityKeyId, List()).push(record)
-      );
-    });
-
-    const vehicles = vehicleList.map(([val]) => val).filter((entity) => {
-      const entityKeyId = getEntityKeyId(entity.get('neighborDetails'));
-
-      const matchesFilter = !filter.length || recordsByVehicleId
-        .get(entityKeyId)
-        .flatMap(record => record.get(PROPERTY_TYPES.HIT_TYPE, List()))
-        .filter(hitType => hitType === filter).size > 0;
-      const shouldInclude = seen.has(entityKeyId) && matchesFilter;
-      seen = seen.delete(entityKeyId);
-      return shouldInclude;
-    });
+    const vehicleList = getVehicleList(results, neighborsById);
+    const recordsByVehicleId = getRecordsByVehicleId(vehicleList);
+    const vehicles = getFilteredVehicles(vehicleList, recordsByVehicleId, filter);
 
     return { vehicles, recordsByVehicleId };
   }
