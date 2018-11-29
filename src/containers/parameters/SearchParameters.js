@@ -24,6 +24,8 @@ import {
 
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
+import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
+import { getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from './ParametersReducer';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -51,7 +53,11 @@ type Props = {
   agencySearchResults :List<*>,
   isLoadingAgencies :boolean,
   noAgencyResults :boolean,
-  recordVehicles :Set<*>,
+  isLoadingResults :boolean,
+  isLoadingNeighbors :boolean,
+  reportVehicles :Set<*>,
+  results :List<*>,
+  neighborsById :Map<*, *>,
   actions :{
     editSearchParameters :(editing :boolean) => void,
     geocodeAddress :(address :string) => void,
@@ -255,12 +261,21 @@ const TopNavLargeButton = styled.button`
     height: 20px;
   }
 
-  div {
+  div, a {
     margin-left: 10px;
     font-size: 16px;
   }
 
-  &:hover {
+  a {
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-decoration: none !important;
+
+    &:hover {
+      color: #ffffff !important;
+    }
+  }
+
+  &:hover:enabled {
     cursor: pointer;
     color: #ffffff;
   }
@@ -559,7 +574,15 @@ class SearchParameters extends React.Component<Props> {
   }
 
   renderTopNav = () => {
-    const { actions, searchParameters } = this.props;
+    const {
+      actions,
+      searchParameters,
+      isLoadingResults,
+      isLoadingNeighbors,
+      reportVehicles,
+      results,
+      neighborsById
+    } = this.props;
 
     return (
       <TopNavBar>
@@ -601,7 +624,14 @@ class SearchParameters extends React.Component<Props> {
             <FontAwesomeIcon icon={faBell} />
             <div>Set alerts</div>
           </TopNavLargeButton>
-          <TopNavLargeButton onClick={actions.exportReport}>
+          <TopNavLargeButton
+              onClick={() => actions.exportReport({
+                searchParameters,
+                reportVehicles,
+                results,
+                neighborsById
+              })}
+              disabled={isLoadingResults || isLoadingNeighbors}>
             <FontAwesomeIcon icon={faPrint} />
             <div>Export</div>
           </TopNavLargeButton>
@@ -633,7 +663,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
     filter: explore.get(EXPLORE.FILTER),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
+    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
+    isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
 
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
