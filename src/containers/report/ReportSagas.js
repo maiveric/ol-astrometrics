@@ -288,7 +288,7 @@ function* exportReportWorker(action :SequenceAction) :Generator<*, *, *> {
       .filter(entity => reportVehicles.has(getEntityKeyId(entity)))
       .sort((v1, v2) => (v1.getIn([PROPERTY_TYPES.PLATE, 0], '') < v2.getIn([PROPERTY_TYPES.PLATE, 0], '') ? -1 : 1));
 
-    yield call(loadImageDataMap, recordsByVehicleId, vehicleList.map(val => getEntityKeyId(val)));
+    // const imageDataMap = yield call(loadImageDataMap, recordsByVehicleId, vehicleList.map(val => getEntityKeyId(val)));
 
     let y = 15;
     let page = 1;
