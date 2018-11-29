@@ -202,6 +202,7 @@ class SearchableSelect extends React.Component<Props, State> {
     };
   }
 
+
   componentWillReceiveProps(nextProps :Props) {
 
     this.setState({
@@ -209,6 +210,8 @@ class SearchableSelect extends React.Component<Props, State> {
       searchQuery: ''
     });
   }
+
+  buttonRef = React.createRef();
 
   hideDataTable = () => {
 
@@ -219,12 +222,17 @@ class SearchableSelect extends React.Component<Props, State> {
   }
 
   showDataTable = (e) => {
-    e.stopPropagation()
+    e.stopPropagation();
 
     this.setState({
       isVisibleDataTable: true,
       searchQuery: ''
     });
+
+    if (this.buttonRef && this.buttonRef.focus) {
+      this.buttonRef.focus();
+    }
+
   }
 
   handleOnSelect = (label :string) => {
@@ -300,6 +308,9 @@ class SearchableSelect extends React.Component<Props, State> {
           {
             this.props.selectOnly ? (
               <SearchButton
+                  innerRef={(ref) => {
+                    this.buttonRef = ref;
+                  }}
                   disabled={this.props.disabled}
                   transparent={this.props.transparent}
                   onBlur={this.hideDataTable}
