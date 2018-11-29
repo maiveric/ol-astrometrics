@@ -13,6 +13,7 @@ import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChevronLeft,
+  faPlus,
   faPrint
 } from '@fortawesome/pro-regular-svg-icons';
 
@@ -285,10 +286,10 @@ const TopNavLargeButton = styled.button`
   }
 `;
 
-const DrawWrapperButton = styled.button`
+const ButtonWrapper = styled.button`
   background: transparent;
   border: none;
-  width: 100%;
+  width: ${props => (props.fitContent ? 'fit-content' : '100%')};
   margin-top: 20px;
   display: flex;
   flex-direction: row;
@@ -499,10 +500,10 @@ class SearchParameters extends React.Component<Props> {
               </Row>
               <Row width={46}>
                 <span />
-                <DrawWrapperButton onClick={() => actions.setDrawMode(true)}>
+                <ButtonWrapper onClick={() => actions.setDrawMode(true)}>
                   <FontAwesomeIcon icon={faPencil} />
                   <span>Draw on map</span>
-                </DrawWrapperButton>
+                </ButtonWrapper>
               </Row>
             </Row>
           </Row>
@@ -560,7 +561,10 @@ class SearchParameters extends React.Component<Props> {
             </Row>
           </Row>
           <Row marginTop>
-            <div>todo</div>
+            <ButtonWrapper fitContent disabled>
+              <FontAwesomeIcon icon={faPlus} />
+              <span>Additional Details</span>
+            </ButtonWrapper>
             <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
           </Row>
         </InnerWrapper>
