@@ -79,7 +79,7 @@ if (APP_ROOT_NODE) {
   ReactDOM.render(
     <Provider store={reduxStore}>
       <ConnectedRouter history={routerHistory}>
-        <AuthRoute path={Routes.ROOT} component={AppContainer} />
+        <AuthRoute path={Routes.ROOT} component={AppContainer} redirectToLogin />
       </ConnectedRouter>
     </Provider>,
     APP_ROOT_NODE
