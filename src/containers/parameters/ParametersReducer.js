@@ -61,8 +61,8 @@ const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
   [LONGITUDE]: '',
   [RADIUS]: '',
   [SEARCH_ZONES]: [],
-  [START]: '',
-  [END]: '',
+  [START]: moment().subtract(1, 'year').toISOString(true),
+  [END]: moment().toISOString(true),
   [DEPARTMENT]: '',
   [DEPARTMENT_ID]: '',
   [DEVICE]: ''
@@ -157,7 +157,7 @@ export function getSearchFields(search :Map<*, *>) {
 
   const start = moment(search.get(START, ''));
   const end = moment(search.get(END, ''));
-  if (start.isValid() && end.isValid() && end.diff(start, 'years', true) <= 1) {
+  if (start.isValid() && end.isValid()) {
     searchFields.push(SEARCH_TYPES.TIME_RANGE);
     numRequiredFields += 1;
   }
