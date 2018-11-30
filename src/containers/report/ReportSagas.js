@@ -26,6 +26,8 @@ import {
 
 const { OPENLATTICE_ID_FQN } = Constants;
 
+declare var __MAPBOX_TOKEN__;
+
 const DATE_FORMAT = 'MM/DD/YYYY h:mm a';
 
 const MAX_Y = 260;
@@ -35,13 +37,19 @@ const FONT_SIZE = 10;
 const X_MARGIN = 10;
 const X_MARGIN_INDENT = 15;
 const X_MAX = 200;
-const IMG_MIN = 50;
-const IMG_MAX = 150;
+const IMG_SIZE = 50;
 const Y_INC = 5;
 const Y_INC_SMALL = 4;
 const Y_INC_LARGE = 7;
 
 const PIXEL_TO_MM_MULTIPLIER = 25;
+const MAP_IMG_PIXELS = 600;
+
+const getStaticMapPathCall = (lat, long) => call(axios, {
+  method: 'get',
+  url: `https://api.mapbox.com/v4/mapbox.streets/pin-l-car+000(${long},${lat})/${long},${lat},15/${MAP_IMG_PIXELS}x${MAP_IMG_PIXELS}.png?access_token=${__MAPBOX_TOKEN__}`,
+  responseType: 'arraybuffer'
+});
 
 const thinLine = (doc :Object, y :number, xOffset? :number) :void => {
   doc.setLineWidth(0.1);
@@ -137,7 +145,8 @@ const recordImages = (
   pageInit :number,
   headerText :string,
   data :Map,
-  imageDataMap :Map
+  imageDataMap :Map,
+  locationDataMap :Map
 ) => {
   let [y, page] = tryIncrementPage(doc, yInit, pageInit, headerText);
 
@@ -146,6 +155,8 @@ const recordImages = (
 
   const licenseImg = imageDataMap.get(licenseUrl);
   const vehicleImg = imageDataMap.get(vehicleUrl);
+
+  const locationImg = locationDataMap.get(getEntityKeyId(data));
 
   if ((licenseImg && y + licenseImg.height > MAX_Y) || (vehicleImg && y + vehicleImg.height > MAX_Y)) {
     [y, page] = newPage(doc, page, headerText);
@@ -167,6 +178,16 @@ const recordImages = (
       maxHeight = height;
     }
     doc.addImage(imgSrc, 'JPEG', xOffset, y, width, height);
+    xOffset += width + X_MARGIN;
+  }
+
+  if (locationImg) {
+    const { height, width, imgSrc } = locationImg;
+    if (height > maxHeight) {
+      maxHeight = height;
+    }
+    doc.addImage(imgSrc, 'JPEG', xOffset, y, width, height);
+    xOffset += width + X_MARGIN;
   }
 
   if (maxHeight > 0) {
@@ -182,7 +203,8 @@ const record = (
   pageInit :number,
   headerText :string,
   data :Map,
-  imageDataMap :Map
+  imageDataMap :Map,
+  locationDataMap :Map
 ) => {
   let [y, page] = tryIncrementPage(doc, yInit, pageInit, headerText);
 
@@ -193,7 +215,7 @@ const record = (
   const coords = data.getIn([PROPERTY_TYPES.COORDINATE, 0], 'Unknown');
   const dateTimeStr = dateTime.isValid() ? dateTime.format('M/D/YYYY h:mm a') : 'Unknown';
 
-  [y, page] = recordImages(doc, y, page, headerText, data, imageDataMap);
+  [y, page] = recordImages(doc, y, page, headerText, data, imageDataMap, locationDataMap);
   [y, page] = tryIncrementPage(doc, y, page, headerText);
 
   doc.setFontSize(FONT_SIZE);
@@ -218,7 +240,8 @@ const vehicleDetails = (
   headerText :string,
   vehicle :Map,
   records :List,
-  imageDataMap :Map
+  imageDataMap :Map,
+  locationDataMap :Map
 ) => {
   let [y, page] = tryIncrementPage(doc, yInit, pageInit, headerText);
 
@@ -233,7 +256,7 @@ const vehicleDetails = (
     .sort((r1, r2) => (moment(r1.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''))
       .isBefore(r2.getIn([PROPERTY_TYPES.TIMESTAMP, 0], '')) ? -1 : 1))
     .forEach((sortedRecord, index) => {
-      [y, page] = record(doc, y, page, headerText, sortedRecord, imageDataMap);
+      [y, page] = record(doc, y, page, headerText, sortedRecord, imageDataMap, locationDataMap);
       if (index !== records.size - 1) {
         thinLine(doc, y);
         y += Y_INC_LARGE * 2;
@@ -252,7 +275,8 @@ const vehicles = (
   headerText :string,
   vehicleList :List,
   recordsByVehicleId :Map,
-  imageDataMap :Map
+  imageDataMap :Map,
+  locationDataMap :Map
 ) :number => {
   let y = yInit;
 
@@ -271,7 +295,8 @@ const vehicles = (
       headerText,
       vehicle,
       recordsByVehicleId.get(getEntityKeyId(vehicle), List()),
-      imageDataMap
+      imageDataMap,
+      locationDataMap
     );
   });
 
@@ -292,25 +317,60 @@ const getImageDimensions = (dataURL) => {
     const img = new Image();
     img.onload = () => {
       let { width, height } = img;
+
+      /* Step 1: resize height / wid0th to millimeter sizes */
       width /= PIXEL_TO_MM_MULTIPLIER;
       height /= PIXEL_TO_MM_MULTIPLIER;
 
-      if (width > IMG_MAX) {
-        const multiplier = IMG_MAX / width;
-        width = IMG_MAX;
-        height *= multiplier;
-      }
-      else if (width < IMG_MIN) {
-        const multiplier = IMG_MIN / width;
-        width = IMG_MIN;
-        height *= multiplier;
-      }
+      /* Step 2: resize to desired image width, while maintaining proportions */
+      const multiplier = IMG_SIZE / width;
+      width = IMG_SIZE;
+      height *= multiplier;
 
       resolve({ width, height });
     };
     img.src = dataURL;
   });
 };
+
+const responseToBase64 = (response) => {
+  if (response && response.data) {
+    const arr = new Uint8Array(response.data);
+    let binary = '';
+    arr.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    const base64Str = btoa(binary);
+    return `data:image/jpeg;base64,${base64Str}`;
+  }
+  return null;
+};
+
+function* loadRecordLocationImages(recordsByVehicleId :Map, vehicleIds :List) {
+  const coords = recordsByVehicleId.entrySeq()
+    .filter(([key]) => vehicleIds.includes(key))
+    .flatMap(([key, value]) => value).map((neighborDetails) => {
+      const entityKeyId = getEntityKeyId(neighborDetails);
+      const [lat, long] = neighborDetails.getIn([PROPERTY_TYPES.COORDINATE, 0], '').split(',');
+      return [entityKeyId, lat, long];
+    })
+    .filter(val => !!val[1] && !!val[1].length && !!val[2] && !!val[2].length);
+
+  let images = yield all(coords.toJS().map(([id, lat, long]) => getStaticMapPathCall(lat, long)));
+  images = images.map(responseToBase64);
+
+  let idToImage = Map();
+  coords.forEach(([id], index) => {
+    const imgSrc = images[index];
+    idToImage = idToImage.set(id, {
+      imgSrc,
+      height: IMG_SIZE,
+      width: IMG_SIZE
+    });
+  });
+
+  return idToImage;
+}
 
 function* loadImageDataMap(recordsByVehicleId :Map, vehicleIds :List) {
   const urls = recordsByVehicleId.entrySeq()
@@ -324,15 +384,7 @@ function* loadImageDataMap(recordsByVehicleId :Map, vehicleIds :List) {
     .filter(val => !!val);
 
   let images = yield all(urls.toJS().map(getLoadImageDataCall));
-  images = images.map((resp) => {
-    if (resp && resp.data) {
-      const arr = new Uint8Array(resp.data);
-      const raw = String.fromCharCode.apply(null, arr);
-      const base64Str = btoa(raw);
-      return `data:image/jpeg;base64,${base64Str}`;
-    }
-    return null;
-  });
+  images = images.map(responseToBase64);
 
   const dimensions = yield all(images.map(getImageDimensions));
 
@@ -368,7 +420,11 @@ function* exportReportWorker(action :SequenceAction) :Generator<*, *, *> {
       .filter(entity => reportVehicles.has(getEntityKeyId(entity)))
       .sort((v1, v2) => (v1.getIn([PROPERTY_TYPES.PLATE, 0], '') < v2.getIn([PROPERTY_TYPES.PLATE, 0], '') ? -1 : 1));
 
-    const imageDataMap = yield call(loadImageDataMap, recordsByVehicleId, vehicleList.map(val => getEntityKeyId(val)));
+    const vehicleIds = vehicleList.map(val => getEntityKeyId(val));
+    const [imageDataMap, locationDataMap] = yield all([
+      call(loadImageDataMap, recordsByVehicleId, vehicleIds),
+      call(loadRecordLocationImages, recordsByVehicleId, vehicleIds)
+    ]);
 
     let y = 15;
     let page = 1;
@@ -377,7 +433,7 @@ function* exportReportWorker(action :SequenceAction) :Generator<*, *, *> {
 
     y = header(doc, y, headerText);
     y = searchDetails(doc, y, searchParameters);
-    y = vehicles(doc, y, headerText, vehicleList, recordsByVehicleId, imageDataMap);
+    y = vehicles(doc, y, headerText, vehicleList, recordsByVehicleId, imageDataMap, locationDataMap);
 
     doc.save(getReportTitle(searchParameters));
 
