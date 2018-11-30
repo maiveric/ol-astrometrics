@@ -14,7 +14,6 @@ import reactMapboxGl, {
 import { List, Map, Set } from 'immutable';
 
 import mapMarker from '../../assets/images/map-marker.png';
-import { MAPBOX_TOKEN } from '../../utils/constants/Constants';
 import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
@@ -41,7 +40,7 @@ type Props = {
 };
 
 type State = {
-
+  fitToBounds :boolean
 };
 
 const Wrapper = styled.div`
@@ -138,8 +137,18 @@ class SimpleMap extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-
+      fitToBounds: true
     };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { entities } = this.props;
+    if (!nextProps.entities.size || entities !== nextProps.entities) {
+      this.setState({ fitToBounds: true });
+    }
+    else {
+      this.setState({ fitToBounds: false });
+    }
   }
 
   getBounds = () => {
@@ -281,7 +290,7 @@ class SimpleMap extends React.Component<Props, State> {
       <DrawModeInstructionBox>
         <section>
           <span>Drawing mode</span>
-          <div>Maybe we could give minor UI instructions about adding multiple geospatial areas</div>
+          <div>Define as many search zones as you want by selecting the square icon in the bottom lefthand corner and drawing polygons on the map.</div>
         </section>
         <section>
           <button onClick={this.saveSearchZones}>Save search zones</button>
@@ -465,19 +474,24 @@ class SimpleMap extends React.Component<Props, State> {
 
   render() {
     const { drawMode, heatmap } = this.props;
+    const { fitToBounds } = this.state;
+
+    const optionalProps = fitToBounds ? {
+      fitBounds: this.getBounds(),
+      fitBoundsOptions: {
+        padding: {
+          top: 130,
+          bottom: 50,
+          left: 50,
+          right: 550
+        }
+      }
+    } : {};
+
     return (
       <Wrapper>
         <MapComponent
             style={MAP_STYLE.DARK}
-            fitBounds={this.getBounds()}
-            fitBoundsOptions={{
-              padding: {
-                top: 130,
-                bottom: 50,
-                left: 50,
-                right: 550
-              }
-            }}
             onStyleLoad={(map) => {
               map.on('click', 'data-points', this.onPointClick);
             }}
@@ -485,7 +499,8 @@ class SimpleMap extends React.Component<Props, State> {
             containerStyle={{
               height: '100%',
               width: '100%'
-            }}>
+            }}
+            {...optionalProps}>
 
           {this.addSource()}
           {drawMode ? this.renderDrawModeInstructions() : null}
