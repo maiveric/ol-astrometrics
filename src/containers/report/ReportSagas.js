@@ -47,7 +47,7 @@ const MAP_IMG_PIXELS = 600;
 
 const getStaticMapPathCall = (lat, long) => call(axios, {
   method: 'get',
-  url: `https://api.mapbox.com/styles/v1/mapbox/streets-v10/static/url-https%3A%2F%2Fwww.mapbox.com%2Fimg%2Frocket.png(${long},${lat})/${long},${lat},15/${MAP_IMG_PIXELS}x${MAP_IMG_PIXELS}?access_token=${__MAPBOX_TOKEN__}`,
+  url: `https://api.mapbox.com/v4/mapbox.streets/pin-l-car+000(${long},${lat})/${long},${lat},15/${MAP_IMG_PIXELS}x${MAP_IMG_PIXELS}.png?access_token=${__MAPBOX_TOKEN__}`,
   responseType: 'arraybuffer'
 });
 
@@ -336,8 +336,11 @@ const getImageDimensions = (dataURL) => {
 const responseToBase64 = (response) => {
   if (response && response.data) {
     const arr = new Uint8Array(response.data);
-    const raw = String.fromCharCode.apply(null, arr);
-    const base64Str = btoa(raw);
+    let binary = '';
+    arr.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    const base64Str = btoa(binary);
     return `data:image/jpeg;base64,${base64Str}`;
   }
   return null;
