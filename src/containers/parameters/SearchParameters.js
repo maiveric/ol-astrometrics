@@ -428,6 +428,15 @@ class SearchParameters extends React.Component<Props> {
     });
   }
 
+  resetAndGoToDrawMode = () => {
+    const { actions } = this.props;
+    actions.setDrawMode(true);
+    actions.updateSearchParameters({
+      field: PARAMETERS.SEARCH_ZONES,
+      value: List()
+    });
+  }
+
   renderFullSearchParameters() {
     const {
       actions,
@@ -500,7 +509,7 @@ class SearchParameters extends React.Component<Props> {
               </Row>
               <Row width={46}>
                 <span />
-                <ButtonWrapper onClick={() => actions.setDrawMode(true)}>
+                <ButtonWrapper onClick={this.resetAndGoToDrawMode}>
                   <FontAwesomeIcon icon={faPencil} />
                   <span>Draw on map</span>
                 </ButtonWrapper>

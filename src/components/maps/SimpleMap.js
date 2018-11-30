@@ -14,10 +14,12 @@ import reactMapboxGl, {
 import { List, Map, Set } from 'immutable';
 
 import mapMarker from '../../assets/images/map-marker.png';
+import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
+import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
 declare var __MAPBOX_TOKEN__ :boolean;
 
@@ -473,8 +475,10 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   render() {
-    const { drawMode, heatmap } = this.props;
+    const { drawMode, heatmap, searchParameters } = this.props;
     const { fitToBounds } = this.state;
+
+    const searchFields = getSearchFields(searchParameters);
 
     const optionalProps = fitToBounds ? {
       fitBounds: this.getBounds(),
@@ -515,7 +519,7 @@ class SimpleMap extends React.Component<Props, State> {
           {this.renderSelectedFeaturesInnerCircles()}
 
           {this.renderSearchZones()}
-          {this.renderSearchAreaLayer()}
+          {searchFields.includes(SEARCH_TYPES.GEO_RADIUS) && !drawMode ? this.renderSearchAreaLayer() : null}
         </MapComponent>
       </Wrapper>
     );
