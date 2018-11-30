@@ -605,6 +605,7 @@ class SearchParameters extends React.Component<Props> {
               onClick={() => {
                 actions.editSearchParameters(true);
                 actions.setDrawMode(false);
+                actions.clearExploreSearchResults();
               }}>
             <span><FontAwesomeIcon icon={faChevronLeft} /></span>
             <div>Update search</div>

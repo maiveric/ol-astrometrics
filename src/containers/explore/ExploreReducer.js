@@ -159,6 +159,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         .set(IS_LOADING_ENTITY_NEIGHBORS, false)
         .set(IS_SEARCHING_DATA, false)
         .set(SEARCH_RESULTS, List())
+        .set(SELECTED_ENTITY_KEY_IDS, Set())
         .set(TOTAL_RESULTS, 0);
 
     default:
