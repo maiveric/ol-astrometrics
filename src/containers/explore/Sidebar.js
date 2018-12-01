@@ -12,6 +12,7 @@ import { bindActionCreators } from 'redux';
 
 import DropdownButton from '../../components/buttons/DropdownButton';
 import Spinner from '../../components/spinner/Spinner';
+import Pagination from '../../components/pagination/Pagination';
 import VehicleCard from '../../components/vehicles/VehicleCard';
 import {
   EDM,
@@ -120,12 +121,15 @@ const SORT_TYPE = {
   OLDEST: 'Oldest'
 };
 
+const PAGE_SIZE = 5;
+
 class Sidebar extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
     this.state = {
-      sort: SORT_TYPE.RELEVANCE
+      sort: SORT_TYPE.RELEVANCE,
+      page: 1
     };
   }
 
@@ -260,7 +264,7 @@ class Sidebar extends React.Component<Props, State> {
       isLoadingNeighbors,
       reportVehicles
     } = this.props;
-    const { sort } = this.state;
+    const { sort, page } = this.state;
 
     if (isLoadingResults || isLoadingNeighbors) {
       return <SidebarWrapper><Spinner /></SidebarWrapper>;
@@ -273,12 +277,14 @@ class Sidebar extends React.Component<Props, State> {
       recordsByVehicleId
     );
 
+    const vehiclePage = sortedVehicles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
     return (
       <SidebarWrapper>
         <h1>{vehicles.size} vehicles found</h1>
         {this.renderFilters(recordsByVehicleId.valueSeq())}
         <VehicleListWrapper>
-          {sortedVehicles.map((vehicle) => {
+          {vehiclePage.map((vehicle) => {
             const entityKeyId = getEntityKeyId(vehicle);
             const isInReport = reportVehicles.has(entityKeyId);
             const toggleReport = isInReport
@@ -298,6 +304,10 @@ class Sidebar extends React.Component<Props, State> {
             );
           })}
         </VehicleListWrapper>
+        <Pagination
+            numPages={Math.ceil(sortedVehicles.size / PAGE_SIZE)}
+            activePage={page}
+            onChangePage={newPage => this.setState({ page: newPage })} />
       </SidebarWrapper>
     );
   }
