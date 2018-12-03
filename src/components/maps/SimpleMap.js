@@ -36,6 +36,7 @@ type Props = {
   heatmap? :boolean,
   searchParameters :Map<*, *>,
   selectedEntityKeyIds :Set<*>,
+  selectedReadId :string,
   setDrawMode :(drawMode :boolean) => void,
   setSearchZones :(searchZones :number[][]) => void,
   selectEntity :(entityKeyId :string) => void
@@ -356,7 +357,17 @@ class SimpleMap extends React.Component<Props, State> {
 
     return this.getSourceLayer(
       'selectedsourcefeatures',
-      entity => getCoordinates(entity) && selectedEntityKeyIds.has(getEntityKeyId(entity)),
+      entity => selectedEntityKeyIds.has(getEntityKeyId(entity)) && getCoordinates(entity),
+      false
+    );
+  }
+
+  addSelectedReadSource = () => {
+    const { selectedReadId } = this.props;
+
+    return this.getSourceLayer(
+      'selectedread',
+      entity => getEntityKeyId(entity) === selectedReadId && getCoordinates(entity),
       false
     );
   }
@@ -400,6 +411,20 @@ class SimpleMap extends React.Component<Props, State> {
         paint={{
           'circle-opacity': 1,
           'circle-color': SEARCH_ZONE_COLORS[0],
+          'circle-radius': 8,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 4,
+          'circle-stroke-opacity': 1
+        }} />
+  )
+
+  renderSelectedReadFeature = () => (
+    <Layer
+        type="circle"
+        sourceId="selectedread"
+        paint={{
+          'circle-opacity': 1,
+          'circle-color': '#ff3c5d',
           'circle-radius': 8,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 4,
@@ -515,7 +540,9 @@ class SimpleMap extends React.Component<Props, State> {
           {/* {heatmap ? this.renderHeatmapLayer() : this.renderDefaultLayer()} */}
 
           {this.addSelectedSource()}
+          {this.addSelectedReadSource()}
           {this.renderSelectedFeatures()}
+          {this.renderSelectedReadFeature()}
           {this.renderSelectedFeaturesInnerCircles()}
 
           {this.renderSearchZones()}
