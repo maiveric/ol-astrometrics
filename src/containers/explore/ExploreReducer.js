@@ -10,6 +10,7 @@ import {
 } from 'immutable';
 
 import { EXPLORE } from '../../utils/constants/StateConstants';
+import { ENTITY_SETS } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
@@ -29,6 +30,7 @@ const {
   IS_LOADING_ENTITY_NEIGHBORS,
   IS_SEARCHING_DATA,
   SELECTED_ENTITY_KEY_IDS,
+  SELECTED_READ_ID,
   SEARCH_RESULTS,
   TOTAL_RESULTS
 } = EXPLORE;
@@ -41,6 +43,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [IS_SEARCHING_DATA]: false,
   [SEARCH_RESULTS]: List(),
   [SELECTED_ENTITY_KEY_IDS]: Set(),
+  [SELECTED_READ_ID]: undefined,
   [TOTAL_RESULTS]: 0
 });
 
@@ -130,10 +133,12 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         let idsToMatch = Set().add(action.value);
         if (state.get(ENTITY_NEIGHBORS_BY_ID).has(action.value)) {
           state.getIn([ENTITY_NEIGHBORS_BY_ID, action.value], List()).forEach((neighborObj) => {
-            const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails', Map()));
-            if (entityKeyId) {
-              selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
-              idsToMatch = idsToMatch.add(entityKeyId);
+            if (neighborObj.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS) {
+              const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails', Map()));
+              if (entityKeyId) {
+                selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
+                idsToMatch = idsToMatch.add(entityKeyId);
+              }
             }
           });
         }
@@ -147,7 +152,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         });
       }
 
-      return state.set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds);
+      return state
+        .set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds)
+        .set(SELECTED_READ_ID, action.value);
     }
 
     case SET_FILTER:
@@ -160,6 +167,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         .set(IS_SEARCHING_DATA, false)
         .set(SEARCH_RESULTS, List())
         .set(SELECTED_ENTITY_KEY_IDS, Set())
+        .set(SELECTED_READ_ID, undefined)
         .set(TOTAL_RESULTS, 0);
 
     default:

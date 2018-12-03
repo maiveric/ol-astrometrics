@@ -27,7 +27,8 @@ export const EXPLORE = {
   IS_SEARCHING_DATA: 'isSearchingData',
   SEARCH_RESULTS: 'searchResults',
   TOTAL_RESULTS: 'numResults',
-  SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds'
+  SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds',
+  SELECTED_READ_ID: 'selectedReadId'
 };
 
 export const SEARCH_PARAMETERS = {

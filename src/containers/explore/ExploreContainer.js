@@ -28,6 +28,7 @@ type Props = {
   displayFullSearchOptions :boolean,
   results :List<*>,
   selectedEntityKeyIds :Set<*>,
+  selectedReadId :string,
   searchParameters :Map<*, *>,
   filter :string,
   actions :{
@@ -79,7 +80,8 @@ class ExploreContainer extends React.Component<Props, State> {
       filter,
       results,
       searchParameters,
-      selectedEntityKeyIds
+      selectedEntityKeyIds,
+      selectedReadId
     } = this.props;
 
     const entities = filter.length
@@ -98,6 +100,7 @@ class ExploreContainer extends React.Component<Props, State> {
             entities={entities}
             selectEntity={actions.selectEntity}
             selectedEntityKeyIds={selectedEntityKeyIds}
+            selectedReadId={selectedReadId}
             heatmap />
       </Wrapper>
     );
@@ -113,6 +116,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     filter: explore.get(EXPLORE.FILTER),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
+    selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
 
     displayFullSearchOptions: params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
