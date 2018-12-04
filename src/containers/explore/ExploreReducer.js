@@ -127,16 +127,16 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case SELECT_ENTITY: {
       let selectedEntityKeyIds = Set();
+      let selectedReadId = action.value;
 
       if (action.value) {
-        selectedEntityKeyIds = selectedEntityKeyIds.add(action.value);
         let idsToMatch = Set().add(action.value);
         if (state.get(ENTITY_NEIGHBORS_BY_ID).has(action.value)) {
+          selectedEntityKeyIds = selectedEntityKeyIds.add(action.value);
           state.getIn([ENTITY_NEIGHBORS_BY_ID, action.value], List()).forEach((neighborObj) => {
             if (neighborObj.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS) {
               const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails', Map()));
               if (entityKeyId) {
-                selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
                 idsToMatch = idsToMatch.add(entityKeyId);
               }
             }
@@ -150,11 +150,15 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
             }
           });
         });
+
+        if (selectedEntityKeyIds.size && !selectedEntityKeyIds.has(selectedReadId)) {
+          selectedReadId = selectedEntityKeyIds.first();
+        }
       }
 
       return state
         .set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds)
-        .set(SELECTED_READ_ID, action.value);
+        .set(SELECTED_READ_ID, selectedReadId);
     }
 
     case SET_FILTER:
