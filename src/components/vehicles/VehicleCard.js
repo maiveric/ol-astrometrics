@@ -6,9 +6,8 @@ import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faPlus } from '@fortawesome/pro-light-svg-icons';
 
+import ToggleReportButton from '../buttons/ToggleReportButton';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 type Props = {
@@ -91,35 +90,6 @@ const DetailsHeader = styled.div`
       font-size: 15px;
       font-weight: bold;
       letter-spacing: 2px;
-    }
-  }
-
-  button {
-    border-radius: 3px;
-    background-color: ${props => (props.isInReport ? '#8e929b' : '#f0f0f7')};
-    height: 30px;
-    padding: 0 10px;
-    border: none;
-    color: ${props => (props.isInReport ? '#ffffff' : '#b7bbc6')};
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-
-    span {
-      color: ${props => (props.isInReport ? '#ffffff' : '#414345')};
-      margin-left: 5px;
-      font-size: 12px;
-      font-weight: 400;
-    }
-
-    &:hover {
-      background-color: ${props => (props.isInReport ? '#555e6f' : '#dcdce7')};
-      cursor: pointer;
-    }
-
-    &:focus {
-      outline: none;
     }
   }
 `;
@@ -213,8 +183,6 @@ const VehicleCard = ({
 
   const devices = getUniqueValues(PROPERTY_TYPES.CAMERA_ID);
   const departments = getUniqueValues(PROPERTY_TYPES.AGENCY_NAME);
-  const reportText = isInReport ? 'Remove from report' : 'Add to report';
-  const reportIcon = isInReport ? faTimes : faPlus;
 
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
@@ -229,10 +197,7 @@ const VehicleCard = ({
             <span>{state}</span>
             <span>{plate}</span>
           </section>
-          <button onClick={onToggleReport}>
-            <FontAwesomeIcon icon={reportIcon} />
-            <span>{reportText}</span>
-          </button>
+          <ToggleReportButton isInReport={isInReport} onToggleReport={onToggleReport} />
         </DetailsHeader>
         <DetailsBody>
           <section>

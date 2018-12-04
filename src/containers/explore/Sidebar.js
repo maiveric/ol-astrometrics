@@ -35,6 +35,7 @@ type Props = {
   isLoadingNeighbors :boolean,
   results :List<*>,
   selectedEntityKeyIds :Set<*>,
+  selectedReadId :string,
   neighborsById :List<*>,
   searchParameters :Map<*, *>,
   geocodedAddresses :List<*>,
@@ -252,6 +253,21 @@ class Sidebar extends React.Component<Props, State> {
     }
   }
 
+  vehicleIsUnselected = (records) => {
+    const { selectedReadId } = this.props;
+    if (selectedReadId) {
+      let unselected = true;
+      records.forEach((record) => {
+        if (selectedReadId === getEntityKeyId(record)) {
+          unselected = false;
+        }
+      });
+      return unselected;
+    }
+
+    return false;
+  }
+
   render() {
     const {
       actions,
@@ -293,7 +309,7 @@ class Sidebar extends React.Component<Props, State> {
             return (
               <VehicleCard
                   key={entityKeyId}
-                  isUnselected={selectedEntityKeyIds.size && !selectedEntityKeyIds.has(entityKeyId)}
+                  isUnselected={this.vehicleIsUnselected(recordsByVehicleId.get(entityKeyId, List()))}
                   onClick={() => this.onVehicleClick(entityKeyId)}
                   vehicle={vehicle}
                   isInReport={isInReport}
@@ -323,6 +339,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
+    selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
     isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),

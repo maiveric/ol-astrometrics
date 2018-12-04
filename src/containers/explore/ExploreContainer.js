@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import Sidebar from './Sidebar';
+import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
 import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';
 import {
@@ -92,6 +93,7 @@ class ExploreContainer extends React.Component<Props, State> {
       <Wrapper>
         <SearchParameters />
         {displayFullSearchOptions ? null : <Sidebar />}
+        {selectedEntityKeyIds.size && !displayFullSearchOptions ? <SelectedVehicleSidebar /> : null}
         <SimpleMap
             drawMode={drawMode}
             searchParameters={searchParameters}
