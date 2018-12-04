@@ -57,6 +57,13 @@ const SidebarWrapper = styled.div`
   flex-direction: column;
   height: 100%;
   color: #ffffff;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 
@@ -69,6 +76,7 @@ const Card = styled.div`
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
+  min-height: fit-content;
 `;
 
 const ScrollableCard = styled(Card)`
@@ -77,6 +85,7 @@ const ScrollableCard = styled(Card)`
   flex-direction: column;
   justify-content: flex-start;
   color: black;
+  min-height: 130px;
 
   h1 {
     font-size: 18px;
@@ -105,6 +114,7 @@ const HeaderRow = styled.div`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  margin: 10px 0;
 `;
 
 const VehicleTitle = styled.div`
@@ -130,6 +140,7 @@ const VehicleTitle = styled.div`
 
 const HitType = styled.div`
   margin-top: 15px;
+  min-height: 15px;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -147,10 +158,12 @@ const ImageRow = styled.div`
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
+  min-height: fit-content;
 
   img {
     width: 49%;
     max-height: 150px;
+    min-height: 150px;
   }
 `;
 
@@ -164,6 +177,7 @@ const DetailsBody = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
+    min-height: 30px;
 
     span {
       min-width: 100px;
