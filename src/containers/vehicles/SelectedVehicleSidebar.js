@@ -10,12 +10,9 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faPlus, faExclamationTriangle } from '@fortawesome/pro-light-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/pro-light-svg-icons';
 
-import DropdownButton from '../../components/buttons/DropdownButton';
 import ToggleReportButton from '../../components/buttons/ToggleReportButton';
-import Pagination from '../../components/pagination/Pagination';
-import VehicleCard from '../../components/vehicles/VehicleCard';
 import {
   STATE,
   EXPLORE,
@@ -23,7 +20,6 @@ import {
 } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
-import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
@@ -34,7 +30,6 @@ type Props = {
   entitiesById :Map<*, *>,
   selectedReadId :string,
   reportVehicles :List<*>,
-  filter :string,
   actions :{
     selectEntity :(entityKeyId :string) => void,
     addVehicleToReport :(entityKeyId :string) => void,
@@ -66,7 +61,7 @@ const Card = styled.div`
   border-radius: 5px;
   margin: 10px 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   width: 100%;
 `;
@@ -129,7 +124,7 @@ const VehicleTitle = styled.div`
 `;
 
 const HitType = styled.div`
-  margin-top: 15px;
+  margin-bottom: 15px;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -142,7 +137,7 @@ const HitType = styled.div`
 `;
 
 const ImageRow = styled.div`
-  margin: 15px 0;
+  margin-bottom: 15px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -263,6 +258,20 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     );
   }
 
+  renderHitType = () => {
+    const { entitiesById, selectedReadId } = this.props;
+
+    const read = entitiesById.get(selectedReadId, Map());
+    const hitTypes = read.get(PROPERTY_TYPES.HIT_TYPE, List()).join(', ');
+
+    return hitTypes.length ? (
+      <HitType>
+        <FontAwesomeIcon icon={faExclamationTriangle} />
+        <span>{hitTypes}</span>
+      </HitType>
+    ) : null;
+  }
+
   renderReadDetails = () => {
     const { entitiesById, selectedReadId } = this.props;
 
@@ -270,7 +279,6 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
     const vehicleImage = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
     const plateImage = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
-    const hitTypes = read.get(PROPERTY_TYPES.HIT_TYPE, List()).join(', ');
     const departments = read.get(PROPERTY_TYPES.AGENCY_NAME, List()).join(', ');
     const devices = read.get(PROPERTY_TYPES.CAMERA_ID, List()).join(', ');
     const timestamp = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
@@ -278,17 +286,11 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
     return (
       <>
-        {hitTypes.length ? (
-          <HitType>
-            <FontAwesomeIcon icon={faExclamationTriangle} />
-            <span>{hitTypes}</span>
-          </HitType>
-        ) : null}
-        <ImageRow>
-          {plateImage ? <img src={plateImage} alt="" /> : null}
-          {vehicleImage ? <img src={vehicleImage} alt="" /> : null}
-        </ImageRow>
         <Card>
+          <ImageRow>
+            {plateImage ? <img src={plateImage} alt="" /> : null}
+            {vehicleImage ? <img src={vehicleImage} alt="" /> : null}
+          </ImageRow>
           <DetailsBody>
             <section>
               <span>Timestamp</span>
@@ -357,6 +359,7 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
     return (
       <SidebarWrapper>
+        {this.renderHitType()}
         {this.renderVehicleDetails(vehicle)}
         {this.renderReadDetails()}
         {this.renderReadList()}
@@ -375,7 +378,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
-    filter: explore.get(EXPLORE.FILTER),
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };
 }
