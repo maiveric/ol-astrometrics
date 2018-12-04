@@ -6,6 +6,8 @@ import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map } from 'immutable';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@fortawesome/pro-light-svg-icons';
 
 import ToggleReportButton from '../buttons/ToggleReportButton';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -27,7 +29,7 @@ const Card = styled.div`
   border-radius: 5px;
   margin: 10px 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   width: 100%;
   opacity: ${props => (props.isUnselected ? 0.75 : 1)};
@@ -35,6 +37,13 @@ const Card = styled.div`
   &:hover {
     cursor: pointer;
   }
+`;
+
+const CardContent = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
 `;
 
 const Photos = styled.div`
@@ -130,6 +139,19 @@ const DetailsBody = styled.div`
   }
 `;
 
+const HitType = styled.div`
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  color: #ff3c5d;
+
+  span {
+    margin-left: 10px;
+    font-weight: 600;
+  }
+`;
+
 const VehicleCard = ({
   vehicle,
   count,
@@ -183,41 +205,51 @@ const VehicleCard = ({
 
   const devices = getUniqueValues(PROPERTY_TYPES.CAMERA_ID);
   const departments = getUniqueValues(PROPERTY_TYPES.AGENCY_NAME);
+  const hitTypes = getUniqueValues(PROPERTY_TYPES.HIT_TYPE);
 
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
-      <Photos>
-        { vehicleImages.size ? <VehicleImg src={vehicleImages.get(0)} alt="" /> : null }
-        { plateImages.size ? <PlateImg src={plateImages.get(0)} alt="" /> : null }
-
-      </Photos>
-      <Details>
-        <DetailsHeader isInReport={isInReport}>
-          <section>
-            <span>{state}</span>
-            <span>{plate}</span>
-          </section>
-          <ToggleReportButton isInReport={isInReport} onToggleReport={onToggleReport} />
-        </DetailsHeader>
-        <DetailsBody>
-          <section>
-            <span>Make / Model</span>
-            <div>{makeModelString.length ? makeModelString : <i>Unknown</i>}</div>
-          </section>
-          <section>
-            <span>Timestamp</span>
-            <div>{timestampStr}</div>
-          </section>
-          <section>
-            <span>Dept</span>
-            <div>{departments.join(', ')}</div>
-          </section>
-          <section>
-            <span>Device</span>
-            <div>{devices.join(', ')}</div>
-          </section>
-        </DetailsBody>
-      </Details>
+      {
+        hitTypes.size ? (
+          <HitType>
+            <FontAwesomeIcon icon={faExclamationTriangle} />
+            <span>{hitTypes.join(', ')}</span>
+          </HitType>
+        ) : null
+      }
+      <CardContent>
+        <Photos>
+          { plateImages.size ? <PlateImg src={plateImages.get(0)} alt="" /> : null }
+          { vehicleImages.size ? <VehicleImg src={vehicleImages.get(0)} alt="" /> : null }
+        </Photos>
+        <Details>
+          <DetailsHeader isInReport={isInReport}>
+            <section>
+              <span>{state}</span>
+              <span>{plate}</span>
+            </section>
+            <ToggleReportButton isInReport={isInReport} onToggleReport={onToggleReport} />
+          </DetailsHeader>
+          <DetailsBody>
+            <section>
+              <span>Make / Model</span>
+              <div>{makeModelString.length ? makeModelString : <i>Unknown</i>}</div>
+            </section>
+            <section>
+              <span>Timestamp</span>
+              <div>{timestampStr}</div>
+            </section>
+            <section>
+              <span>Dept</span>
+              <div>{departments.join(', ')}</div>
+            </section>
+            <section>
+              <span>Device</span>
+              <div>{devices.join(', ')}</div>
+            </section>
+          </DetailsBody>
+        </Details>
+      </CardContent>
     </Card>
   );
 };
