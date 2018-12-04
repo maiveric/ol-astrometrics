@@ -231,7 +231,7 @@ const TopNavBar = styled(SearchParameterWrapper)`
 const TopNavSection = styled.section`
   display: flex;
   flex-direction: row;
-  justify-content: ${props => (props.distribute ? 'space-between' : 'flex-start')};
+  justify-content: ${props => (props.distribute ? 'space-evenly' : 'flex-start')};
   align-items: center;
   width: ${props => (props.width || '100%')};
   min-width: ${props => (props.distribute ? props.width : 'auto')};
@@ -631,12 +631,8 @@ class SearchParameters extends React.Component<Props> {
         </TopNavSection>
         <TopNavSection width="480px" distribute>
           <TopNavLargeButton>
-            <FontAwesomeIcon icon={faBookmark} />
-            <div>Save search</div>
-          </TopNavLargeButton>
-          <TopNavLargeButton>
             <FontAwesomeIcon icon={faBell} />
-            <div>Set alerts</div>
+            <div>Manage alerts</div>
           </TopNavLargeButton>
           <TopNavLargeButton
               onClick={() => actions.exportReport({
@@ -647,7 +643,7 @@ class SearchParameters extends React.Component<Props> {
               })}
               disabled={isLoadingResults || isLoadingNeighbors}>
             <FontAwesomeIcon icon={faPrint} />
-            <div>Export</div>
+            <div>Export report</div>
           </TopNavLargeButton>
         </TopNavSection>
       </TopNavBar>
