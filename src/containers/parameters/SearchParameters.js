@@ -38,6 +38,7 @@ import {
   REPORT,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
+import * as AlertActionFactory from '../alerts/AlertActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 import * as ParametersActionFactory from './ParametersActionFactory';
@@ -68,7 +69,8 @@ type Props = {
     selectAddress :(address :Object) => void,
     executeSearch :(searchParameters :Object) => void,
     setDrawMode :(drawMode :boolean) => void,
-    exportReport :(vehicleIds :Set) => void
+    exportReport :(vehicleIds :Set) => void,
+    toggleAlertModal :(modalOpen :boolean) => void
   }
 };
 
@@ -630,7 +632,7 @@ class SearchParameters extends React.Component<Props> {
           </TopNavButtonGroup>
         </TopNavSection>
         <TopNavSection width="480px" distribute>
-          <TopNavLargeButton>
+          <TopNavLargeButton onClick={() => actions.toggleAlertModal(true)}>
             <FontAwesomeIcon icon={faBell} />
             <div>Manage alerts</div>
           </TopNavLargeButton>
@@ -693,6 +695,10 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
 function mapDispatchToProps(dispatch :Function) :Object {
   const actions :{ [string] :Function } = {};
+
+  Object.keys(AlertActionFactory).forEach((action :string) => {
+    actions[action] = AlertActionFactory[action];
+  });
 
   Object.keys(ExploreActionFactory).forEach((action :string) => {
     actions[action] = ExploreActionFactory[action];

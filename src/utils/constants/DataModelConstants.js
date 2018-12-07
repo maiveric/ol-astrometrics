@@ -8,7 +8,12 @@ export const ENTITY_SETS = {
   CONFIDENCE_METRICS: 'NCRICConfidenceMetrics',
   HITS: 'NCRICHits',
   RECORDED_BY: 'NCRICRecordedBy',
-  CARS: 'NCRICVehicles'
+  CARS: 'NCRICVehicles',
+  USERS: 'NCRICUsers',
+  ALERTS: 'NCRICVehicleAlerts',
+  REGISTERED_FOR: 'NCRICRegisteredFor',
+  SEARCHES: 'NCRICALPRSearches',
+  SEARCHED_BY: 'NCRICSearchedBy'
 };
 
 export const PROPERTY_TYPES = {
@@ -35,5 +40,13 @@ export const PROPERTY_TYPES = {
   DESCRIPTION: 'ol.description',
 
   TIMESTAMP: 'ol.datelogged',
-  CONFIDENCE: 'ol.confidence'
+  CONFIDENCE: 'ol.confidence',
+
+  PERSON_ID: 'nc.SubjectIdentification',
+  COMPLETED_DATE_TIME: 'date.completeddatetime',
+  LAST_REPORTED_DATE_TIME: 'ol.datetimelastreported',
+  END_DATE_TIME: 'ol.datetimeend',
+  SEARCH_REASON: 'ol.searchreason',
+  CASE_NUMBER: 'criminaljustice.casenumber',
+  SEARCH_QUERY: 'ol.searchquery'
 };

@@ -98,6 +98,40 @@ const LogoutButton = styled(Button)`
   padding: 6px 29px;
 `;
 
+const SupportLink = styled.a.attrs({
+  href: 'https://support.openlattice.com/servicedesk/customer/portal/1/user/login?destination=portal%2F1'
+})`
+  text-decoration: none;
+  border: none;
+  border-radius: 3px;
+  background-color: #f0f0f7;
+  color: #8e929b;
+  font-family: 'Open Sans', sans-serif;
+  padding: 12px 35px;
+  font-size: 12px;
+  line-height: 16px;
+  margin-left: 30px;
+  padding: 6px 29px;
+
+  &:hover:enabled {
+    background-color: #dcdce7;
+    cursor: pointer;
+  }
+
+  &:active {
+    background-color: #b6bbc7;
+    color: #ffffff;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:disabled {
+    color: #b6bbc7;
+  }
+`;
+
 type Props = {
   actions :{
     logout :() => void;
@@ -123,6 +157,9 @@ class AppHeaderContainer extends Component<Props> {
     const { actions } = this.props;
     return (
       <RightSideContentWrapper>
+        <SupportLink>
+          Contact Support
+        </SupportLink>
         <LogoutButton onClick={actions.logout}>
           Log Out
         </LogoutButton>

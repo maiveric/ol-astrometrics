@@ -2,6 +2,7 @@
  * @flow
  */
 
+import moment from 'moment';
 import {
   List,
   Map,
@@ -29,6 +30,7 @@ const {
   FILTER,
   IS_LOADING_ENTITY_NEIGHBORS,
   IS_SEARCHING_DATA,
+  SEARCH_DATE_TIME,
   SELECTED_ENTITY_KEY_IDS,
   SELECTED_READ_ID,
   SEARCH_RESULTS,
@@ -97,6 +99,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         REQUEST: () => state
           .set(IS_SEARCHING_DATA, true)
           .set(SEARCH_RESULTS, List())
+          .set(SEARCH_DATE_TIME, moment().toISOString(true))
           .set(TOTAL_RESULTS, 0),
         SUCCESS: () => {
           const { hits, numHits } = action.value;
