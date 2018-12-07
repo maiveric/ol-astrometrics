@@ -1,9 +1,21 @@
 export const STATE = {
+  ALERTS: 'ALERTS',
   EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
   EXPLORE: 'EXPLORE',
   PARAMETERS: 'PARAMETERS',
-  REPORT: 'REPORT'
+  REPORT: 'REPORT',
+  SUBMIT: 'SUBMIT'
+};
+
+export const ALERTS = {
+  ALERT_LIST: 'alertList',
+  IS_LOADING_ALERTS: 'isLoadingAlerts',
+  ALERT_MODAL_OPEN: 'alertModalOpen',
+  PLATE: 'plate',
+  EXPIRATION: 'expiration',
+  CASE_NUMBER: 'caseNumber',
+  SEARCH_REASON: 'searchReason'
 };
 
 export const EDM = {
@@ -24,6 +36,7 @@ export const EXPLORE = {
   ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById',
   FILTER: 'filter',
   IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
+  SEARCH_DATE_TIME: 'searchDateTime',
   IS_SEARCHING_DATA: 'isSearchingData',
   SEARCH_RESULTS: 'searchResults',
   TOTAL_RESULTS: 'numResults',
@@ -61,4 +74,11 @@ export const PARAMETERS = {
   DEPARTMENT: 'department',
   DEPARTMENT_ID: 'departmentId',
   DEVICE: 'device'
+};
+
+export const SUBMIT = {
+  SUBMITTING: 'submitting',
+  SUCCESS: 'submitSuccess',
+  SUBMITTED: 'submitted',
+  ERROR: 'error'
 };

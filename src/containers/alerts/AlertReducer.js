@@ -1,0 +1,70 @@
+/*
+ * @flow
+ */
+
+import moment from 'moment';
+import { List, Map, fromJS } from 'immutable';
+
+import { ALERTS } from '../../utils/constants/StateConstants';
+import {
+  SET_ALERT_VALUE,
+  TOGGLE_ALERT_MODAL,
+  loadAlerts
+} from './AlertActionFactory';
+
+import {
+  CLEAR_EXPLORE_SEARCH_RESULTS,
+  UNMOUNT_EXPLORE
+} from '../explore/ExploreActionFactory';
+
+const {
+  ALERT_LIST,
+  ALERT_MODAL_OPEN,
+  IS_LOADING_ALERTS,
+  PLATE,
+  EXPIRATION,
+  CASE_NUMBER,
+  SEARCH_REASON
+} = ALERTS;
+
+const INITIAL_STATE :Map<> = fromJS({
+  [ALERT_LIST]: List(),
+  [ALERT_MODAL_OPEN]: false,
+  [IS_LOADING_ALERTS]: false,
+  [PLATE]: '',
+  [EXPIRATION]: '',
+  [CASE_NUMBER]: '',
+  [SEARCH_REASON]: ''
+});
+
+function reducer(state :Map<> = INITIAL_STATE, action :Object) {
+  switch (action.type) {
+
+    case loadAlerts.case(action.type): {
+      return loadAlerts.reducer(state, action, {
+        REQUEST: () => state.set(IS_LOADING_ALERTS, true),
+        SUCCESS: () => state.set(ALERT_LIST, action.value),
+        FAILURE: () => state.set(ALERT_LIST, List()),
+        FINALLY: () => state.set(IS_LOADING_ALERTS, false)
+      });
+    }
+
+    case SET_ALERT_VALUE: {
+      const { field, value } = action.value;
+      return state.set(field, value);
+    }
+
+    case TOGGLE_ALERT_MODAL:
+      return state.set(ALERT_MODAL_OPEN, !!action.value);
+
+    case CLEAR_EXPLORE_SEARCH_RESULTS:
+    case UNMOUNT_EXPLORE:
+      return INITIAL_STATE;
+
+    default:
+      return state;
+  }
+}
+
+
+export default reducer;

@@ -5,13 +5,20 @@
 import axios from 'axios';
 import moment from 'moment';
 import { Constants, SearchApi } from 'lattice';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import {
+  call,
+  put,
+  take,
+  takeEvery
+} from 'redux-saga/effects';
 
+import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
 import { getEntityKeyId } from '../../utils/DataUtils';
-import { PARAMETERS } from '../../utils/constants/StateConstants';
+import { EXPLORE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
+import { submit } from '../submit/SubmitActionFactory';
 import {
   EXECUTE_SEARCH,
   LOAD_ENTITY_NEIGHBORS,
@@ -20,6 +27,13 @@ import {
 } from './ExploreActionFactory';
 
 const { OPENLATTICE_ID_FQN } = Constants;
+
+function takeReqSeqSuccessFailure(reqseq :RequestSequence, seqAction :SequenceAction) {
+  return take(
+    (anAction :Object) => (anAction.type === reqseq.SUCCESS && anAction.id === seqAction.id)
+        || (anAction.type === reqseq.FAILURE && anAction.id === seqAction.id)
+  );
+}
 
 function* loadEntityNeighborsWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
@@ -158,18 +172,38 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
       searchParameters
     } = action.value;
 
-    const results = yield call(SearchApi.executeSearch, getSearchRequest(
+    const searchRequest = getSearchRequest(
       entitySetId,
       propertyTypesByFqn,
       searchParameters
-    ));
+    );
 
-    yield put(executeSearch.success(action.id, results));
+    const logSearchAction = submit({
+      config: searchPerformedConig,
+      values: {
+        [PARAMETERS.REASON]: searchParameters.get(PARAMETERS.REASON),
+        [PARAMETERS.CASE_NUMBER]: searchParameters.get(PARAMETERS.CASE_NUMBER),
+        [SEARCH_PARAMETERS.SEARCH_PARAMETERS]: JSON.stringify(searchRequest),
+        [EXPLORE.SEARCH_DATE_TIME]: moment().toISOString(true)
+      },
+      includeUserId: true
+    });
+    yield put(logSearchAction);
+    const logSearchResponseAction = yield takeReqSeqSuccessFailure(submit, logSearchAction);
+    if (logSearchResponseAction.type === submit.SUCCESS) {
+      const results = yield call(SearchApi.executeSearch, searchRequest);
 
-    yield put(loadEntityNeighbors({
-      entitySetId,
-      entityKeyIds: results.hits.map(entity => entity[OPENLATTICE_ID_FQN][0])
-    }));
+      yield put(executeSearch.success(action.id, results));
+
+      yield put(loadEntityNeighbors({
+        entitySetId,
+        entityKeyIds: results.hits.map(entity => entity[OPENLATTICE_ID_FQN][0])
+      }));
+    }
+    else {
+      console.error('Unable to log search.')
+      yield put(executeSearch.failure(action.id));
+    }
   }
   catch (error) {
     console.error(error);
