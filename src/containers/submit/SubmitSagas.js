@@ -137,10 +137,7 @@ const getEntityIdObject = (entitySetId, idOrIndex, isId) => ({
 function* getOrCreateUserId() :Generator<*, *, *> {
   try {
     const userInfo = AuthUtils.getUserInfo();
-    let userId = userInfo.id;
-    if (userInfo.email && userInfo.email.length > 0) {
-      userId = userInfo.email;
-    }
+    const userId = userInfo.id;
 
     const [userEntitySetId, personIdPropertyTypeId] = yield all([
       call(EntityDataModelApi.getEntitySetId, ENTITY_SETS.USERS),

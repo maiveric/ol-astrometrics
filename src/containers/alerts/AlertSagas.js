@@ -33,11 +33,7 @@ const {
 
 const getUserId = () => {
   const userInfo = AuthUtils.getUserInfo();
-  let userId = userInfo.id;
-  if (userInfo.email && userInfo.email.length > 0) {
-    userId = userInfo.email;
-  }
-  return userId;
+  return userInfo.id;
 };
 
 function* loadAlertsWorker(action :SequenceAction) :Generator<*, *, *> {
