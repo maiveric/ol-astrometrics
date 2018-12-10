@@ -15,7 +15,7 @@ import { List, Map, Set } from 'immutable';
 
 import mapMarker from '../../assets/images/map-marker.png';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
-import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
+import { DRAW_INSTRUCTIONS, HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
@@ -293,7 +293,7 @@ class SimpleMap extends React.Component<Props, State> {
       <DrawModeInstructionBox>
         <section>
           <span>Drawing mode</span>
-          <div>Define as many search zones as you want by selecting the square icon in the bottom lefthand corner and drawing polygons on the map.</div>
+          <div>{DRAW_INSTRUCTIONS}</div>
         </section>
         <section>
           <button onClick={this.saveSearchZones}>Save search zones</button>

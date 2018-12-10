@@ -38,3 +38,5 @@ export const HEATMAP_PAINT = {
   //   ]
   // }
 };
+
+export const DRAW_INSTRUCTIONS = 'Define as many search zones as you want by selecting the square icon in the bottom left hand corner and drawing polygons on the map. Click and release to place a corner of a polygon, and click a placed corner a second time to complete a polygon. Click then drag any corner to edit.';
