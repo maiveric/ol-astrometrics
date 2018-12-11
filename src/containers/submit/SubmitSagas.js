@@ -85,7 +85,7 @@ function getEntityDetails(entityDescription, propertyTypesByFqn, values) {
 
 function shouldCreateEntity(entityDescription, values, details) {
   /* new entities should not be empty (but okay for existing ones for purposes of creating edges) */
-  if (!entityDescription.id && !Object.keys(details).length) {
+  if (!entityDescription.id && (Object.keys(entityDescription.fields).length && !Object.keys(details).length)) {
     return false;
   }
 
