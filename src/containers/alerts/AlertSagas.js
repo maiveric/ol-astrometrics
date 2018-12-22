@@ -2,83 +2,67 @@
  * @flow
  */
 
-import {
-  Constants,
-  DataApi,
-  DataIntegrationApi,
-  EntityDataModelApi,
-  SearchApi,
-  Models
-} from 'lattice';
-import { AuthUtils } from 'lattice-auth';
-import { List, Map, fromJS } from 'immutable';
-import {
-  call,
-  put,
-  takeEvery,
-  all
-} from 'redux-saga/effects';
+import { PersistentSearchApi } from 'lattice';
+import { call, put, takeEvery } from 'redux-saga/effects';
 
-import { getFqnObj } from '../../utils/DataUtils';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { EDM } from '../../utils/constants/StateConstants';
 import {
+  CREATE_ALERT,
+  EXPIRE_ALERT,
   LOAD_ALERTS,
+  createAlert,
+  expireAlert,
   loadAlerts
 } from './AlertActionFactory';
 
-const {
-  OPENLATTICE_ID_FQN
-} = Constants;
+function* createAlertWorker(action :SequenceAction) :Generator<*, *, *> {
+  try {
+    yield put(createAlert.request(action.id));
 
-const getUserId = () => {
-  const userInfo = AuthUtils.getUserInfo();
-  return userInfo.id;
-};
+    yield call(PersistentSearchApi.createPersistentSearch, action.value);
+
+    yield put(createAlert.success(action.id));
+    yield put(loadAlerts());
+  }
+  catch (error) {
+    console.error(error)
+    yield put(createAlert.failure(action.id, error));
+  }
+  finally {
+    yield put(createAlert.finally(action.id));
+  }
+}
+
+export function* createAlertWatcher() :Generator<*, *, *> {
+  yield takeEvery(CREATE_ALERT, createAlertWorker);
+}
+
+function* expireAlertWorker(action :SequenceAction) :Generator<*, *, *> {
+  try {
+    yield put(expireAlert.request(action.id));
+
+    yield call(PersistentSearchApi.expirePersistentSearch, action.value);
+
+    yield put(expireAlert.success(action.id));
+    yield put(loadAlerts());
+  }
+  catch (error) {
+    console.error(error)
+    yield put(expireAlert.failure(action.id, error));
+  }
+  finally {
+    yield put(expireAlert.finally(action.id));
+  }
+}
+
+export function* expireAlertWatcher() :Generator<*, *, *> {
+  yield takeEvery(EXPIRE_ALERT, expireAlertWorker);
+}
 
 function* loadAlertsWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
     yield put(loadAlerts.request(action.id));
-    const { edm } = action.value;
-    const entitySets = edm.get(EDM.ENTITY_SETS, Map());
-    const propertyTypes = edm.get(EDM.PROPERTY_TYPES, Map());
 
-    let entitySetId = entitySets.getIn([ENTITY_SETS.USERS, 'id']);
-    let alertEntitySetId = entitySets.getIn([ENTITY_SETS.ALERTS, 'id']);
-    let propertyTypeId = propertyTypes.getIn([PROPERTY_TYPES.PERSON_ID, 'id']);
-
-    if (!entitySetId || !alertEntitySetId || !propertyTypeId) {
-      [entitySetId, alertEntitySetId, propertyTypeId] = yield all([
-        call(EntityDataModelApi.getEntitySetId, ENTITY_SETS.USERS),
-        call(EntityDataModelApi.getEntitySetId, ENTITY_SETS.ALERTS),
-        call(EntityDataModelApi.getPropertyTypeId, getFqnObj(PROPERTY_TYPES.PERSON_ID)),
-      ]);
-    }
-
-    const userId = getUserId();
-    const searchResults = yield call(SearchApi.searchEntitySetData, entitySetId, {
-      start: 0,
-      maxHits: 1,
-      searchTerm: `${propertyTypeId}:"${userId}"`
-    });
-
-    let alerts = List();
-    const { hits } = searchResults;
-    if (hits.length) {
-      const userEntityKeyId = hits[0][OPENLATTICE_ID_FQN][0];
-
-      const alertNeighbors = yield call(SearchApi.searchEntityNeighborsWithFilter, entitySetId, {
-        entityKeyIds: [userEntityKeyId],
-        src: [alertEntitySetId]
-      });
-
-      alerts = fromJS(alertNeighbors)
-        .valueSeq()
-        .flatMap(val => val)
-        .map(obj => obj.get('neighborDetails'))
-        .filter(val => !!val)
-        .toList();
-    }
+    const alerts = yield call(PersistentSearchApi.loadPersistentSearches, true);
 
     yield put(loadAlerts.success(action.id, alerts));
   }
