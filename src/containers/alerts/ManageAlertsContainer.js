@@ -17,12 +17,10 @@ import SearchableSelect from '../../components/controls/SearchableSelect';
 import BasicButton from '../../components/buttons/BasicButton';
 import InfoButton from '../../components/buttons/InfoButton';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
-import newAlertConfig from '../../config/formconfig/NewAlertConfig';
 import {
   STATE,
   ALERTS,
   EDM,
-  EXPLORE,
   PARAMETERS,
   SEARCH_PARAMETERS,
   SUBMIT
@@ -41,7 +39,6 @@ type Props = {
   searchReason :string,
   plate :string,
   expirationDate :string,
-  searchDateTime :string,
   readsEntitySetId :string,
   platePropertyTypeId :string,
   parameters :Map,
@@ -214,11 +211,9 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     const {
       actions,
       caseNum,
-      edm,
       searchReason,
       plate,
       expirationDate,
-      searchDateTime,
       readsEntitySetId,
       platePropertyTypeId
     } = this.props;
@@ -228,7 +223,7 @@ class ManageAlertsContainer extends React.Component<Props, State> {
       return;
     }
 
-    const searchQuery = {
+    const constraints = {
       entitySetIds: [readsEntitySetId],
       start: 0,
       maxHits: 3000,
@@ -242,25 +237,18 @@ class ManageAlertsContainer extends React.Component<Props, State> {
       ]
     };
 
-    const values = {
-      [EXPLORE.SEARCH_DATE_TIME]: searchDateTime,
-      [ALERTS.CASE_NUMBER]: caseNum,
-      [ALERTS.SEARCH_REASON]: searchReason,
-      [ALERTS.PLATE]: JSON.stringify(searchQuery),
-      [ALERTS.EXPIRATION]: expirationMoment.toISOString(true)
+    const alert = {
+      expiration: expirationMoment.toISOString(true),
+      type: 'ALPR_ALERT',
+      constraints,
+      alertMetadata: {
+        caseNum,
+        searchReason,
+        licensePlate: plate
+      }
     };
 
-    actions.submit({
-      values,
-      config: newAlertConfig,
-      includeUserId: true,
-      callback: () => actions.loadAlerts({ edm })
-    });
-
-    actions.setAlertValue({
-      field: ALERTS.PLATE,
-      value: ''
-    });
+    actions.createAlert(alert);
 
     this.setState({ isSettingNewAlert: false });
   }
@@ -319,20 +307,11 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     );
   }
 
-  getLicensePlate = (alert) => {
-    const { edm } = this.props;
-    const query = alert.getIn([PROPERTY_TYPES.SEARCH_QUERY, 0], '');
-    const platePropertyTypeId = edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']);
-    const pattern = RegExp(`${platePropertyTypeId}:\\\\"(.*)\\\\"`);
-    const results = pattern.exec(query);
-    return (results && results[1]) ? results[1] : '';
-  }
-
-  getDateTime = entity => moment(entity.getIn([PROPERTY_TYPES.END_DATE_TIME, 0], ''));
+  getExpiration = alert => moment(alert.get('expiration', ''));
 
   sortAlerts = (a1, a2) => {
-    const dt1 = this.getDateTime(a1);
-    const dt2 = this.getDateTime(a2);
+    const dt1 = this.getExpiration(a1);
+    const dt2 = this.getExpiration(a2);
     return dt1.isValid() && dt1.isAfter(dt2) ? -1 : 1;
   }
 
@@ -350,26 +329,28 @@ class ManageAlertsContainer extends React.Component<Props, State> {
   }
 
   renderAlerts = (sortedAlerts, expired) => {
+    const { actions } = this.props;
+
     if (!sortedAlerts.size) {
       return <NoAlerts>{`No ${expired ? 'expired' : 'active'} alerts`}</NoAlerts>;
     }
 
     return sortedAlerts.map((alert) => {
-      let expiration = this.getDateTime(alert);
+      let expiration = moment(alert.get('expiration', ''));
+      const alertMetadata = alert.get('alertMetadata', Map());
+
       expiration = expiration.isValid() ? expiration.format('MM/DD/YYYY hh:mm a') : 'Invalid expiration date';
-      const caseNum = alert.getIn([PROPERTY_TYPES.CASE_NUMBER, 0], '');
-      const searchReason = alert.getIn([PROPERTY_TYPES.SEARCH_REASON, 0], '');
-      const plate = this.getLicensePlate(alert);
+
       return (
         <Alert expired={expired} key={getEntityKeyId(alert)}>
           <span>{`Expire${expired ? 'd' : 's'} ${expiration}`}</span>
-          <div>License plate: <b>{plate}</b></div>
-          <div>Case number: <b>{caseNum}</b></div>
-          <div>Search Reason: <b>{searchReason}</b></div>
+          <div>License plate: <b>{alertMetadata.get('licensePlate')}</b></div>
+          <div>Case number: <b>{alertMetadata.get('caseNum')}</b></div>
+          <div>Search Reason: <b>{alertMetadata.get('searchReason')}</b></div>
           {
             expired ? null : (
               <CenteredRow>
-                <BasicButton onClick={() => this.expireAlert(alert)}>Expire alert</BasicButton>
+                <BasicButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire alert</BasicButton>
               </CenteredRow>
             )
           }
@@ -389,8 +370,9 @@ class ManageAlertsContainer extends React.Component<Props, State> {
 
     let active = List();
     let inactive = List();
+
     alerts.forEach((alert) => {
-      const dateTime = this.getDateTime(alert);
+      const dateTime = this.getExpiration(alert);
       if (dateTime.isValid() && dateTime.isAfter(now)) {
         active = active.push(alert);
       }
@@ -438,7 +420,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const alerts = state.get(STATE.ALERTS);
   const parameters = state.get(STATE.PARAMETERS);
   const edm = state.get(STATE.EDM);
-  const explore = state.get(STATE.EXPLORE);
   const submit = state.get(STATE.SUBMIT);
 
   return {
@@ -451,7 +432,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     readsEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
     platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
-    searchDateTime: explore.get(EXPLORE.SEARCH_DATE_TIME),
     isSubmitting: submit.get(SUBMIT.SUBMITTING),
     edm
   };

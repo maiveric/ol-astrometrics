@@ -2,7 +2,6 @@
  * @flow
  */
 
-import moment from 'moment';
 import { List, Map, fromJS } from 'immutable';
 
 import { ALERTS } from '../../utils/constants/StateConstants';
@@ -43,7 +42,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case loadAlerts.case(action.type): {
       return loadAlerts.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_ALERTS, true),
-        SUCCESS: () => state.set(ALERT_LIST, action.value),
+        SUCCESS: () => state.set(ALERT_LIST, fromJS(action.value)),
         FAILURE: () => state.set(ALERT_LIST, List()),
         FINALLY: () => state.set(IS_LOADING_ALERTS, false)
       });
@@ -58,8 +57,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return state.set(ALERT_MODAL_OPEN, !!action.value);
 
     case CLEAR_EXPLORE_SEARCH_RESULTS:
-    case UNMOUNT_EXPLORE:
-      return INITIAL_STATE;
+    case UNMOUNT_EXPLORE: {
+      return INITIAL_STATE.set(ALERT_LIST, state.get(ALERT_LIST));
+    }
 
     default:
       return state;

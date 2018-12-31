@@ -25,6 +25,8 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AuthSagas.watchLogout),
 
     /* AlertSagas */
+    fork(AlertSagas.createAlertWatcher),
+    fork(AlertSagas.expireAlertWatcher),
     fork(AlertSagas.loadAlertsWatcher),
 
     /* AppSagas */
