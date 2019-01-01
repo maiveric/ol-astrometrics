@@ -362,8 +362,35 @@ class ManageAlertsContainer extends React.Component<Props, State> {
   renderAlertList = () => {
     const { alerts } = this.props;
 
-    if (!alerts.size) {
-      return <NoAlerts>You have not set any alerts.</NoAlerts>;
+    let content = <NoAlerts>You have not set any alerts.</NoAlerts>;
+
+    if (alerts.size) {
+      const now = moment();
+
+      let active = List();
+      let inactive = List();
+
+      alerts.forEach((alert) => {
+        const dateTime = this.getExpiration(alert);
+        if (dateTime.isValid() && dateTime.isAfter(now)) {
+          active = active.push(alert);
+        }
+        else {
+          inactive = inactive.push(alert);
+        }
+      });
+
+      active = active.sort(this.sortAlerts);
+      inactive = inactive.sort(this.sortAlerts);
+
+      content = (
+        <>
+          <SubHeader>Active alerts</SubHeader>
+          {this.renderAlerts(active, false)}
+          <SubHeader>Expired alerts</SubHeader>
+          {this.renderAlerts(inactive, true)}
+        </>
+      );
     }
 
     const now = moment();
@@ -390,10 +417,7 @@ class ManageAlertsContainer extends React.Component<Props, State> {
           <ModalHeader>Manage existing alerts</ModalHeader>
           <SecondaryButton onClick={() => this.setState({ isSettingNewAlert: true })}>Create new alert</SecondaryButton>
         </EvenlySpacedRow>
-        <SubHeader>Active alerts</SubHeader>
-        {this.renderAlerts(active, false)}
-        <SubHeader>Expired alerts</SubHeader>
-        {this.renderAlerts(inactive, true)}
+        {content}
       </FormContainer>
     );
   }
