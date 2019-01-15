@@ -6,7 +6,7 @@ export const ENTITY_SETS = {
   LOCATIONS: 'NCRICLocations',
   AGENCIES: 'NCRICAgencies',
   CONFIDENCE_METRICS: 'NCRICConfidenceMetrics',
-  HITS: 'NCRICHits',
+  HITS: 'NCRICNotifications',
   RECORDED_BY: 'NCRICRecordedBy',
   CARS: 'NCRICVehicles',
   USERS: 'NCRICUsers',
