@@ -163,16 +163,17 @@ const VehicleCard = ({
   toggleReport
 } :Props) => {
 
-  const make = vehicle.getIn([PROPERTY_TYPES.MAKE, 0], '');
-  const model = vehicle.getIn([PROPERTY_TYPES.MODEL, 0], '');
   const year = vehicle.getIn([PROPERTY_TYPES.YEAR, 0], '');
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
   const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'California');
 
   const vehicleImages = records.flatMap(record => record.get(PROPERTY_TYPES.VEHICLE_IMAGE, List()));
   const plateImages = records.flatMap(record => record.get(PROPERTY_TYPES.LICENSE_PLATE_IMAGE, List()));
+  const color = records.flatMap(record => record.get(PROPERTY_TYPES.COLOR, List())).toSet();
+  const make = records.flatMap(record => record.get(PROPERTY_TYPES.MAKE, List())).toSet();
+  const model = records.flatMap(record => record.get(PROPERTY_TYPES.MODEL, List())).toSet();
 
-  const makeModelString = `${make} ${model}`.trim();
+  const makeModelString = `${make.join(', ')} ${model.join(', ')}`.trim();
 
   const onToggleReport = (e) => {
     e.stopPropagation();
@@ -234,6 +235,10 @@ const VehicleCard = ({
             <section>
               <span>Make / Model</span>
               <div>{makeModelString.length ? makeModelString : <i>Unknown</i>}</div>
+            </section>
+            <section>
+              <span>Color</span>
+              <div>{color.size ? color.join(', ') : <i>Unknown</i>}</div>
             </section>
             <section>
               <span>Timestamp</span>

@@ -458,13 +458,13 @@ class SearchParameters extends React.Component<Props> {
           <Row>
             <Row width={20}>
               <InputGroup>
-                <span>Case Number</span>
+                <span>Case Number*</span>
                 {this.renderInput(PARAMETERS.CASE_NUMBER)}
               </InputGroup>
             </Row>
             <Row width={53}>
               <InputGroup>
-                <span>Search Reason</span>
+                <span>Search Reason*</span>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.REASON)}
                     searchPlaceholder="Select"
@@ -477,7 +477,7 @@ class SearchParameters extends React.Component<Props> {
             </Row>
             <Row width={20}>
               <InputGroup>
-                <span>Full or Partial Plate</span>
+                <span>Full or Partial Plate (minimum 3 characters)</span>
                 {this.renderInput(PARAMETERS.PLATE)}
               </InputGroup>
             </Row>
@@ -572,6 +572,13 @@ class SearchParameters extends React.Component<Props> {
             </Row>
           </Row>
           <Row marginTop>
+            <InputGroup>
+              <span>
+                *Required fields. Additionally, at least two of license plate, location, or time range must be present to perform a search.
+              </span>
+            </InputGroup>
+          </Row>
+          <Row>
             <ButtonWrapper fitContent disabled>
               <FontAwesomeIcon icon={faPlus} />
               <span>Additional Details</span>
