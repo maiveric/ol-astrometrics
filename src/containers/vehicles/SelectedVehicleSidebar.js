@@ -281,6 +281,11 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     const plateImage = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
     const departments = read.get(PROPERTY_TYPES.AGENCY_NAME, List()).join(', ');
     const devices = read.get(PROPERTY_TYPES.CAMERA_ID, List()).join(', ');
+    const color = read.get(PROPERTY_TYPES.COLOR, List()).join(', ');
+    const make = read.get(PROPERTY_TYPES.MAKE, List()).join(', ');
+    const model = read.get(PROPERTY_TYPES.MODEL, List()).join(', ');
+    const year = read.get(PROPERTY_TYPES.YEAR, List()).join(', ');
+    const accessories = read.get(PROPERTY_TYPES.ACCESSORIES, List()).join(', ');
     const timestamp = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
     const timestampStr = timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm A') : '';
 
@@ -304,6 +309,46 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
               <span>Device</span>
               <div>{devices}</div>
             </section>
+            {
+              color ? (
+                <section>
+                  <span>Color</span>
+                  <div>{color}</div>
+                </section>
+              ) : null
+            }
+            {
+              make ? (
+                <section>
+                  <span>Make</span>
+                  <div>{make}</div>
+                </section>
+              ) : null
+            }
+            {
+              model ? (
+                <section>
+                  <span>Model</span>
+                  <div>{model}</div>
+                </section>
+              ) : null
+            }
+            {
+              year ? (
+                <section>
+                  <span>Year</span>
+                  <div>{year}</div>
+                </section>
+              ) : null
+            }
+            {
+              accessories ? (
+                <section>
+                  <span>Accessories</span>
+                  <div>{accessories}</div>
+                </section>
+              ) : null
+            }
           </DetailsBody>
         </Card>
       </>
