@@ -574,7 +574,7 @@ class SearchParameters extends React.Component<Props> {
           <Row marginTop>
             <InputGroup>
               <span>
-                *Note: at least two of license plate, location, or time range must be present to perform a search.
+                *Required fields. Additionally, at least two of license plate, location, or time range must be present to perform a search.
               </span>
             </InputGroup>
           </Row>
