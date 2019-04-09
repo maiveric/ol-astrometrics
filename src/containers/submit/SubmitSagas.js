@@ -145,7 +145,7 @@ function* getOrCreateUserId() :Generator<*, *, *> {
     ]);
 
     const userSearchResults = yield call(SearchApi.searchEntitySetData, userEntitySetId, {
-      searchTerm: `${personIdPropertyTypeId}:"${userId}"`,
+      searchTerm: `${userEntitySetId}.${personIdPropertyTypeId}:"${userId}"`,
       start: 0,
       maxHits: 1
     });
