@@ -69,12 +69,9 @@ const getSearchRequest = (
 
   const searchFields = getSearchFields(searchParameters);
 
-  const timestampPropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.TIMESTAMP, 'id']);
-  const coordinatePropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.COORDINATE, 'id']);
-  const platePropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.PLATE, 'id']);
-  const namePropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.NAME, 'id']);
-  const agencyIdPropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.AGENCY_NAME, 'id']);
-  const deviceIdPropertyTypeId = propertyTypesByFqn.getIn([PROPERTY_TYPES.CAMERA_ID, 'id']);
+  const getPropertyTypeId = fqn => propertyTypesByFqn.getIn([fqn, 'id']);
+
+  const timestampPropertyTypeId = getPropertyTypeId(PROPERTY_TYPES.TIMESTAMP);
 
   const constraintGroups = [];
 
@@ -98,7 +95,7 @@ const getSearchRequest = (
       min: 1,
       constraints: [{
         type: 'geoPolygon',
-        propertyTypeId: coordinatePropertyTypeId,
+        propertyTypeId: getPropertyTypeId(PROPERTY_TYPES.COORDINATE),
         zones: searchParameters.get(PARAMETERS.SEARCH_ZONES, [])
       }]
     });
@@ -109,7 +106,7 @@ const getSearchRequest = (
     constraintGroups.push({
       constraints: [{
         type: 'geoDistance',
-        propertyTypeId: coordinatePropertyTypeId,
+        propertyTypeId: getPropertyTypeId(PROPERTY_TYPES.COORDINATE),
         latitude: searchParameters.get(PARAMETERS.LATITUDE),
         longitude: searchParameters.get(PARAMETERS.LONGITUDE),
         radius: searchParameters.get(PARAMETERS.RADIUS),
@@ -125,7 +122,7 @@ const getSearchRequest = (
         type: 'advanced',
         searchFields: [{
           searchTerm: searchParameters.get(PARAMETERS.PLATE),
-          property: platePropertyTypeId,
+          property: getPropertyTypeId(PROPERTY_TYPES.PLATE),
           exact: false
         }]
       }]
@@ -139,7 +136,7 @@ const getSearchRequest = (
         type: 'advanced',
         searchFields: [{
           searchTerm: searchParameters.get(PARAMETERS.DEPARTMENT_ID),
-          property: agencyIdPropertyTypeId,
+          property: getPropertyTypeId(PROPERTY_TYPES.AGENCY_NAME),
           exact: true
         }]
       }]
@@ -153,8 +150,92 @@ const getSearchRequest = (
         type: 'advanced',
         searchFields: [{
           searchTerm: searchParameters.get(PARAMETERS.DEVICE),
-          property: deviceIdPropertyTypeId,
+          property: getPropertyTypeId(PROPERTY_TYPES.CAMERA_ID),
           exact: false
+        }]
+      }]
+    });
+  }
+
+  /* Handle make constraints */
+  if (searchFields.includes(SEARCH_TYPES.MAKE)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.MAKE),
+          property: getPropertyTypeId(PROPERTY_TYPES.MAKE),
+          exact: true
+        }]
+      }]
+    });
+  }
+
+  /* Handle model constraints */
+  if (searchFields.includes(SEARCH_TYPES.MODEL)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.MODEL),
+          property: getPropertyTypeId(PROPERTY_TYPES.MODEL),
+          exact: false
+        }]
+      }]
+    });
+  }
+
+  /* Handle color constraints */
+  if (searchFields.includes(SEARCH_TYPES.COLOR)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.COLOR),
+          property: getPropertyTypeId(PROPERTY_TYPES.COLOR),
+          exact: true
+        }]
+      }]
+    });
+  }
+
+  /* Handle accessory constraints */
+  if (searchFields.includes(SEARCH_TYPES.ACCESSORIES)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.ACCESSORIES),
+          property: getPropertyTypeId(PROPERTY_TYPES.ACCESSORIES),
+          exact: true
+        }]
+      }]
+    });
+  }
+
+  /* Handle style constraints */
+  if (searchFields.includes(SEARCH_TYPES.STYLE)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.STYLE),
+          property: getPropertyTypeId(PROPERTY_TYPES.STYLE),
+          exact: true
+        }]
+      }]
+    });
+  }
+
+  /* Handle label constraints */
+  if (searchFields.includes(SEARCH_TYPES.LABEL)) {
+    constraintGroups.push({
+      constraints: [{
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: searchParameters.get(PARAMETERS.LABEL),
+          property: getPropertyTypeId(PROPERTY_TYPES.LABEL),
+          exact: true
         }]
       }]
     });
@@ -201,7 +282,7 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
       }));
     }
     else {
-      console.error('Unable to log search.')
+      console.error('Unable to log search.');
       yield put(executeSearch.failure(action.id));
     }
   }

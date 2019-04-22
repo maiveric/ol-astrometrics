@@ -123,6 +123,9 @@ const NoContentWrapper = styled.div`
 
 const SearchOption = styled.div`
   padding: 10px 20px;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 400;
 
   &:hover {
     background-color: #f0f0f7;
@@ -130,7 +133,7 @@ const SearchOption = styled.div`
   }
 
   &:active {
-    background-color: #e4d8ff;
+    background-color: #e6e6f7;
   }
 `;
 
@@ -301,6 +304,7 @@ class SearchableSelect extends React.Component<Props, State> {
 
   render() {
     const { value } = this.props;
+    const { searchQuery } = this.state;
 
     return (
       <SearchableSelectWrapper isVisibleDataTable={this.state.isVisibleDataTable} className={this.props.className}>
@@ -322,7 +326,7 @@ class SearchableSelect extends React.Component<Props, State> {
               <SearchInput
                   placeholder={this.props.searchPlaceholder}
                   transparent={this.props.transparent}
-                  value={value}
+                  value={value || searchQuery}
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable} />

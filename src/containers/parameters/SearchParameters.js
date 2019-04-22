@@ -13,6 +13,7 @@ import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChevronLeft,
+  faMinus,
   faPlus,
   faPrint
 } from '@fortawesome/pro-regular-svg-icons';
@@ -28,7 +29,15 @@ import SearchableSelect from '../../components/controls/SearchableSelect';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from './ParametersReducer';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
+import {
+  SEARCH_REASONS,
+  MAKES,
+  MODELS_BY_MAKE,
+  COLORS,
+  ACCESSORIES,
+  STYLES,
+  LABELS
+} from '../../utils/constants/DataConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   EDM,
@@ -99,6 +108,10 @@ const InnerWrapper = styled.div`
   }
 `;
 
+type State = {
+  isExpanded :boolean
+};
+
 const Row = styled.div`
   width: ${props => (props.width || '100')}%;
   margin-top: ${props => (props.marginTop ? 30 : 0)}px;
@@ -121,7 +134,7 @@ const SubHeader = styled.div`
 
 const StyledInputWrapper = styled.div`
   width: 100%;
-  height: 38px;
+  height: 39px;
   position: relative;
 
   input {
@@ -152,6 +165,7 @@ const StyledInput = styled.input.attrs({
   border-radius: 3px;
   padding: 10px 15px;
   border: none;
+  height: 39px;
 
   &:focus {
     outline: none;
@@ -319,10 +333,14 @@ const ButtonWrapper = styled.button`
 
 `;
 
-class SearchParameters extends React.Component<Props> {
+class SearchParameters extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
+    this.state = {
+      isExpanded: false
+    };
+
     this.addressSearchTimeout = null;
     this.departmentSearchTimeout = null;
   }
@@ -440,6 +458,7 @@ class SearchParameters extends React.Component<Props> {
   }
 
   renderFullSearchParameters() {
+    const { isExpanded } = this.state;
     const {
       actions,
       searchParameters,
@@ -448,8 +467,6 @@ class SearchParameters extends React.Component<Props> {
       isLoadingAgencies,
       noAgencyResults
     } = this.props;
-
-    const isReadyToSubmit = getSearchFields(searchParameters).length > 0;
 
     return (
       <SearchParameterWrapper>
@@ -525,6 +542,7 @@ class SearchParameters extends React.Component<Props> {
                 <span>Time start</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
+                      hideIcon
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.START)}
                       value={searchParameters.get(PARAMETERS.START)}
                       dateFormat="MM/DD/YYYY"
@@ -539,6 +557,7 @@ class SearchParameters extends React.Component<Props> {
                 <span>Time end</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
+                      hideIcon
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.END)}
                       value={searchParameters.get(PARAMETERS.END)}
                       dateFormat="MM/DD/YYYY"
@@ -579,20 +598,126 @@ class SearchParameters extends React.Component<Props> {
             </InputGroup>
           </Row>
           <Row>
-            <ButtonWrapper fitContent disabled>
-              <FontAwesomeIcon icon={faPlus} />
+            <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
+              <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
               <span>Additional Details</span>
             </ButtonWrapper>
-            <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
+            { isExpanded ? null : this.renderSearchButton() }
           </Row>
+          {
+            isExpanded ? (
+              <>
+                <Row marginTop>
+                  <Row width={15}>
+                    <InputGroup>
+                      <span>Make</span>
+                      <StyledSearchableSelect
+                          value={searchParameters.get(PARAMETERS.MAKE)}
+                          onSelect={value => this.onMakeChange(value)}
+                          onClear={() => this.onMakeChange('')}
+                          options={this.getAsMap(MAKES)}
+                          transparent
+                          short />
+                    </InputGroup>
+                  </Row>
+                  <Row width={15}>
+                    <InputGroup>
+                      <span>Model</span>
+                      <StyledSearchableSelect
+                          value={searchParameters.get(PARAMETERS.MODEL)}
+                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value })}
+                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' })}
+                          options={this.getAsMap(MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)] || [])}
+                          transparent
+                          short />
+                    </InputGroup>
+                  </Row>
+                  <Row width={15}>
+                    <InputGroup>
+                      <span>Color</span>
+                      <StyledSearchableSelect
+                          value={searchParameters.get(PARAMETERS.COLOR)}
+                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value })}
+                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value: '' })}
+                          options={this.getAsMap(COLORS)}
+                          transparent
+                          short />
+                    </InputGroup>
+                  </Row>
+                  <Row width={15}>
+                    <InputGroup>
+                      <span>Accessories</span>
+                      <StyledSearchableSelect
+                          value={searchParameters.get(PARAMETERS.ACCESSORIES)}
+                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value })}
+                          onInputChange={({ target }) => {
+                            actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: target.value });
+                          }}
+                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: '' })}
+                          options={this.getAsMap(ACCESSORIES)}
+                          transparent
+                          short />
+                    </InputGroup>
+                  </Row>
+                  <Row width={15}>
+                    <InputGroup>
+                      <span>Style</span>
+                      <StyledSearchableSelect
+                          value={searchParameters.get(PARAMETERS.STYLE)}
+                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value })}
+                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value: '' })}
+                          options={this.getAsMap(STYLES)}
+                          transparent
+                          short />
+                    </InputGroup>
+                  </Row>
+                  <Row width={15}>
+                    <InputGroup>
+                      <span>Label</span>
+                      <StyledSearchableSelect
+                          value={searchParameters.get(PARAMETERS.LABEL)}
+                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.LABEL, value })}
+                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.LABEL, value: '' })}
+                          options={this.getAsMap(LABELS)}
+                          selectOnly
+                          transparent
+                          short />
+                    </InputGroup>
+                  </Row>
+                </Row>
+                <Row marginTop>
+                  <Row width={10} />
+                  {this.renderSearchButton()}
+                </Row>
+              </>
+            ) : null
+          }
         </InnerWrapper>
       </SearchParameterWrapper>
     );
   }
 
+  onMakeChange = (value) => {
+    const { actions } = this.props;
+    actions.updateSearchParameters({ field: PARAMETERS.MAKE, value });
+    actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' });
+  }
+
+  toggleAdditionalDetails = () => {
+    const { isExpanded } = this.state;
+    this.setState({ isExpanded: !isExpanded });
+  }
+
   formatDateTime = (dateTime) => {
     const momentDT = moment(dateTime);
     return momentDT.isValid() ? momentDT.format('MM/DD/YY HH:mm a') : '';
+  }
+
+  renderSearchButton = () => {
+    const { searchParameters } = this.props;
+    const isReadyToSubmit = getSearchFields(searchParameters).length > 0;
+
+    return <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>;
   }
 
   renderTopNav = () => {
