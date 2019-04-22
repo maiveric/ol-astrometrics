@@ -73,7 +73,13 @@ export const PARAMETERS = {
   END: 'end',
   DEPARTMENT: 'department',
   DEPARTMENT_ID: 'departmentId',
-  DEVICE: 'device'
+  DEVICE: 'device',
+  MAKE: 'make',
+  MODEL: 'model',
+  COLOR: 'color',
+  ACCESSORIES: 'accessories',
+  STYLE: 'style',
+  LABEL: 'label'
 };
 
 export const SUBMIT = {

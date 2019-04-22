@@ -5,7 +5,6 @@ const StyledInput = styled.input`
   display: flex;
   flex: 0 1 auto;
   width: 100%;
-  height: 38px;
   font-size: 14px;
   line-height: 19px;
   border-radius: 3px;

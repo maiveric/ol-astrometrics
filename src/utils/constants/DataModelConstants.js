@@ -31,6 +31,8 @@ export const PROPERTY_TYPES = {
   VEHICLE_IMAGE: 'ol.vehicleimage',
   LICENSE_PLATE_IMAGE: 'ol.licenseplateimage',
   ACCESSORIES: 'ol.accessories',
+  STYLE: 'vehicle.style',
+  LABEL: 'ol.label',
 
   // agency
   NAME: 'ol.name',

@@ -49,7 +49,13 @@ const {
   END,
   DEPARTMENT,
   DEPARTMENT_ID,
-  DEVICE
+  DEVICE,
+  MAKE,
+  MODEL,
+  COLOR,
+  ACCESSORIES,
+  STYLE,
+  LABEL
 } = PARAMETERS;
 
 const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
@@ -65,7 +71,13 @@ const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
   [END]: moment().toISOString(true),
   [DEPARTMENT]: '',
   [DEPARTMENT_ID]: '',
-  [DEVICE]: ''
+  [DEVICE]: '',
+  [MAKE]: '',
+  [MODEL]: '',
+  [COLOR]: '',
+  [ACCESSORIES]: '',
+  [STYLE]: '',
+  [LABEL]: ''
 });
 
 const INITIAL_STATE :Map<> = fromJS({
@@ -183,6 +195,30 @@ export function getSearchFields(search :Map<*, *>) {
 
   if (search.get(DEVICE, '').length) {
     searchFields.push(SEARCH_TYPES.DEVICE);
+  }
+
+  if (search.get(MAKE, '').length) {
+    searchFields.push(SEARCH_TYPES.MAKE);
+  }
+
+  if (search.get(MODEL, '').length) {
+    searchFields.push(SEARCH_TYPES.MODEL);
+  }
+
+  if (search.get(COLOR, '').length) {
+    searchFields.push(SEARCH_TYPES.COLOR);
+  }
+
+  if (search.get(ACCESSORIES, '').length) {
+    searchFields.push(SEARCH_TYPES.ACCESSORIES);
+  }
+
+  if (search.get(STYLE, '').length) {
+    searchFields.push(SEARCH_TYPES.STYLE);
+  }
+
+  if (search.get(LABEL, '').length) {
+    searchFields.push(SEARCH_TYPES.LABEL);
   }
 
   return searchFields;
