@@ -28,6 +28,7 @@ import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
+import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getSearchFields } from './ParametersReducer';
 import {
   SEARCH_REASONS,
@@ -495,7 +496,17 @@ class SearchParameters extends React.Component<Props, State> {
             <Row width={20}>
               <InputGroup>
                 <span>Full or Partial Plate (minimum 3 characters)</span>
-                {this.renderInput(PARAMETERS.PLATE)}
+                <StyledSearchableSelect
+                    value={searchParameters.get(PARAMETERS.PLATE)}
+                    searchPlaceholder=""
+                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.PLATE, value })}
+                    onInputChange={({ target }) => {
+                      actions.updateSearchParameters({ field: PARAMETERS.PLATE, value: target.value });
+                    }}
+                    options={this.getAsMap(getPreviousLicensePlateSearches())}
+                    allowFreeEntry
+                    transparent
+                    short />
               </InputGroup>
             </Row>
           </Row>
