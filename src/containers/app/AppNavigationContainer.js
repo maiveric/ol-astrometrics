@@ -70,4 +70,4 @@ class AppNavigationContainer extends Component<Props> {
   }
 }
 
-export default withRouter(AppNavigationContainer);
+export default withRouter<*>(AppNavigationContainer);

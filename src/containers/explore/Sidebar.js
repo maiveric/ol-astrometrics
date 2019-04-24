@@ -6,7 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map, Set } from 'immutable';
-import { withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -29,29 +29,27 @@ import * as ExploreActionFactory from './ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
-  recordEntitySetId :string,
-  displayFullSearchOptions :boolean,
-  isLoadingResults :boolean,
-  isLoadingNeighbors :boolean,
-  results :List<*>,
-  selectedEntityKeyIds :Set<*>,
-  selectedReadId :string,
-  neighborsById :List<*>,
-  searchParameters :Map<*, *>,
-  geocodedAddresses :List<*>,
-  filter :string,
+  isLoadingResults :boolean;
+  isLoadingNeighbors :boolean;
+  results :List<*>;
+  selectedEntityKeyIds :Set<*>;
+  selectedReadId :string;
+  neighborsById :List<*>;
+  filter :string;
+  reportVehicles :List<*>;
   actions :{
-    editSearchParameters :(editing :boolean) => void,
-    executeSearch :(searchParameters :Object) => void,
-    geocodeAddress :(address :string) => void,
-    selectAddress :(address :Object) => void,
-    selectEntity :(entityKeyId :string) => void,
-    selectEntitySet :(entitySet? :Map<*, *>) => void,
-    updateSearchParameters :({ field :string, value :string }) => void,
-    setFilter :(filter :string) => void,
-    addVehicleToReport :(entityKeyId :string) => void,
-    removeVehicleFromReport :(entityKeyId :string) => void
-  }
+    addVehicleToReport :RequestSequence;
+    editSearchParameters :RequestSequence;
+    executeSearch :RequestSequence;
+    geocodeAddress :RequestSequence;
+    loadDataModel :RequestSequence;
+    removeVehicleFromReport :RequestSequence;
+    selectAddress :RequestSequence;
+    selectEntity :RequestSequence;
+    selectEntitySet :RequestSequence;
+    setFilter :RequestSequence;
+    updateSearchParameters :RequestSequence;
+  };
 };
 
 type State = {
@@ -271,11 +269,6 @@ class Sidebar extends React.Component<Props, State> {
   render() {
     const {
       actions,
-      displayFullSearchOptions,
-      geocodedAddresses,
-      results,
-      selectedEntityKeyIds,
-      searchParameters,
       isLoadingResults,
       isLoadingNeighbors,
       reportVehicles
@@ -328,7 +321,6 @@ class Sidebar extends React.Component<Props, State> {
     );
   }
 }
-
 
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);

@@ -8,20 +8,15 @@ import styled from 'styled-components';
 import { Map } from 'immutable';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Redirect, Route, Switch } from 'react-router';
 
 import AppHeaderContainer from './AppHeaderContainer';
 import ExploreContainer from '../explore/ExploreContainer';
-import MapContainer from '../map/MapContainer';
 import Spinner from '../../components/spinner/Spinner';
 import * as Routes from '../../core/router/Routes';
 import { loadApp } from './AppActions';
 import { APP_NAME } from '../../utils/constants/Constants';
-import {
-  APP_CONTAINER_MAX_WIDTH,
-  APP_CONTAINER_WIDTH,
-  APP_CONTENT_PADDING
-} from '../../core/style/Sizes';
+import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
 const APP_CONTENT_BG :string = '#f8f8fb';
@@ -112,4 +107,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AppContainer);
+export default connect<*, *, *, *, *, *>(mapStateToProps, mapDispatchToProps)(AppContainer);

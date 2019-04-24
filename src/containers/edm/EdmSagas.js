@@ -2,14 +2,14 @@
  * @flow
  */
 
-import { EntityDataModelApi } from 'lattice';
-import { Map, fromJS } from 'immutable';
 import {
   all,
   call,
   put,
   takeEvery
-} from 'redux-saga/effects';
+} from '@redux-saga/core/effects';
+import { Map, fromJS } from 'immutable';
+import { EntityDataModelApi } from 'lattice';
 
 import { getFqnString } from '../../utils/DataUtils';
 import {

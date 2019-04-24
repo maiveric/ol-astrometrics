@@ -6,11 +6,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import LatticeAuth from 'lattice-auth';
+import { ConnectedRouter } from 'connected-react-router/immutable';
 import { Colors } from 'lattice-ui-kit';
 import { normalize } from 'polished';
 import { Provider } from 'react-redux';
-import { ConnectedRouter } from 'react-router-redux';
-import { injectGlobal } from 'styled-components';
+import { createGlobalStyle } from 'styled-components';
 
 import AppContainer from './containers/app/AppContainer';
 import initializeReduxStore from './core/redux/ReduxStore';
@@ -27,9 +27,11 @@ const { NEUTRALS, WHITE } = Colors;
 
 /* eslint-disable */
 // TODO: move into core/styles
-injectGlobal`${normalize()}`;
+const NormalizeCSS = createGlobalStyle`
+  ${normalize()}
+`;
 
-injectGlobal`
+const GlobalStyle = createGlobalStyle`
   html,
   body {
     background-color: ${WHITE};
@@ -78,9 +80,13 @@ const APP_ROOT_NODE = document.getElementById('app');
 if (APP_ROOT_NODE) {
   ReactDOM.render(
     <Provider store={reduxStore}>
-      <ConnectedRouter history={routerHistory}>
-        <AuthRoute path={Routes.ROOT} component={AppContainer} redirectToLogin />
-      </ConnectedRouter>
+      <>
+        <ConnectedRouter history={routerHistory}>
+          <AuthRoute path={Routes.ROOT} component={AppContainer} />
+        </ConnectedRouter>
+        <NormalizeCSS />
+        <GlobalStyle />
+      </>
     </Provider>,
     APP_ROOT_NODE
   );

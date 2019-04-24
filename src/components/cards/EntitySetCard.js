@@ -4,7 +4,7 @@
 
 import React from 'react';
 import Immutable from 'immutable';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
@@ -148,17 +148,7 @@ export default class EntitySetCard extends React.Component<Props, State> {
   }
 
   render() {
-    const { entitySet, onClick } = this.props;
     const { expanded } = this.state;
-
     return expanded ? this.renderExpandedCard() : this.renderDefaultCard();
-
-    return (
-      <Card onClick={onClick} expanded={expanded}>
-        <h1>{entitySet.get('title', '')}</h1>
-        <span>{entitySet.get('description', '')}</span>
-        <span>{entitySet.get('contacts', '')}</span>
-      </Card>
-    );
   }
 }

@@ -8,10 +8,10 @@ import reactMapboxGl, { Layer, Feature } from 'react-mapbox-gl';
 import { List, Map } from 'immutable';
 
 import mapMarker from '../../assets/images/map-marker.png';
-import { MAPBOX_TOKEN } from '../../utils/constants/Constants';
 import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 
+declare var __MAPBOX_TOKEN__;
 
 type Props = {
   entities :List<Map<*, *>>
@@ -29,7 +29,7 @@ const Wrapper = styled.div`
 `;
 
 const MapComponent = reactMapboxGl({
-  accessToken: MAPBOX_TOKEN
+  accessToken: __MAPBOX_TOKEN__
 });
 
 class HeatMap extends React.Component<Props, State> {
@@ -78,8 +78,6 @@ class HeatMap extends React.Component<Props, State> {
           coordinates={getCoordinates(entity)} />
     )).toArray();
   }
-
-  getHeatmap
 
   render() {
     const image = new Image(20, 30);

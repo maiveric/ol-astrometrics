@@ -4,8 +4,8 @@
 
 /* eslint-disable no-use-before-define */
 
-import { put, takeEvery } from 'redux-saga/effects';
-import { AuthActionFactory } from 'lattice-auth';
+import { put, takeEvery } from '@redux-saga/core/effects';
+import { AuthActions } from 'lattice-auth';
 
 import Logger from '../../utils/Logger';
 import { clearCookies } from '../../utils/CookieUtils';
@@ -47,20 +47,20 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
   }
 }
 
-function cleanupWorker() :Generator<*, *, *> {
+function cleanupWorker() {
   clearCookies();
 }
 
 function* authExpirationCleanupWatcher() :Generator<*, *, *> {
-  yield takeEvery(AuthActionFactory.AUTH_EXPIRED, cleanupWorker);
+  yield takeEvery(AuthActions.AUTH_EXPIRED, cleanupWorker);
 }
 
 function* authFailureCleanupWatcher() :Generator<*, *, *> {
-  yield takeEvery(AuthActionFactory.AUTH_FAILURE, cleanupWorker);
+  yield takeEvery(AuthActions.AUTH_FAILURE, cleanupWorker);
 }
 
 function* logoutCleanupWatcher() :Generator<*, *, *> {
-  yield takeEvery(AuthActionFactory.LOGOUT, cleanupWorker);
+  yield takeEvery(AuthActions.LOGOUT, cleanupWorker);
 }
 
 export {

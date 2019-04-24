@@ -3,8 +3,8 @@
  */
 
 import axios from 'axios';
+import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { SearchApi } from 'lattice';
-import { call, put, takeEvery } from 'redux-saga/effects';
 
 import {
   GEOCODE_ADDRESS,

@@ -5,26 +5,22 @@
 import axios from 'axios';
 import moment from 'moment';
 import JSPDF from 'jspdf';
-import { Map, List } from 'immutable';
-import { Constants, SearchApi } from 'lattice';
-import { AuthUtils } from 'lattice-auth';
 import {
   all,
   call,
   put,
   takeEvery
-} from 'redux-saga/effects';
+} from '@redux-saga/core/effects';
+import { Map, List } from 'immutable';
 
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import {
   EXPORT_REPORT,
   exportReport
 } from './ReportActionFactory';
-
-const { OPENLATTICE_ID_FQN } = Constants;
 
 declare var __MAPBOX_TOKEN__;
 
@@ -39,7 +35,7 @@ const X_MARGIN_INDENT = 15;
 const X_MAX = 200;
 const IMG_SIZE = 50;
 const Y_INC = 5;
-const Y_INC_SMALL = 4;
+// const Y_INC_SMALL = 4;
 const Y_INC_LARGE = 7;
 
 const PIXEL_TO_MM_MULTIPLIER = 25;
@@ -441,7 +437,7 @@ function* exportReportWorker(action :SequenceAction) :Generator<*, *, *> {
     yield put(exportReport.success(action.id));
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(exportReport.failure(action.id, error));
   }
   finally {

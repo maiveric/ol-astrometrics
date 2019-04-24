@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
-import { withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
@@ -29,21 +29,22 @@ import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 
 type Props = {
-  alertModalOpen :boolean,
-  drawMode :boolean,
-  displayFullSearchOptions :boolean,
-  results :List<*>,
-  selectedEntityKeyIds :Set<*>,
-  selectedReadId :string,
-  searchParameters :Map<*, *>,
-  filter :string,
-  edm :Map<*, *>,
+  alertModalOpen :boolean;
+  drawMode :boolean;
+  displayFullSearchOptions :boolean;
+  results :List<*>;
+  selectedEntityKeyIds :Set<*>;
+  selectedReadId :string;
+  searchParameters :Map<*, *>;
+  filter :string;
+  edm :Map<*, *>;
   actions :{
-    loadAlerts :(edm :Map) => void,
-    loadDataModel :() => void,
-    setDrawMode :(isDrawMode :boolen) => void,
-    updateSearchParameters :({ field :string, value :string }) => void,
-    toggleAlertModal :(modalOpen :boolean) => void
+    loadAlerts :(edm :Map) => void;
+    loadDataModel :() => void;
+    setDrawMode :(isDrawMode :boolean) => void;
+    updateSearchParameters :({ field :string, value :string }) => void;
+    toggleAlertModal :(modalOpen :boolean) => void;
+    selectEntity :RequestSequence;
   }
 };
 

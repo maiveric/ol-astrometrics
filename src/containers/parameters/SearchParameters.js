@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import { withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { List, Map, OrderedMap } from 'immutable';
@@ -20,14 +20,11 @@ import {
 
 import {
   faBell,
-  faBookmark,
   faPencil
 } from '@fortawesome/pro-solid-svg-icons';
 
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
-import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
-import { getEntityKeyId } from '../../utils/DataUtils';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getSearchFields } from './ParametersReducer';
 import {
@@ -54,34 +51,35 @@ import * as ReportActionFactory from '../report/ReportActionFactory';
 import * as ParametersActionFactory from './ParametersActionFactory';
 
 type Props = {
-  isTopNav :boolean,
-  entitySets :Map<*, *>,
-  recordEntitySetId :string,
-  propertyTypesByFqn :Map<*, *>,
-  searchParameters :Map<*, *>,
-  geocodedAddresses :List<*>,
-  isLoadingAddresses :boolean,
-  noAddressResults :boolean,
-  agencySearchResults :List<*>,
-  isLoadingAgencies :boolean,
-  noAgencyResults :boolean,
-  isLoadingResults :boolean,
-  isLoadingNeighbors :boolean,
-  reportVehicles :Set<*>,
-  results :List<*>,
-  neighborsById :Map<*, *>,
+  isTopNav :boolean;
+  entitySets :Map<*, *>;
+  recordEntitySetId :string;
+  propertyTypesByFqn :Map<*, *>;
+  searchParameters :Map<*, *>;
+  geocodedAddresses :List<*>;
+  isLoadingAddresses :boolean;
+  noAddressResults :boolean;
+  agencySearchResults :List<*>;
+  isLoadingAgencies :boolean;
+  noAgencyResults :boolean;
+  isLoadingResults :boolean;
+  isLoadingNeighbors :boolean;
+  reportVehicles :Set<*>;
+  results :List<*>;
+  neighborsById :Map<*, *>;
   actions :{
-    editSearchParameters :(editing :boolean) => void,
-    geocodeAddress :(address :string) => void,
-    searchAgencies :({ entitySetId :string, value :string }) => void,
-    selectAgency :(agency :Map) => void,
-    updateSearchParameters :({ field :string, value :string }) => void,
-    selectAddress :(address :Object) => void,
-    executeSearch :(searchParameters :Object) => void,
-    setDrawMode :(drawMode :boolean) => void,
-    exportReport :(vehicleIds :Set) => void,
-    toggleAlertModal :(modalOpen :boolean) => void
-  }
+    clearExploreSearchResults :RequestSequence;
+    editSearchParameters :RequestSequence;
+    executeSearch :RequestSequence;
+    exportReport :RequestSequence;
+    geocodeAddress :RequestSequence;
+    searchAgencies :RequestSequence;
+    selectAddress :RequestSequence;
+    selectAgency :RequestSequence;
+    setDrawMode :RequestSequence;
+    toggleAlertModal :RequestSequence;
+    updateSearchParameters :RequestSequence;
+  };
 };
 
 const SearchParameterWrapper = styled.div`
@@ -336,6 +334,9 @@ const ButtonWrapper = styled.button`
 
 class SearchParameters extends React.Component<Props, State> {
 
+  addressSearchTimeout :any;
+  departmentSearchTimeout :any;
+
   constructor(props :Props) {
     super(props);
     this.state = {
@@ -346,7 +347,7 @@ class SearchParameters extends React.Component<Props, State> {
     this.departmentSearchTimeout = null;
   }
 
-  handleAddressChange = (e :SyntheticEvent) => {
+  handleAddressChange = (e) => {
     const { actions } = this.props;
     const { value } = e.target;
 
@@ -362,7 +363,7 @@ class SearchParameters extends React.Component<Props, State> {
     }, 500);
   }
 
-  handleDepartmentChange = (e :SyntheticEvent) => {
+  handleDepartmentChange = (e) => {
     const { actions, entitySets } = this.props;
     const { value } = e.target;
 
@@ -382,7 +383,7 @@ class SearchParameters extends React.Component<Props, State> {
 
   getOnChange = (field) => {
     const { actions } = this.props;
-    return (e :SyntheticEvent) => {
+    return (e) => {
       const { value } = e.target;
       actions.updateSearchParameters({ field, value });
     };
