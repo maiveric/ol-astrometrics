@@ -15,6 +15,7 @@ import { Constants, SearchApi } from 'lattice';
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
 import { getEntityKeyId } from '../../utils/DataUtils';
+import { saveLicensePlateSearch } from '../../utils/CookieUtils';
 import { EXPLORE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
@@ -117,11 +118,14 @@ const getSearchRequest = (
 
   /* Handle license plate constraints */
   if (searchFields.includes(SEARCH_TYPES.PLATE)) {
+    const plate = searchParameters.get(PARAMETERS.PLATE);
+    saveLicensePlateSearch(plate);
+
     constraintGroups.push({
       constraints: [{
         type: 'advanced',
         searchFields: [{
-          searchTerm: searchParameters.get(PARAMETERS.PLATE),
+          searchTerm: plate,
           property: getPropertyTypeId(PROPERTY_TYPES.PLATE),
           exact: false
         }]

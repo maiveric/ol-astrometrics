@@ -101,7 +101,7 @@ const DataTableWrapper = styled.div`
   border-radius: 5px;
   border: 1px solid #e1e1eb;
   position: absolute;
-  z-index: 1;
+  z-index: 5;
   width: 100%;
   visibility: ${props => (props.isVisible ? 'visible' : 'hidden')}};
   box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
@@ -166,7 +166,8 @@ type Props = {
   selectOnly? :boolean,
   disabled? :boolean,
   isLoadingResults? :boolean,
-  noResults? :boolean
+  noResults? :boolean,
+  allowFreeEntry? :boolean
 }
 
 type State = {
@@ -191,7 +192,8 @@ class SearchableSelect extends React.Component<Props, State> {
     selectOnly: false,
     disabled: false,
     isLoadingResults: false,
-    noResults: false
+    noResults: false,
+    allowFreeEntry: false
   };
 
   constructor(props :Props) {
@@ -207,9 +209,10 @@ class SearchableSelect extends React.Component<Props, State> {
 
 
   componentWillReceiveProps(nextProps :Props) {
+    const { value, options } = nextProps;
 
     this.setState({
-      filteredTypes: nextProps.options.keySeq(),
+      filteredTypes: this.filterResultsForOptions(value, options).keySeq(),
       searchQuery: ''
     });
   }
@@ -246,18 +249,24 @@ class SearchableSelect extends React.Component<Props, State> {
     });
   }
 
-  filterResults = (value :string) =>
-    this.props.options.filter((obj, label) => label.toLowerCase().includes(value.toLowerCase()))
+  filterResultsForOptions = (value :string, options :Map<*, *>) => options
+    .filter((obj, label) => label.toLowerCase().includes(value.toLowerCase()))
+
+  filterResults = (value :string) => {
+    const { options } = this.props;
+    return this.filterResultsForOptions(value, options)
+  }
+
 
   handleOnChangeSearchQuery = (event :SyntheticInputEvent<*>) => {
     const { onInputChange } = this.props;
-
-    onInputChange(event);
 
     this.setState({
       filteredTypes: this.filterResults(event.target.value).keySeq(),
       searchQuery: event.target.value
     });
+
+    onInputChange(event);
   }
 
   renderTable = () => {
@@ -273,13 +282,15 @@ class SearchableSelect extends React.Component<Props, State> {
   }
 
   renderDropdownContents = () => {
-    const { isVisibleDataTable, searchQuery } = this.state;
+    const { filteredTypes, isVisibleDataTable, searchQuery } = this.state;
     const {
+      allowFreeEntry,
       openAbove,
-      value,
       isLoadingResults,
       noResults
     } = this.props;
+
+    const noFilteredResults = noResults || !filteredTypes.size;
 
     if (isLoadingResults) {
       return (
@@ -292,9 +303,14 @@ class SearchableSelect extends React.Component<Props, State> {
     }
 
     if (isVisibleDataTable) {
+
+      if (noFilteredResults && allowFreeEntry) {
+        return null;
+      }
+
       return (
         <DataTableWrapper isVisible={isVisibleDataTable} openAbove={openAbove}>
-          {noResults ? <NoContentWrapper>No results</NoContentWrapper> : this.renderTable()}
+          {noFilteredResults ? <NoContentWrapper>No results</NoContentWrapper> : this.renderTable()}
         </DataTableWrapper>
       );
     }
@@ -303,29 +319,38 @@ class SearchableSelect extends React.Component<Props, State> {
   }
 
   render() {
-    const { value } = this.props;
-    const { searchQuery } = this.state;
+    const {
+      className,
+      disabled,
+      onClear,
+      searchPlaceholder,
+      selectOnly,
+      short,
+      transparent,
+      value
+    } = this.props;
+    const { isVisibleDataTable, searchQuery } = this.state;
 
     return (
-      <SearchableSelectWrapper isVisibleDataTable={this.state.isVisibleDataTable} className={this.props.className}>
-        <SearchInputWrapper short={this.props.short}>
+      <SearchableSelectWrapper isVisibleDataTable={isVisibleDataTable} className={className}>
+        <SearchInputWrapper short={short}>
           {
-            this.props.selectOnly ? (
+            selectOnly ? (
               <SearchButton
                   innerRef={(ref) => {
                     this.buttonRef = ref;
                   }}
-                  disabled={this.props.disabled}
-                  transparent={this.props.transparent}
+                  disabled={disabled}
+                  transparent={transparent}
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable}>
-                {value || this.props.searchPlaceholder}
+                {value || searchPlaceholder}
               </SearchButton>
             ) : (
               <SearchInput
-                  placeholder={this.props.searchPlaceholder}
-                  transparent={this.props.transparent}
+                  placeholder={searchPlaceholder}
+                  transparent={transparent}
                   value={value || searchQuery}
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
@@ -333,17 +358,17 @@ class SearchableSelect extends React.Component<Props, State> {
             )
           }
           {
-            (this.props.onClear && value) ? null : (
-              <SearchIcon floatRight={this.props.selectOnly}>
+            (onClear && value) ? null : (
+              <SearchIcon floatRight={selectOnly}>
                 <img src={downArrowIcon} alt="" />
               </SearchIcon>
             )
           }
           {
-            !this.props.onClear || !value
+            !onClear || !value
               ? null
               : (
-                <CloseIcon onClick={this.props.onClear}>
+                <CloseIcon onClick={onClear}>
                   <FontAwesomeIcon icon={faTimes} />
                 </CloseIcon>
               )
