@@ -6,7 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map, Set } from 'immutable';
-import { withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -24,7 +24,6 @@ import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
-  results :List<*>,
   selectedEntityKeyIds :Set<*>,
   neighborsById :Map<*, *>,
   entitiesById :Map<*, *>,
@@ -385,17 +384,10 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
           ))}
         </DetailsBody>
       </ScrollableCard>
-    )
+    );
   }
 
   render() {
-    const {
-      actions,
-      results,
-      selectedEntityKeyIds,
-      selectedReadId,
-      reportVehicles
-    } = this.props;
 
     const vehicle = this.getSelectedVehicle();
     if (!vehicle) {

@@ -6,7 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map, OrderedMap } from 'immutable';
-import { withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { DateTimePicker } from '@atlaskit/datetime-picker';

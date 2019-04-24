@@ -2,6 +2,7 @@
  * @flow
  */
 
+import { connectRouter } from 'connected-react-router/immutable';
 import { AuthReducer } from 'lattice-auth';
 import { combineReducers } from 'redux-immutable';
 
@@ -15,11 +16,12 @@ import ReportReducer from '../../containers/report/ReportReducer';
 import SubmitReducer from '../../containers/submit/SubmitReducer';
 import { STATE } from '../../utils/constants/StateConstants';
 
-export default function reduxReducer() {
+export default function reduxReducer(routerHistory :any) {
 
   return combineReducers({
     app: appReducer,
     auth: AuthReducer,
+    router: connectRouter(routerHistory),
     [STATE.ALERTS]: AlertReducer,
     [STATE.EDM]: EdmReducer,
     [STATE.ENTITY_SETS]: EntitySetReducer,

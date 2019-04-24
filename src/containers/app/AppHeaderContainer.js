@@ -6,7 +6,7 @@ import React, { Component } from 'react';
 
 import styled from 'styled-components';
 import { Map } from 'immutable';
-import { AuthActionFactory } from 'lattice-auth';
+import { AuthActions } from 'lattice-auth';
 import { Button, Colors } from 'lattice-ui-kit';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -22,7 +22,7 @@ import {
   APP_CONTENT_PADDING,
 } from '../../core/style/Sizes';
 
-const { logout } = AuthActionFactory;
+const { logout } = AuthActions;
 const { NEUTRALS } = Colors;
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
@@ -194,6 +194,6 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
-export default withRouter(
+export default withRouter<*>(
   connect(mapStateToProps, mapDispatchToProps)(AppHeaderContainer)
 );

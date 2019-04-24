@@ -4,13 +4,13 @@
 
 import axios from 'axios';
 import moment from 'moment';
-import { Constants, SearchApi } from 'lattice';
 import {
   call,
   put,
   take,
   takeEvery
-} from 'redux-saga/effects';
+} from '@redux-saga/core/effects';
+import { Constants, SearchApi } from 'lattice';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';

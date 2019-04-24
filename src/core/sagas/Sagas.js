@@ -2,8 +2,8 @@
  * @flow
  */
 
+import { all, fork } from '@redux-saga/core/effects';
 import { AuthSagas } from 'lattice-auth';
-import { fork } from 'redux-saga/effects';
 
 import * as AlertSagas from '../../containers/alerts/AlertSagas';
 import * as AppSagas from '../../containers/app/AppSagas';
@@ -16,7 +16,7 @@ import * as SubmitSagas from '../../containers/submit/SubmitSagas';
 
 export default function* sagas() :Generator<*, *, *> {
 
-  yield [
+  yield all([
     /* "lattice-auth" sagas */
     fork(AuthSagas.watchAuthAttempt),
     fork(AuthSagas.watchAuthSuccess),
@@ -52,5 +52,5 @@ export default function* sagas() :Generator<*, *, *> {
     /* SubmitSagas */
     fork(SubmitSagas.replaceEntityWatcher),
     fork(SubmitSagas.submitWatcher)
-  ];
+  ]);
 }

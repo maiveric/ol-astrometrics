@@ -1,7 +1,3 @@
-/*
- * @flow
- */
-
 import React from 'react';
 import styled from 'styled-components';
 import DrawControl from 'react-mapbox-gl-draw';
@@ -9,7 +5,6 @@ import reactMapboxGl, {
   Feature,
   GeoJSONLayer,
   Layer,
-  Source
 } from 'react-mapbox-gl';
 import { List, Map, Set } from 'immutable';
 
@@ -21,7 +16,7 @@ import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
-declare var __MAPBOX_TOKEN__ :boolean;
+declare var __MAPBOX_TOKEN__;
 
 const COORDS = {
   CONTINENTAL_US: [[-124.7844079, 24.7433195], [-66.9513812, 49.3457868]],
@@ -137,7 +132,7 @@ class SimpleMap extends React.Component<Props, State> {
     heatmap: false
   }
 
-  constructor(props :Props) {
+  constructor(props) {
     super(props);
     this.state = {
       fitToBounds: true
@@ -269,19 +264,19 @@ class SimpleMap extends React.Component<Props, State> {
 
     return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
       return (
-      <GeoJSONLayer
-          key={`polygon-${index}`}
-          fillPaint={{
-            'fill-opacity': 0.3,
-            'fill-color': SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length]
-          }}
-          data={{
-            type: 'Feature',
-            geometry: {
-              type: 'Polygon',
-              coordinates: [zone]
-            }
-          }} />
+        <GeoJSONLayer
+            key={`polygon-${index}`}
+            fillPaint={{
+              'fill-opacity': 0.3,
+              'fill-color': SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length]
+            }}
+            data={{
+              type: 'Feature',
+              geometry: {
+                type: 'Polygon',
+                coordinates: [zone]
+              }
+            }} />
       );
     });
   }
@@ -300,7 +295,7 @@ class SimpleMap extends React.Component<Props, State> {
           <button onClick={() => setDrawMode(false)}>Cancel</button>
         </section>
       </DrawModeInstructionBox>
-    )
+    );
   }
 
   renderDrawControl = () => {
@@ -373,9 +368,7 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   renderClusters = () => {
-    const { entities, selectedEntityKeyIds } = this.props;
-    const stepSize = entities.size / 3;
-
+    const { selectedEntityKeyIds } = this.props;
     return (
       <Layer
           type="circle"
@@ -500,7 +493,7 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   render() {
-    const { drawMode, heatmap, searchParameters } = this.props;
+    const { drawMode, searchParameters } = this.props;
     const { fitToBounds } = this.state;
 
     const searchFields = getSearchFields(searchParameters);

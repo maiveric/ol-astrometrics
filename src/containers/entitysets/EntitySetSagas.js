@@ -2,8 +2,8 @@
  * @flow
  */
 
+import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { SearchApi } from 'lattice';
-import { call, put, takeEvery } from 'redux-saga/effects';
 
 import {
   SEARCH_ENTITY_SETS,

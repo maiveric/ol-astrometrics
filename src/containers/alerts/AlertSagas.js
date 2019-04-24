@@ -2,8 +2,8 @@
  * @flow
  */
 
+import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { PersistentSearchApi } from 'lattice';
-import { call, put, takeEvery } from 'redux-saga/effects';
 
 import {
   CREATE_ALERT,
@@ -46,7 +46,7 @@ function* expireAlertWorker(action :SequenceAction) :Generator<*, *, *> {
     yield put(loadAlerts());
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(expireAlert.failure(action.id, error));
   }
   finally {
@@ -67,7 +67,7 @@ function* loadAlertsWorker(action :SequenceAction) :Generator<*, *, *> {
     yield put(loadAlerts.success(action.id, alerts));
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(loadAlerts.failure(action.id, error));
   }
   finally {

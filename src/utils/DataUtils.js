@@ -1,7 +1,3 @@
-/*
-* @flow
-*/
-
 import { Constants } from 'lattice';
 import {
   List,

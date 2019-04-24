@@ -15,9 +15,8 @@ import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 type Props = {
   vehicle :Map<*, *>,
   records :List<*>,
-  count :number,
   isUnselected :boolean,
-  onClick: () => void,
+  onClick :() => void,
   timestampDesc? :boolean,
   isInReport :boolean,
   toggleReport :() => void
@@ -154,7 +153,6 @@ const HitType = styled.div`
 
 const VehicleCard = ({
   vehicle,
-  count,
   records,
   onClick,
   isUnselected,
@@ -163,7 +161,6 @@ const VehicleCard = ({
   toggleReport
 } :Props) => {
 
-  const year = vehicle.getIn([PROPERTY_TYPES.YEAR, 0], '');
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
   const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'California');
 
@@ -261,6 +258,6 @@ const VehicleCard = ({
 
 VehicleCard.defaultProps = {
   timestampDesc: false
-}
+};
 
 export default VehicleCard;
