@@ -1,5 +1,7 @@
 export const PERSON_ENTITY_TYPE_FQN = 'general.person';
 
+export const SEARCH_PREFIX = 'entity';
+
 export const ENTITY_SETS = {
   RECORDS: 'NCRICVehicleRecords',
   CAMERAS: 'NCRICImageSources',
