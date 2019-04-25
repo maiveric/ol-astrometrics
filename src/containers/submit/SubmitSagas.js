@@ -13,7 +13,7 @@ import {
 } from 'lattice';
 import { AuthUtils } from 'lattice-auth';
 
-import { stripIdField, getFqnObj } from '../../utils/DataUtils';
+import { stripIdField, getFqnObj, getSearchTerm } from '../../utils/DataUtils';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { ID_FIELDS } from '../../utils/constants/DataConstants';
 import {
@@ -119,7 +119,7 @@ function* getOrCreateUserId() {
     ]);
 
     const userSearchResults = yield call(SearchApi.searchEntitySetData, userEntitySetId, {
-      searchTerm: `${userEntitySetId}.${personIdPropertyTypeId}:"${userId}"`,
+      searchTerm: getSearchTerm(personIdPropertyTypeId, userId),
       start: 0,
       maxHits: 1
     });

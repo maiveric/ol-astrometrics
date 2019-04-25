@@ -5,7 +5,7 @@ import {
   isImmutable
 } from 'immutable';
 
-import { PERSON_ENTITY_TYPE_FQN, PROPERTY_TYPES } from './constants/DataModelConstants';
+import { PERSON_ENTITY_TYPE_FQN, PROPERTY_TYPES, SEARCH_PREFIX } from './constants/DataModelConstants';
 
 const { OPENLATTICE_ID_FQN } = Constants;
 
@@ -86,3 +86,5 @@ export const stripIdField = (entity) => {
   }
   return newEntity;
 };
+
+export const getSearchTerm = (propertyTypeId, searchString) => `${SEARCH_PREFIX}.${propertyTypeId}:"${searchString}"`;
