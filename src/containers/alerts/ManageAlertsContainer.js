@@ -27,7 +27,7 @@ import {
 } from '../../utils/constants/StateConstants';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId } from '../../utils/DataUtils';
+import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
 import * as AlertActionFactory from './AlertActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
@@ -231,7 +231,7 @@ class ManageAlertsContainer extends React.Component<Props, State> {
         {
           constraints: [{
             type: 'simple',
-            searchTerm: `${platePropertyTypeId}:"${plate}"`
+            searchTerm: getSearchTerm(platePropertyTypeId, plate)
           }]
         }
       ]
