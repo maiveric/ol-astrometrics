@@ -167,7 +167,8 @@ type Props = {
   disabled? :boolean,
   isLoadingResults? :boolean,
   noResults? :boolean,
-  allowFreeEntry? :boolean
+  allowFreeEntry? :boolean,
+  inexactMatchesAllowed? :boolean
 }
 
 type State = {
@@ -193,7 +194,8 @@ class SearchableSelect extends React.Component<Props, State> {
     disabled: false,
     isLoadingResults: false,
     noResults: false,
-    allowFreeEntry: false
+    allowFreeEntry: false,
+    inexactMatchesAllowed: false
   };
 
   constructor(props :Props) {
@@ -242,15 +244,21 @@ class SearchableSelect extends React.Component<Props, State> {
   }
 
   handleOnSelect = (label :string) => {
+    const { onSelect, options } = this.props;
 
-    this.props.onSelect(this.props.options.get(label));
+    onSelect(options.get(label));
     this.setState({
       searchQuery: ''
     });
   }
 
-  filterResultsForOptions = (value :string, options :Map<*, *>) => options
-    .filter((obj, label) => label.toLowerCase().includes(value.toLowerCase()))
+  filterResultsForOptions = (value :string, options :Map<*, *>) => {
+    const { inexactMatchesAllowed } = this.props;
+
+    return inexactMatchesAllowed
+      ? options
+      : options.filter((obj, label) => label.toLowerCase().includes(value.toLowerCase()));
+  }
 
   filterResults = (value :string) => {
     const { options } = this.props;
