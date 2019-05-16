@@ -524,6 +524,7 @@ class SearchParameters extends React.Component<Props, State> {
                     options={this.getAddressesAsMap()}
                     isLoadingResults={isLoadingAddresses}
                     noResults={noAddressResults}
+                    inexactMatchesAllowed
                     transparent
                     short />
               </InputGroup>

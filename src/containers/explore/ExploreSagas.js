@@ -14,7 +14,7 @@ import { Constants, SearchApi } from 'lattice';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
-import { getEntityKeyId } from '../../utils/DataUtils';
+import { getDateSearchTerm } from '../../utils/DataUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
 import { EXPLORE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -85,7 +85,7 @@ const getSearchRequest = (
     constraintGroups.push({
       constraints: [{
         type: 'simple',
-        searchTerm: `${timestampPropertyTypeId}:[${startStr} TO ${endStr}]`
+        searchTerm: getDateSearchTerm(timestampPropertyTypeId, startStr, endStr)
       }]
     });
   }

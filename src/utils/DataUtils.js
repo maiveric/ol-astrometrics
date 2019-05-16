@@ -88,3 +88,9 @@ export const stripIdField = (entity) => {
 };
 
 export const getSearchTerm = (propertyTypeId, searchString) => `${SEARCH_PREFIX}.${propertyTypeId}:"${searchString}"`;
+
+export const getDateSearchTerm = (
+  propertyTypeId,
+  startDate,
+  endDate
+) => `${SEARCH_PREFIX}.${propertyTypeId}:[${startDate} TO ${endDate}]`;
