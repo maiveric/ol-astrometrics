@@ -67,7 +67,12 @@ const SearchInput = styled.input.attrs({
   type: 'text'
 })`
   ${inputStyle}
-  background-color: ${props => (props.transparent ? '#f9f9fd' : '#ffffff')};
+  background-color: ${(props) => {
+    if (props.disabled) {
+      return '#dcdce7';
+    }
+    return (props.transparent ? '#f9f9fd' : '#ffffff');
+  }};
 `;
 
 const SearchIcon = styled.div`
@@ -357,6 +362,7 @@ class SearchableSelect extends React.Component<Props, State> {
               </SearchButton>
             ) : (
               <SearchInput
+                  disabled={disabled}
                   placeholder={searchPlaceholder}
                   transparent={transparent}
                   value={value || searchQuery}
