@@ -630,6 +630,7 @@ class SearchParameters extends React.Component<Props, State> {
                           onClear={() => this.onMakeChange('')}
                           options={this.getAsMap(MAKES)}
                           transparent
+                          openAbove
                           short />
                     </InputGroup>
                   </Row>
@@ -641,7 +642,9 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value })}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' })}
                           options={this.getAsMap(MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)] || [])}
+                          disabled={!MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)]}
                           transparent
+                          openAbove
                           short />
                     </InputGroup>
                   </Row>
@@ -654,6 +657,7 @@ class SearchParameters extends React.Component<Props, State> {
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value: '' })}
                           options={this.getAsMap(COLORS)}
                           transparent
+                          openAbove
                           short />
                     </InputGroup>
                   </Row>
@@ -669,6 +673,7 @@ class SearchParameters extends React.Component<Props, State> {
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: '' })}
                           options={this.getAsMap(ACCESSORIES)}
                           transparent
+                          openAbove
                           short />
                     </InputGroup>
                   </Row>
@@ -681,6 +686,7 @@ class SearchParameters extends React.Component<Props, State> {
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value: '' })}
                           options={this.getAsMap(STYLES)}
                           transparent
+                          openAbove
                           short />
                     </InputGroup>
                   </Row>
@@ -693,6 +699,7 @@ class SearchParameters extends React.Component<Props, State> {
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.LABEL, value: '' })}
                           options={this.getAsMap(LABELS)}
                           selectOnly
+                          openAbove
                           transparent
                           short />
                     </InputGroup>

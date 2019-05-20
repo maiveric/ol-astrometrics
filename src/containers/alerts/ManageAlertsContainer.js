@@ -9,6 +9,7 @@ import { List, Map, OrderedMap } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 
 import Spinner from '../../components/spinner/Spinner';
@@ -69,6 +70,13 @@ const ModalHeader = styled.div`
   color: #135;
   font-size: 18px;
   font-weight: 600;
+`;
+
+const ModalSubtitle = styled.div`
+  color: #8e929b;
+  font-style: italic;
+  font-size: 14px;
+  margin: ${props => (props.adjustTop ? '-20px 0 20px 0' : '-10px 0 10px 0')};
 `;
 
 const SubHeader = styled(ModalHeader)`
@@ -253,6 +261,11 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     this.setState({ isSettingNewAlert: false });
   }
 
+  renderEmailSubtitle = (adjustTop) => {
+    const { email } = AuthUtils.getUserInfo();
+    return <ModalSubtitle adjustTop={adjustTop}>{`Alerts will be sent to ${email}`}</ModalSubtitle>;
+  }
+
   renderForm = () => {
     const {
       caseNum,
@@ -270,7 +283,10 @@ class ManageAlertsContainer extends React.Component<Props, State> {
 
     return (
       <FormContainer>
-        <ModalHeader>Create new alert</ModalHeader>
+        <EvenlySpacedRow>
+          <ModalHeader>Create new alert</ModalHeader>
+        </EvenlySpacedRow>
+        {this.renderEmailSubtitle()}
 
         <InputHeader>Case number</InputHeader>
         <StyledInput value={caseNum} onChange={this.getOnChange(ALERTS.CASE_NUMBER)} />
@@ -342,7 +358,7 @@ class ManageAlertsContainer extends React.Component<Props, State> {
       expiration = expiration.isValid() ? expiration.format('MM/DD/YYYY hh:mm a') : 'Invalid expiration date';
 
       return (
-        <Alert expired={expired} key={getEntityKeyId(alert)}>
+        <Alert expired={expired} key={alert.get('id')}>
           <span>{`Expire${expired ? 'd' : 's'} ${expiration}`}</span>
           <div>License plate: <b>{alertMetadata.get('licensePlate')}</b></div>
           <div>Case number: <b>{alertMetadata.get('caseNum')}</b></div>
@@ -417,6 +433,7 @@ class ManageAlertsContainer extends React.Component<Props, State> {
           <ModalHeader>Manage existing alerts</ModalHeader>
           <SecondaryButton onClick={() => this.setState({ isSettingNewAlert: true })}>Create new alert</SecondaryButton>
         </EvenlySpacedRow>
+        {this.renderEmailSubtitle(true)}
         {content}
       </FormContainer>
     );
