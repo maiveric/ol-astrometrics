@@ -49,6 +49,7 @@ const AppContentInnerWrapper = styled.div`
 type Props = {
   actions :{
     loadApp :RequestSequence;
+    loadDepartmentsAndDevices :RequestSequence;
   };
   isLoadingApp :boolean;
 };

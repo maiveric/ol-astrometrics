@@ -18,6 +18,7 @@ import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
 import {
   STATE,
   ALERTS,
+  EDM,
   EXPLORE,
   PARAMETERS,
   SEARCH_PARAMETERS
@@ -41,6 +42,7 @@ type Props = {
   actions :{
     loadAlerts :(edm :Map) => void;
     loadDataModel :() => void;
+    loadDepartmentsAndDevices :() => void;
     setDrawMode :(isDrawMode :boolean) => void;
     updateSearchParameters :({ field :string, value :string }) => void;
     toggleAlertModal :(modalOpen :boolean) => void;
@@ -69,9 +71,16 @@ class ExploreContainer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    const { actions, edm } = this.props;
+    const { actions } = this.props;
     actions.loadDataModel();
-    actions.loadAlerts({ edm });
+    actions.loadAlerts();
+  }
+
+  componentDidUpdate(prevProps) {
+    const { actions, edm } = this.props;
+    if (!prevProps.edm.get(EDM.ENTITY_SETS).size && edm.get(EDM.ENTITY_SETS).size) {
+      actions.loadDepartmentsAndDevices();
+    }
   }
 
   setSearchZones = (searchZones) => {

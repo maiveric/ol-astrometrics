@@ -16,10 +16,11 @@ import ToggleReportButton from '../../components/buttons/ToggleReportButton';
 import {
   STATE,
   EXPLORE,
-  REPORT
+  REPORT,
+  SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId } from '../../utils/DataUtils';
+import { getEntityKeyId, getDisplayNameForId } from '../../utils/DataUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
@@ -29,6 +30,8 @@ type Props = {
   entitiesById :Map<*, *>,
   selectedReadId :string,
   reportVehicles :List<*>,
+  departmentOptions :Map,
+  deviceOptions :Map,
   actions :{
     selectEntity :(entityKeyId :string) => void,
     addVehicleToReport :(entityKeyId :string) => void,
@@ -272,14 +275,25 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
   }
 
   renderReadDetails = () => {
-    const { entitiesById, selectedReadId } = this.props;
+    const {
+      departmentOptions,
+      deviceOptions,
+      entitiesById,
+      selectedReadId
+    } = this.props;
 
     const read = entitiesById.get(selectedReadId, Map());
 
     const vehicleImage = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
     const plateImage = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
-    const departments = read.get(PROPERTY_TYPES.AGENCY_NAME, List()).join(', ');
-    const devices = read.get(PROPERTY_TYPES.CAMERA_ID, List()).join(', ');
+    const departments = read
+      .get(PROPERTY_TYPES.AGENCY_NAME, List())
+      .map(d => getDisplayNameForId(departmentOptions, d))
+      .join(', ');
+    const devices = read
+      .get(PROPERTY_TYPES.CAMERA_ID, List())
+      .map(d => getDisplayNameForId(deviceOptions, d))
+      .join(', ');
     const color = read.get(PROPERTY_TYPES.COLOR, List()).join(', ');
     const make = read.get(PROPERTY_TYPES.MAKE, List()).join(', ');
     const model = read.get(PROPERTY_TYPES.MODEL, List()).join(', ');
@@ -409,13 +423,16 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const report = state.get(STATE.REPORT);
+  const parameters = state.get(STATE.PARAMETERS);
   return {
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
-    reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
+    reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS),
+    departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
+    deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
   };
 }
 

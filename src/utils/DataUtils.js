@@ -94,3 +94,12 @@ export const getDateSearchTerm = (
   startDate,
   endDate
 ) => `${SEARCH_PREFIX}.${propertyTypeId}:[${startDate} TO ${endDate}]`;
+
+export const getDisplayNameForId = (idToNameMap, displayName) => idToNameMap.findKey(value => value === displayName);
+
+export const formatNameIdForDisplay = (entity) => {
+  const id = entity.getIn([PROPERTY_TYPES.ID, 0]);
+  const name = entity.getIn([PROPERTY_TYPES.NAME, 0], '[unknown]');
+
+  return `${name} (${id})`;
+};

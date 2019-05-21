@@ -13,7 +13,7 @@ import {
   SET_DRAW_MODE,
   UPDATE_SEARCH_PARAMETERS,
   geocodeAddress,
-  searchAgencies
+  loadDepartmentsAndDevices
 } from './ParametersActionFactory';
 
 import {
@@ -33,7 +33,8 @@ const {
   ADDRESS_SEARCH_RESULTS,
   IS_LOADING_AGENCIES,
   DONE_LOADING_AGENCIES,
-  AGENCY_SEARCH_RESULTS
+  AGENCY_OPTIONS,
+  DEVICE_OPTIONS
 } = SEARCH_PARAMETERS_FIELDS;
 
 const {
@@ -89,7 +90,8 @@ const INITIAL_STATE :Map<> = fromJS({
   [ADDRESS_SEARCH_RESULTS]: List(),
   [IS_LOADING_AGENCIES]: false,
   [DONE_LOADING_AGENCIES]: false,
-  [AGENCY_SEARCH_RESULTS]: List()
+  [AGENCY_OPTIONS]: Map(),
+  [DEVICE_OPTIONS]: Map()
 });
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
@@ -103,10 +105,12 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case searchAgencies.case(action.type): {
-      return searchAgencies.reducer(state, action, {
+    case loadDepartmentsAndDevices.case(action.type): {
+      return loadDepartmentsAndDevices.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_AGENCIES, true).set(DONE_LOADING_AGENCIES, false),
-        SUCCESS: () => state.set(AGENCY_SEARCH_RESULTS, fromJS(action.value)),
+        SUCCESS: () => state
+          .set(AGENCY_OPTIONS, action.value.departmentOptions)
+          .set(DEVICE_OPTIONS, action.value.deviceOptions),
         FINALLY: () => state.set(IS_LOADING_AGENCIES, false).set(DONE_LOADING_AGENCIES, true)
       });
     }

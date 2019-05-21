@@ -47,7 +47,7 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* ParametersSagas */
     fork(ParametersSagas.geocodeAddressWatcher),
-    fork(ParametersSagas.searchAgenciesWatcher),
+    fork(ParametersSagas.loadDepartmentsAndDevicesWatcher),
 
     /* ReportSagas */
     fork(ReportSagas.exportReportWatcher),

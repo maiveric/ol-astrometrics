@@ -26,6 +26,7 @@ import {
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
+import { getDisplayNameForId } from '../../utils/DataUtils';
 import { getSearchFields } from './ParametersReducer';
 import {
   SEARCH_REASONS,
@@ -36,7 +37,7 @@ import {
   STYLES,
   LABELS
 } from '../../utils/constants/DataConstants';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { ENTITY_SETS } from '../../utils/constants/DataModelConstants';
 import {
   EDM,
   STATE,
@@ -52,16 +53,14 @@ import * as ParametersActionFactory from './ParametersActionFactory';
 
 type Props = {
   isTopNav :boolean;
-  entitySets :Map<*, *>;
   recordEntitySetId :string;
   propertyTypesByFqn :Map<*, *>;
   searchParameters :Map<*, *>;
   geocodedAddresses :List<*>;
   isLoadingAddresses :boolean;
   noAddressResults :boolean;
-  agencySearchResults :List<*>;
-  isLoadingAgencies :boolean;
-  noAgencyResults :boolean;
+  agencyOptions :Map<*>;
+  deviceOptions :Map<*>;
   isLoadingResults :boolean;
   isLoadingNeighbors :boolean;
   reportVehicles :Set<*>;
@@ -73,7 +72,6 @@ type Props = {
     executeSearch :RequestSequence;
     exportReport :RequestSequence;
     geocodeAddress :RequestSequence;
-    searchAgencies :RequestSequence;
     selectAddress :RequestSequence;
     selectAgency :RequestSequence;
     setDrawMode :RequestSequence;
@@ -335,7 +333,6 @@ const ButtonWrapper = styled.button`
 class SearchParameters extends React.Component<Props, State> {
 
   addressSearchTimeout :any;
-  departmentSearchTimeout :any;
 
   constructor(props :Props) {
     super(props);
@@ -344,7 +341,6 @@ class SearchParameters extends React.Component<Props, State> {
     };
 
     this.addressSearchTimeout = null;
-    this.departmentSearchTimeout = null;
   }
 
   handleAddressChange = (e) => {
@@ -360,24 +356,6 @@ class SearchParameters extends React.Component<Props, State> {
 
     this.addressSearchTimeout = setTimeout(() => {
       actions.geocodeAddress(value);
-    }, 500);
-  }
-
-  handleDepartmentChange = (e) => {
-    const { actions, entitySets } = this.props;
-    const { value } = e.target;
-
-    actions.updateSearchParameters({
-      field: PARAMETERS.DEPARTMENT,
-      value
-    });
-
-    const entitySetId = entitySets.getIn([ENTITY_SETS.AGENCIES, 'id']);
-
-    clearTimeout(this.departmentSearchTimeout);
-
-    this.departmentSearchTimeout = setTimeout(() => {
-      actions.searchAgencies({ value, entitySetId });
     }, 500);
   }
 
@@ -411,18 +389,6 @@ class SearchParameters extends React.Component<Props, State> {
     let options = OrderedMap();
     geocodedAddresses.forEach((addr) => {
       options = options.set(addr.get('display_name'), addr);
-    });
-
-    return options;
-  }
-
-  getDepartmentsAsMap = () => {
-    const { agencySearchResults } = this.props;
-    let options = OrderedMap();
-    agencySearchResults.forEach((agency) => {
-      const id = agency.getIn([PROPERTY_TYPES.ID, 0], '');
-      const title = agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], agency.getIn([PROPERTY_TYPES.NAME, 0], id));
-      options = options.set(title, { id, title });
     });
 
     return options;
@@ -466,8 +432,8 @@ class SearchParameters extends React.Component<Props, State> {
       searchParameters,
       isLoadingAddresses,
       noAddressResults,
-      isLoadingAgencies,
-      noAgencyResults
+      agencyOptions,
+      deviceOptions
     } = this.props;
 
     return (
@@ -585,12 +551,10 @@ class SearchParameters extends React.Component<Props, State> {
                 <InputGroup>
                   <span>Department (optional)</span>
                   <StyledSearchableSelect
-                      value={searchParameters.get(PARAMETERS.DEPARTMENT)}
-                      onInputChange={this.handleDepartmentChange}
-                      onSelect={actions.selectAgency}
-                      options={this.getDepartmentsAsMap()}
-                      isLoadingResults={isLoadingAgencies}
-                      noResults={noAgencyResults}
+                      value={getDisplayNameForId(agencyOptions, searchParameters.get(PARAMETERS.DEPARTMENT))}
+                      onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value })}
+                      onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value: '' })}
+                      options={agencyOptions}
                       transparent
                       short />
                 </InputGroup>
@@ -598,7 +562,13 @@ class SearchParameters extends React.Component<Props, State> {
               <Row width={46}>
                 <InputGroup>
                   <span>Device (optional)</span>
-                  {this.renderInput(PARAMETERS.DEVICE)}
+                  <StyledSearchableSelect
+                      value={getDisplayNameForId(deviceOptions, searchParameters.get(PARAMETERS.DEVICE))}
+                      onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
+                      onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
+                      options={deviceOptions}
+                      transparent
+                      short />
                 </InputGroup>
               </Row>
             </Row>
@@ -818,10 +788,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const report = state.get(STATE.REPORT);
 
   const geocodedAddresses = params.get(SEARCH_PARAMETERS.ADDRESS_SEARCH_RESULTS, List());
-  const agencySearchResults = params.get(SEARCH_PARAMETERS.AGENCY_SEARCH_RESULTS, List());
 
   return {
-    entitySets: edm.get(EDM.ENTITY_SETS),
     recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES),
 
@@ -836,10 +804,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
     geocodedAddresses,
     isLoadingAddresses: params.get(SEARCH_PARAMETERS.IS_LOADING_ADDRESSES),
     noAddressResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_ADDRESSES) && !geocodedAddresses.size,
-    agencySearchResults,
-    isLoadingAgencies: params.get(SEARCH_PARAMETERS.IS_LOADING_AGENCIES),
-    noAgencyResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_AGENCIES) && !agencySearchResults.size,
     isTopNav: params.get(SEARCH_PARAMETERS.DRAW_MODE) || !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
+    agencyOptions: params.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
+    deviceOptions: params.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
 
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };
