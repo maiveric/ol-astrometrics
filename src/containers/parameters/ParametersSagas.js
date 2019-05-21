@@ -3,14 +3,24 @@
  */
 
 import axios from 'axios';
-import { call, put, takeEvery } from '@redux-saga/core/effects';
-import { SearchApi } from 'lattice';
+import {
+  all,
+  call,
+  put,
+  select,
+  takeEvery
+} from '@redux-saga/core/effects';
+import { DataApi, SearchApi } from 'lattice';
+import { fromJS, OrderedMap } from 'immutable';
 
+import { getEdm, getEntitySetId } from '../../utils/AppUtils';
+import { formatNameIdForDisplay } from '../../utils/DataUtils';
+import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   GEOCODE_ADDRESS,
-  SEARCH_AGENCIES,
+  LOAD_DEPARTMENTS_AND_DEVICES,
   geocodeAddress,
-  searchAgencies
+  loadDepartmentsAndDevices
 } from './ParametersActionFactory';
 
 const GEOCODER_URL_PREFIX = 'https://osm.openlattice.com/nominatim/search/';
@@ -39,28 +49,41 @@ export function* geocodeAddressWatcher() :Generator<*, *, *> {
   yield takeEvery(GEOCODE_ADDRESS, geocodeAddressWorker);
 }
 
-function* searchAgenciesWorker(action :SequenceAction) :Generator<*, *, *> {
+const getDataAsMap = (entities) => {
+  let map = OrderedMap();
+
+  fromJS(entities).forEach((entity) => {
+    const id = entity.getIn([PROPERTY_TYPES.ID, 0]);
+    map = map.set(formatNameIdForDisplay(entity), id);
+  });
+
+  return map;
+};
+
+function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
-    yield put(searchAgencies.request(action.id));
-    const { value, entitySetId } = action.value;
+    yield put(loadDepartmentsAndDevices.request(action.id));
 
-    const results = yield call(SearchApi.searchEntitySetData, entitySetId, {
-      start: 0,
-      maxHits: 20,
-      searchTerm: value
-    });
+    const edm = yield select(getEdm);
 
-    const { hits } = results;
-    yield put(searchAgencies.success(action.id, hits));
+    const [departments, devices] = yield all([
+      call(DataApi.getEntitySetData, getEntitySetId(edm, ENTITY_SETS.AGENCIES)),
+      call(DataApi.getEntitySetData, getEntitySetId(edm, ENTITY_SETS.CAMERAS))
+    ]);
+
+    yield put(loadDepartmentsAndDevices.success(action.id, {
+      departmentOptions: getDataAsMap(departments),
+      deviceOptions: getDataAsMap(devices)
+    }));
   }
   catch (error) {
-    yield put(searchAgencies.failure(action.id, error));
+    yield put(loadDepartmentsAndDevices.failure(action.id, error));
   }
   finally {
-    yield put(searchAgencies.finally(action.id));
+    yield put(loadDepartmentsAndDevices.finally(action.id));
   }
 }
 
-export function* searchAgenciesWatcher() :Generator<*, *, *> {
-  yield takeEvery(SEARCH_AGENCIES, searchAgenciesWorker);
+export function* loadDepartmentsAndDevicesWatcher() :Generator<*, *, *> {
+  yield takeEvery(LOAD_DEPARTMENTS_AND_DEVICES, loadDepartmentsAndDevicesWorker);
 }

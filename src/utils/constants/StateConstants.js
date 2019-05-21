@@ -51,7 +51,8 @@ export const SEARCH_PARAMETERS = {
   ADDRESS_SEARCH_RESULTS: 'addressSearchResults',
   IS_LOADING_AGENCIES: 'isLoadingAgencies',
   DONE_LOADING_AGENCIES: 'doneLoadingAgencies',
-  AGENCY_SEARCH_RESULTS: 'agencySearchResults',
+  AGENCY_OPTIONS: 'agencyOptions',
+  DEVICE_OPTIONS: 'deviceOptions',
   DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions',
   SEARCH_PARAMETERS: 'searchParameters'
 };

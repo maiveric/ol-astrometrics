@@ -10,8 +10,8 @@ const editSearchParameters :RequestSequence = newRequestSequence(EDIT_SEARCH_PAR
 const GEOCODE_ADDRESS :string = 'GEOCODE_ADDRESS';
 const geocodeAddress :RequestSequence = newRequestSequence(GEOCODE_ADDRESS);
 
-const SEARCH_AGENCIES :string = 'SEARCH_AGENCIES';
-const searchAgencies :RequestSequence = newRequestSequence(SEARCH_AGENCIES);
+const LOAD_DEPARTMENTS_AND_DEVICES :string = 'LOAD_DEPARTMENTS_AND_DEVICES';
+const loadDepartmentsAndDevices :RequestSequence = newRequestSequence(LOAD_DEPARTMENTS_AND_DEVICES);
 
 const SELECT_ADDRESS :string = 'SELECT_ADDRESS';
 const selectAddress :RequestSequence = newRequestSequence(SELECT_ADDRESS);
@@ -28,14 +28,14 @@ const updateSearchParameters :RequestSequence = newRequestSequence(UPDATE_SEARCH
 export {
   EDIT_SEARCH_PARAMETERS,
   GEOCODE_ADDRESS,
-  SEARCH_AGENCIES,
+  LOAD_DEPARTMENTS_AND_DEVICES,
   SELECT_ADDRESS,
   SELECT_AGENCY,
   SET_DRAW_MODE,
   UPDATE_SEARCH_PARAMETERS,
   editSearchParameters,
   geocodeAddress,
-  searchAgencies,
+  loadDepartmentsAndDevices,
   selectAddress,
   selectAgency,
   setDrawMode,

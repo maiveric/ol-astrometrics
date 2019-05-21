@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/pro-light-svg-icons';
 
 import ToggleReportButton from '../buttons/ToggleReportButton';
+import { getDisplayNameForId } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 type Props = {
@@ -19,7 +20,9 @@ type Props = {
   onClick :() => void,
   timestampDesc? :boolean,
   isInReport :boolean,
-  toggleReport :() => void
+  toggleReport :() => void,
+  departmentOptions :Map,
+  deviceOptions :Map
 };
 
 const Card = styled.div`
@@ -158,7 +161,9 @@ const VehicleCard = ({
   isUnselected,
   timestampDesc,
   isInReport,
-  toggleReport
+  toggleReport,
+  departmentOptions,
+  deviceOptions
 } :Props) => {
 
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
@@ -243,11 +248,11 @@ const VehicleCard = ({
             </section>
             <section>
               <span>Dept</span>
-              <div>{departments.join(', ')}</div>
+              <div>{departments.map(d => getDisplayNameForId(departmentOptions, d)).join(', ')}</div>
             </section>
             <section>
               <span>Device</span>
-              <div>{devices.join(', ')}</div>
+              <div>{devices.map(d => getDisplayNameForId(deviceOptions, d)).join(', ')}</div>
             </section>
           </DetailsBody>
         </Details>

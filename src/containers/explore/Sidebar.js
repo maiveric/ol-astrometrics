@@ -18,7 +18,8 @@ import {
   EDM,
   STATE,
   EXPLORE,
-  REPORT
+  REPORT,
+  SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
@@ -37,6 +38,8 @@ type Props = {
   neighborsById :List<*>;
   filter :string;
   reportVehicles :List<*>;
+  departmentOptions :Map;
+  deviceOptions :Map;
   actions :{
     addVehicleToReport :RequestSequence;
     editSearchParameters :RequestSequence;
@@ -269,6 +272,8 @@ class Sidebar extends React.Component<Props, State> {
   render() {
     const {
       actions,
+      departmentOptions,
+      deviceOptions,
       isLoadingResults,
       isLoadingNeighbors,
       reportVehicles
@@ -305,6 +310,8 @@ class Sidebar extends React.Component<Props, State> {
                   isUnselected={this.vehicleIsUnselected(recordsByVehicleId.get(entityKeyId, List()))}
                   onClick={() => this.onVehicleClick(entityKeyId)}
                   vehicle={vehicle}
+                  departmentOptions={departmentOptions}
+                  deviceOptions={deviceOptions}
                   isInReport={isInReport}
                   toggleReport={toggleReport}
                   records={recordsByVehicleId.get(entityKeyId, List())}
@@ -326,6 +333,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const edm = state.get(STATE.EDM);
   const report = state.get(STATE.REPORT);
+  const parameters = state.get(STATE.PARAMETERS);
   return {
     recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
     displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
@@ -338,6 +346,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS),
     geocodedAddresses: explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS),
     filter: explore.get(EXPLORE.FILTER),
+    departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
+    deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };
 }
