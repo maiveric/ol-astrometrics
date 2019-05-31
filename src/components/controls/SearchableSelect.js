@@ -295,7 +295,7 @@ class SearchableSelect extends React.Component<Props, State> {
   }
 
   renderDropdownContents = () => {
-    const { filteredTypes, isVisibleDataTable, searchQuery } = this.state;
+    const { filteredTypes, isVisibleDataTable } = this.state;
     const {
       allowFreeEntry,
       openAbove,

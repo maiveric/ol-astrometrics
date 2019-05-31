@@ -3,6 +3,7 @@
  */
 
 import { newRequestSequence } from 'redux-reqseq';
+import type { RequestSequence } from 'redux-reqseq';
 
 const CREATE_ALERT :string = 'CREATE_ALERT';
 const createAlert :RequestSequence = newRequestSequence(CREATE_ALERT);

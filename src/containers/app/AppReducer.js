@@ -4,6 +4,7 @@
 
 import { Map, fromJS } from 'immutable';
 import isNumber from 'lodash/isNumber';
+import type { SequenceAction } from 'redux-reqseq';
 
 import { loadApp } from './AppActions';
 

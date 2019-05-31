@@ -9,6 +9,7 @@ import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import type { RequestSequence } from 'redux-reqseq';
 
 import DropdownButton from '../../components/buttons/DropdownButton';
 import Spinner from '../../components/spinner/Spinner';
@@ -378,4 +379,5 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
+// $FlowFixMe
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Sidebar));

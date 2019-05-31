@@ -22,6 +22,7 @@ import {
   faBell,
   faPencil
 } from '@fortawesome/pro-solid-svg-icons';
+import type { RequestSequence } from 'redux-reqseq';
 
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
@@ -838,4 +839,5 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
+// $FlowFixMe
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SearchParameters));

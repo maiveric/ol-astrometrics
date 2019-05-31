@@ -3,6 +3,7 @@
  */
 
 import { newRequestSequence } from 'redux-reqseq';
+import type { RequestSequence } from 'redux-reqseq';
 
 const EDIT_SEARCH_PARAMETERS :string = 'EDIT_SEARCH_PARAMETERS';
 const editSearchParameters :RequestSequence = newRequestSequence(EDIT_SEARCH_PARAMETERS);

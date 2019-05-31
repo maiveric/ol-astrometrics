@@ -10,6 +10,7 @@ import {
 } from '@redux-saga/core/effects';
 import { Map, fromJS } from 'immutable';
 import { EntityDataModelApi } from 'lattice';
+import type { SequenceAction } from 'redux-reqseq';
 
 import { getFqnString } from '../../utils/DataUtils';
 import {

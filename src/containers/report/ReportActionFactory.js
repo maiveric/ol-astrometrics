@@ -3,6 +3,7 @@
 */
 
 import { newRequestSequence } from 'redux-reqseq';
+import type { RequestSequence } from 'redux-reqseq';
 
 const ADD_VEHICLE_TO_REPORT :string = 'ADD_VEHICLE_TO_REPORT';
 const addVehicleToReport :RequestSequence = newRequestSequence(ADD_VEHICLE_TO_REPORT);

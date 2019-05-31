@@ -4,6 +4,7 @@
 
 import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { PersistentSearchApi } from 'lattice';
+import type { SequenceAction } from 'redux-reqseq';
 
 import {
   CREATE_ALERT,

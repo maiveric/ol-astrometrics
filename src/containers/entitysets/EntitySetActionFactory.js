@@ -3,6 +3,7 @@
  */
 
 import { newRequestSequence } from 'redux-reqseq';
+import type { RequestSequence } from 'redux-reqseq';
 
 const SEARCH_ENTITY_SETS :string = 'SEARCH_ENTITY_SETS';
 const searchEntitySets :RequestSequence = newRequestSequence(SEARCH_ENTITY_SETS);

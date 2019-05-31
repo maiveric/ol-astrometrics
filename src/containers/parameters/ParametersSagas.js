@@ -10,8 +10,9 @@ import {
   select,
   takeEvery
 } from '@redux-saga/core/effects';
-import { DataApi, SearchApi } from 'lattice';
+import { DataApi } from 'lattice';
 import { fromJS, OrderedMap } from 'immutable';
+import type { SequenceAction } from 'redux-reqseq';
 
 import { getEdm, getEntitySetId } from '../../utils/AppUtils';
 import { formatNameIdForDisplay } from '../../utils/DataUtils';

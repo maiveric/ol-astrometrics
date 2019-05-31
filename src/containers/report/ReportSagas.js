@@ -12,6 +12,7 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { Map, List } from 'immutable';
+import type { SequenceAction } from 'redux-reqseq';
 
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
