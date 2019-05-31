@@ -9,6 +9,7 @@ import { Map } from 'immutable';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Redirect, Route, Switch } from 'react-router';
+import type { RequestSequence } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
 import ExploreContainer from '../explore/ExploreContainer';

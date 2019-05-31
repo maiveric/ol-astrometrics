@@ -6,6 +6,7 @@
 
 import { put, takeEvery } from '@redux-saga/core/effects';
 import { AuthActions } from 'lattice-auth';
+import type { SequenceAction } from 'redux-reqseq';
 
 import Logger from '../../utils/Logger';
 import { clearCookies } from '../../utils/CookieUtils';

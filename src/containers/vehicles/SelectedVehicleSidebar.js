@@ -454,4 +454,5 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
+// $FlowFixMe
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SelectedVehicleSidebar));

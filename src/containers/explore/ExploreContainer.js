@@ -9,6 +9,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
+import type { RequestSequence } from 'redux-reqseq';
 
 import Sidebar from './Sidebar';
 import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
@@ -185,4 +186,5 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
+// $FlowFixMe
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ExploreContainer));

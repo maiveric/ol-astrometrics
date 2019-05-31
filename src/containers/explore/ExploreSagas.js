@@ -2,7 +2,6 @@
  * @flow
  */
 
-import axios from 'axios';
 import moment from 'moment';
 import {
   call,
@@ -11,13 +10,14 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { Constants, SearchApi } from 'lattice';
+import type { RequestSequence, SequenceAction } from 'redux-reqseq';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
 import { getDateSearchTerm } from '../../utils/DataUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
 import { EXPLORE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { submit } from '../submit/SubmitActionFactory';
 import {
