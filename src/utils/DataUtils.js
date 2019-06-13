@@ -66,7 +66,7 @@ export const getCoordinates = (entity) => {
   const coords = entity.getIn([PROPERTY_TYPES.COORDINATE, 0], '').split(',');
   const [latitude, longitude] = coords;
   if (Number.isNaN(Number.parseFloat(longitude, 0), 10) || Number.isNaN(Number.parseFloat(latitude, 0), 10)) {
-    return undefined;
+    return [undefined, undefined];
   }
 
   return [longitude, latitude];
