@@ -165,17 +165,19 @@ class SimpleMap extends React.Component<Props, State> {
     entities.forEach((entity) => {
       const [x, y] = getCoordinates(entity);
 
-      if (!minX || x < minX) {
-        minX = x;
-      }
-      if (!maxX || x > maxX) {
-        maxX = x;
-      }
-      if (!minY || y < minY) {
-        minY = y;
-      }
-      if (!maxY || y > maxY) {
-        maxY = y;
+      if (x !== undefined && y !== undefined) {
+        if (!minX || x < minX) {
+          minX = x;
+        }
+        if (!maxX || x > maxX) {
+          maxX = x;
+        }
+        if (!minY || y < minY) {
+          minY = y;
+        }
+        if (!maxY || y > maxY) {
+          maxY = y;
+        }
       }
     });
 
