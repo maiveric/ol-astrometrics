@@ -1,8 +1,6 @@
 import { Map } from 'immutable';
 
-import { STATE, APP, EDM } from './constants/StateConstants';
-
-export const getEdm = state => state.get(STATE.EDM);
+import { STATE, APP } from './constants/StateConstants';
 
 export const getAppFromState = state => state.get(STATE.APP, Map());
 

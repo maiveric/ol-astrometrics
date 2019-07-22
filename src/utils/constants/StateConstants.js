@@ -27,7 +27,6 @@ export const ALERTS = {
 };
 
 export const EDM = {
-  ENTITY_SETS: 'entitySets',
   PROPERTY_TYPES: 'propertyTypes',
   IS_LOADING_DATA_MODEL: 'isLoadingDataModel'
 };
