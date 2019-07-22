@@ -42,7 +42,7 @@ const orgSelectStyles = {
   menu: (base, state) => {
     const { selectProps } = state;
     const display = (selectProps && selectProps.hideMenu) ? 'none' : 'block';
-    return { ...base, display };
+    return { ...base, display, zIndex: 500 };
   },
   option: (base, state) => {
 
