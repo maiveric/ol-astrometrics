@@ -2,6 +2,7 @@ import {
   call,
   put,
   takeEvery,
+  select,
   all
 } from '@redux-saga/core/effects';
 import {
@@ -14,8 +15,9 @@ import {
 import { AuthUtils } from 'lattice-auth';
 
 import { stripIdField, getFqnObj, getSearchTerm } from '../../utils/DataUtils';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { ID_FIELDS } from '../../utils/constants/DataConstants';
+import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
 import {
   REPLACE_ENTITY,
   SUBMIT,
@@ -113,10 +115,13 @@ function* getOrCreateUserId() {
     const userInfo = AuthUtils.getUserInfo();
     const userId = userInfo.id;
 
-    const [userEntitySetId, personIdPropertyTypeId] = yield all([
-      call(EntityDataModelApi.getEntitySetId, ENTITY_SETS.USERS),
-      call(EntityDataModelApi.getPropertyTypeId, getFqnObj(PROPERTY_TYPES.PERSON_ID))
-    ]);
+    const app = yield select(getAppFromState);
+    const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
+
+    const personIdPropertyTypeId = yield call(
+      EntityDataModelApi.getPropertyTypeId,
+      getFqnObj(PROPERTY_TYPES.PERSON_ID)
+    );
 
     const userSearchResults = yield call(SearchApi.searchEntitySetData, userEntitySetId, {
       searchTerm: getSearchTerm(personIdPropertyTypeId, userId),
@@ -154,22 +159,19 @@ function* submitWorkerNew(action) {
   try {
     yield put(submit.request(action.id));
 
+    const app = yield select(getAppFromState);
+
     if (includeUserId) {
       const userId = yield call(getOrCreateUserId);
       values[ID_FIELDS.USER_ID] = userId;
     }
 
-    const allEntitySetIdsRequest = config.entitySets
-      .map(entitySet => call(EntityDataModelApi.getEntitySetId, entitySet.name));
-    const allEntitySetIds = yield all(allEntitySetIdsRequest);
-
+    const allEntitySetIds = config.entitySets.map(({ name }) => getEntitySetId(app, name));
 
     const edmDetailsRequest = allEntitySetIds.map(id => ({
       id,
       type: 'EntitySet',
       include: [
-        'EntitySet',
-        'EntityType',
         'PropertyTypeInEntitySet'
       ]
     }));

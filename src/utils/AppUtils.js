@@ -1,5 +1,13 @@
-import { STATE, EDM } from './constants/StateConstants';
+import { Map } from 'immutable';
 
-export const getEdm = state => state.get(STATE.EDM);
+import { STATE, APP } from './constants/StateConstants';
 
-export const getEntitySetId = (edm, entitySetName) => edm.getIn([EDM.ENTITY_SETS, entitySetName, 'id']);
+export const getAppFromState = state => state.get(STATE.APP, Map());
+
+export const getSelectedOrganizationId = (app :Map) => app.get(APP.SELECTED_ORG_ID);
+
+export const getEntitySetId = (app :Map, fqn :string) :string => app.getIn([
+  APP.CONFIG_BY_ORG_ID,
+  getSelectedOrganizationId(app),
+  fqn
+]);

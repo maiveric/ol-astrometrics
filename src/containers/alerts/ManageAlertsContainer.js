@@ -27,8 +27,9 @@ import {
   SUBMIT
 } from '../../utils/constants/StateConstants';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
+import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from './AlertActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
@@ -40,6 +41,7 @@ type Props = {
   searchReason :string,
   plate :string,
   expirationDate :string,
+  alertsEntitySetId :string,
   readsEntitySetId :string,
   platePropertyTypeId :string,
   parameters :Map,
@@ -332,9 +334,10 @@ class ManageAlertsContainer extends React.Component<Props, State> {
   }
 
   expireAlert = (alert) => {
-    const { actions, edm } = this.props;
+    const { actions, edm, alertsEntitySetId } = this.props;
+
     const entityKeyId = getEntityKeyId(alert);
-    const entitySetId = edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.ALERTS, 'id']);
+    const entitySetId = alertsEntitySetId;
     const values = alert.set(PROPERTY_TYPES.END_DATE_TIME, List.of(moment().toISOString(true))).toJS();
     actions.replaceEntity({
       entitySetId,
@@ -458,12 +461,15 @@ class ManageAlertsContainer extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const app = state.get(STATE.APP);
   const alerts = state.get(STATE.ALERTS);
   const parameters = state.get(STATE.PARAMETERS);
   const edm = state.get(STATE.EDM);
   const submit = state.get(STATE.SUBMIT);
 
   return {
+    alertsEntitySetId: getEntitySetId(app, APP_TYPES.ALERTS),
+    readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     alerts: alerts.get(ALERTS.ALERT_LIST),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
     caseNum: alerts.get(ALERTS.CASE_NUMBER),
@@ -471,7 +477,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
     plate: alerts.get(ALERTS.PLATE),
     expirationDate: alerts.get(ALERTS.EXPIRATION),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
-    readsEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
     platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
     isSubmitting: submit.get(SUBMIT.SUBMITTING),
     edm

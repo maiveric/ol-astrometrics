@@ -28,6 +28,7 @@ import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getDisplayNameForId } from '../../utils/DataUtils';
+import { getEntitySetId } from '../../utils/AppUtils';
 import { getSearchFields } from './ParametersReducer';
 import {
   SEARCH_REASONS,
@@ -38,7 +39,7 @@ import {
   STYLES,
   LABELS
 } from '../../utils/constants/DataConstants';
-import { ENTITY_SETS } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   EDM,
   STATE,
@@ -783,6 +784,7 @@ class SearchParameters extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const app = state.get(STATE.APP);
   const explore = state.get(STATE.EXPLORE);
   const edm = state.get(STATE.EDM);
   const params = state.get(STATE.PARAMETERS);
@@ -791,7 +793,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const geocodedAddresses = params.get(SEARCH_PARAMETERS.ADDRESS_SEARCH_RESULTS, List());
 
   return {
-    recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
+    recordEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES),
 
     filter: explore.get(EXPLORE.FILTER),

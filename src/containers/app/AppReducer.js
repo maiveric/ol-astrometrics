@@ -6,7 +6,10 @@ import { Map, fromJS } from 'immutable';
 import isNumber from 'lodash/isNumber';
 import type { SequenceAction } from 'redux-reqseq';
 
-import { loadApp } from './AppActions';
+import { loadApp, SWITCH_ORGANIZATION } from './AppActions';
+
+import { APP_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP } from '../../utils/constants/StateConstants';
 
 const INITIAL_STATE :Map<*, *> = fromJS({
   actions: {
@@ -16,6 +19,10 @@ const INITIAL_STATE :Map<*, *> = fromJS({
     loadApp: Map(),
   },
   isLoadingApp: false,
+  [APP.SELECTED_ORG_ID]: undefined,
+  [APP.SETTINGS_BY_ORG_ID]: Map(),
+  [APP.CONFIG_BY_ORG_ID]: Map(),
+  [APP.ORGS_BY_ID]: Map()
 });
 
 export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Object) {
@@ -42,8 +49,53 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
             return state;
           }
 
-          // TODO: do something with "value"
-          return state;
+
+          const { appConfigs } = value;
+
+          let newState :Map<*, *> = state;
+
+          let entitySetsByOrgId = Map();
+          let configByOrgId = Map();
+          let orgsById = Map();
+          let selectedOrg = state.get(APP.SELECTED_ORG_ID);
+
+          appConfigs.forEach((appConfig :Object) => {
+
+            const { organization } :Object = appConfig;
+            const orgId :string = organization.id;
+
+            if (appConfigs.length === 1) {
+              selectedOrg = orgId;
+            }
+
+            if (fromJS(appConfig.config).size) {
+
+              orgsById = orgsById.set(orgId, fromJS(organization));
+
+              Object.values(APP_TYPES).forEach((fqn) => {
+
+                const { entitySetId } = appConfig.config[fqn];
+
+                newState = newState.setIn(
+                  [fqn, APP.ENTITY_SETS_BY_ORG, orgId],
+                  entitySetId
+                );
+                configByOrgId = configByOrgId.set(
+                  orgId,
+                  configByOrgId.get(orgId, Map()).set(fqn, entitySetId)
+                );
+                entitySetsByOrgId = entitySetsByOrgId.set(
+                  orgId,
+                  entitySetsByOrgId.get(orgId, Map()).set(entitySetId, fqn)
+                );
+              });
+            }
+          });
+
+          return newState
+            .set(APP.CONFIG_BY_ORG_ID, configByOrgId)
+            .set(APP.ORGS_BY_ID, orgsById)
+            .set(APP.SELECTED_ORG_ID, selectedOrg);
         },
         FAILURE: () => {
 
@@ -72,6 +124,9 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
         }
       });
     }
+
+    case SWITCH_ORGANIZATION:
+      return state.set(APP.SELECTED_ORG_ID, action.value);
 
     default:
       return state;

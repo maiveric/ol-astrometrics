@@ -9,14 +9,16 @@ import {
   all,
   call,
   put,
-  takeEvery
+  takeEvery,
+  select
 } from '@redux-saga/core/effects';
 import { Map, List } from 'immutable';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import {
   EXPORT_REPORT,
@@ -409,8 +411,9 @@ function* exportReportWorker(action :SequenceAction) :Generator<*, *, *> {
     const caseNum = searchParameters.get(PARAMETERS.CASE_NUMBER, '');
     const headerText = `Vehicle Report - ${caseNum} - ${moment().format(DATE_FORMAT)}`;
 
+    const app = yield select(getAppFromState);
 
-    const recordAndVehicleList = getVehicleList(results, neighborsById);
+    const recordAndVehicleList = getVehicleList(results, neighborsById, getEntitySetId(app, APP_TYPES.CARS));
     const recordsByVehicleId = getRecordsByVehicleId(recordAndVehicleList);
     const vehicleList = getFilteredVehicles(recordAndVehicleList, recordsByVehicleId, '')
       .map(neighborObj => neighborObj.get('neighborDetails', Map()))

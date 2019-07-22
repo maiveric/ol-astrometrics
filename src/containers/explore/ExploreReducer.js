@@ -11,7 +11,7 @@ import {
 } from 'immutable';
 
 import { EXPLORE } from '../../utils/constants/StateConstants';
-import { ENTITY_SETS } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
@@ -132,12 +132,14 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       let selectedEntityKeyIds = Set();
       let selectedReadId = action.value;
 
-      if (action.value) {
-        let idsToMatch = Set().add(action.value);
-        if (state.get(ENTITY_NEIGHBORS_BY_ID).has(action.value)) {
-          selectedEntityKeyIds = selectedEntityKeyIds.add(action.value);
-          state.getIn([ENTITY_NEIGHBORS_BY_ID, action.value], List()).forEach((neighborObj) => {
-            if (neighborObj.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS) {
+      const { data, vehiclesEntitySetId } = action.value;
+
+      if (data) {
+        let idsToMatch = Set().add(data);
+        if (state.get(ENTITY_NEIGHBORS_BY_ID).has(data)) {
+          selectedEntityKeyIds = selectedEntityKeyIds.add(data);
+          state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
+            if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
               const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails', Map()));
               if (entityKeyId) {
                 idsToMatch = idsToMatch.add(entityKeyId);

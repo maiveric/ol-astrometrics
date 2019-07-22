@@ -16,17 +16,16 @@ import Spinner from '../../components/spinner/Spinner';
 import Pagination from '../../components/pagination/Pagination';
 import VehicleCard from '../../components/vehicles/VehicleCard';
 import {
-  EDM,
   STATE,
   EXPLORE,
   REPORT,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
+import { getEntitySetId } from '../../utils/AppUtils';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
-import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
@@ -41,6 +40,7 @@ type Props = {
   reportVehicles :List<*>;
   departmentOptions :Map;
   deviceOptions :Map;
+  vehiclesEntitySetId :string;
   actions :{
     addVehicleToReport :RequestSequence;
     editSearchParameters :RequestSequence;
@@ -50,7 +50,6 @@ type Props = {
     removeVehicleFromReport :RequestSequence;
     selectAddress :RequestSequence;
     selectEntity :RequestSequence;
-    selectEntitySet :RequestSequence;
     setFilter :RequestSequence;
     updateSearchParameters :RequestSequence;
   };
@@ -191,9 +190,14 @@ class Sidebar extends React.Component<Props, State> {
   }
 
   getVehicleList = () => {
-    const { filter, results, neighborsById } = this.props;
+    const {
+      filter,
+      results,
+      neighborsById,
+      vehiclesEntitySetId
+    } = this.props;
 
-    const vehicleList = getVehicleList(results, neighborsById);
+    const vehicleList = getVehicleList(results, neighborsById, vehiclesEntitySetId);
     const recordsByVehicleId = getRecordsByVehicleId(vehicleList);
     const vehicles = getFilteredVehicles(vehicleList, recordsByVehicleId, filter);
 
@@ -331,12 +335,13 @@ class Sidebar extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const app = state.get(STATE.APP);
   const explore = state.get(STATE.EXPLORE);
-  const edm = state.get(STATE.EDM);
   const report = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
   return {
-    recordEntitySetId: edm.getIn([EDM.ENTITY_SETS, ENTITY_SETS.RECORDS, 'id']),
+    recordEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
+    vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
@@ -358,10 +363,6 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(EdmActionFactory).forEach((action :string) => {
     actions[action] = EdmActionFactory[action];
-  });
-
-  Object.keys(EntitySetActionFactory).forEach((action :string) => {
-    actions[action] = EntitySetActionFactory[action];
   });
 
   Object.keys(ExploreActionFactory).forEach((action :string) => {

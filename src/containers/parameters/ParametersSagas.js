@@ -14,9 +14,9 @@ import { DataApi } from 'lattice';
 import { fromJS, OrderedMap } from 'immutable';
 import type { SequenceAction } from 'redux-reqseq';
 
-import { getEdm, getEntitySetId } from '../../utils/AppUtils';
+import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
 import { formatNameIdForDisplay } from '../../utils/DataUtils';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   GEOCODE_ADDRESS,
   LOAD_DEPARTMENTS_AND_DEVICES,
@@ -65,11 +65,11 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
   try {
     yield put(loadDepartmentsAndDevices.request(action.id));
 
-    const edm = yield select(getEdm);
+    const app = yield select(getAppFromState);
 
     const [departments, devices] = yield all([
-      call(DataApi.getEntitySetData, getEntitySetId(edm, ENTITY_SETS.AGENCIES)),
-      call(DataApi.getEntitySetData, getEntitySetId(edm, ENTITY_SETS.CAMERAS))
+      call(DataApi.getEntitySetData, getEntitySetId(app, APP_TYPES.AGENCIES)),
+      call(DataApi.getEntitySetData, getEntitySetId(app, APP_TYPES.CAMERAS))
     ]);
 
     yield put(loadDepartmentsAndDevices.success(action.id, {

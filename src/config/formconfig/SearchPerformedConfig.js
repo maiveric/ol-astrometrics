@@ -1,4 +1,4 @@
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { ID_FIELDS } from '../../utils/constants/DataConstants';
 import { EXPLORE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
 
@@ -6,7 +6,7 @@ const config = {
   entitySets: [
     {
       alias: 'user',
-      name: ENTITY_SETS.USERS,
+      name: APP_TYPES.USERS,
       id: ID_FIELDS.USER_ID,
       fields: {
         [ID_FIELDS.USER_ID]: PROPERTY_TYPES.PERSON_ID
@@ -14,7 +14,7 @@ const config = {
     },
     {
       alias: 'search',
-      name: ENTITY_SETS.SEARCHES,
+      name: APP_TYPES.SEARCHES,
       fields: {
         [PARAMETERS.REASON]: PROPERTY_TYPES.SEARCH_REASON,
         [PARAMETERS.CASE_NUMBER]: PROPERTY_TYPES.CASE_NUMBER,
@@ -24,7 +24,7 @@ const config = {
     },
     {
       alias: 'searchedBy',
-      name: ENTITY_SETS.SEARCHED_BY,
+      name: APP_TYPES.SEARCHED_BY,
       fields: {}
     }
   ],

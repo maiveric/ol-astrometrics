@@ -1,4 +1,5 @@
 export const STATE = {
+  APP: 'app',
   ALERTS: 'ALERTS',
   EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
@@ -6,6 +7,13 @@ export const STATE = {
   PARAMETERS: 'PARAMETERS',
   REPORT: 'REPORT',
   SUBMIT: 'SUBMIT'
+};
+
+export const APP = {
+  SELECTED_ORG_ID: 'selectedOrganizationId',
+  CONFIG_BY_ORG_ID: 'appConfigsByOrgId',
+  SETTINGS_BY_ORG_ID: 'appSettingsByOrgId',
+  ORGS_BY_ID: 'orgsById'
 };
 
 export const ALERTS = {
@@ -19,7 +27,6 @@ export const ALERTS = {
 };
 
 export const EDM = {
-  ENTITY_SETS: 'entitySets',
   PROPERTY_TYPES: 'propertyTypes',
   IS_LOADING_DATA_MODEL: 'isLoadingDataModel'
 };
