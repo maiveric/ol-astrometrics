@@ -26,7 +26,6 @@ import { getEntityKeyId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
-import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
@@ -51,7 +50,6 @@ type Props = {
     removeVehicleFromReport :RequestSequence;
     selectAddress :RequestSequence;
     selectEntity :RequestSequence;
-    selectEntitySet :RequestSequence;
     setFilter :RequestSequence;
     updateSearchParameters :RequestSequence;
   };
@@ -365,10 +363,6 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(EdmActionFactory).forEach((action :string) => {
     actions[action] = EdmActionFactory[action];
-  });
-
-  Object.keys(EntitySetActionFactory).forEach((action :string) => {
-    actions[action] = EntitySetActionFactory[action];
   });
 
   Object.keys(ExploreActionFactory).forEach((action :string) => {
