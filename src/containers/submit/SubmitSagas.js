@@ -166,17 +166,12 @@ function* submitWorkerNew(action) {
       values[ID_FIELDS.USER_ID] = userId;
     }
 
-    const allEntitySetIdsRequest = config.entitySets
-      .map(({ name }) => getEntitySetId(app, name));
-    const allEntitySetIds = yield all(allEntitySetIdsRequest);
-
+    const allEntitySetIds = config.entitySets.map(({ name }) => getEntitySetId(app, name));
 
     const edmDetailsRequest = allEntitySetIds.map(id => ({
       id,
       type: 'EntitySet',
       include: [
-        'EntitySet',
-        'EntityType',
         'PropertyTypeInEntitySet'
       ]
     }));
