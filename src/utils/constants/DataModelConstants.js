@@ -1,22 +1,24 @@
+export const APP_NAME = 'astrometrics';
+
+export const APP_TYPES = {
+  RECORDS: 'app.vehiclerecord',
+  CAMERAS: 'app.camera',
+  LOCATIONS: 'app.location',
+  AGENCIES: 'app.agencies',
+  CONFIDENCE_METRICS: 'app.confidencemetrics',
+  HITS: 'app.infractions',
+  RECORDED_BY: 'app.recordedby',
+  CARS: 'app.vehicle',
+  USERS: 'app.staff',
+  ALERTS: 'app.searchalert',
+  REGISTERED_FOR: 'app.registeredfor',
+  SEARCHES: 'app.searchalert',
+  SEARCHED_BY: 'app.searchedby'
+};
+
 export const PERSON_ENTITY_TYPE_FQN = 'general.person';
 
 export const SEARCH_PREFIX = 'entity';
-
-export const ENTITY_SETS = {
-  RECORDS: 'NCRICVehicleRecords',
-  CAMERAS: 'NCRICImageSources',
-  LOCATIONS: 'NCRICLocations',
-  AGENCIES: 'NCRICAgencies',
-  CONFIDENCE_METRICS: 'NCRICConfidenceMetrics',
-  HITS: 'NCRICNotifications',
-  RECORDED_BY: 'NCRICRecordedBy',
-  CARS: 'NCRICVehicles',
-  USERS: 'NCRICUsers',
-  ALERTS: 'NCRICVehicleAlerts',
-  REGISTERED_FOR: 'NCRICRegisteredFor',
-  SEARCHES: 'NCRICALPRSearches',
-  SEARCHED_BY: 'NCRICSearchedBy'
-};
 
 export const PROPERTY_TYPES = {
   LATITUDE: 'location.latitude',

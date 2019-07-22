@@ -4,17 +4,25 @@
 
 /* eslint-disable no-use-before-define */
 
-import { put, takeEvery } from '@redux-saga/core/effects';
+import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { AuthActions } from 'lattice-auth';
 import type { SequenceAction } from 'redux-reqseq';
+import {
+  AppApiActions,
+  AppApiSagas
+} from 'lattice-sagas';
 
 import Logger from '../../utils/Logger';
 import { clearCookies } from '../../utils/CookieUtils';
 import { ERR_ACTION_VALUE_NOT_DEFINED } from '../../utils/Errors';
+import { APP_NAME } from '../../utils/constants/DataModelConstants';
 import {
   LOAD_APP,
   loadApp,
 } from './AppActions';
+
+const { getApp, getAppConfigs } = AppApiActions;
+const { getAppWorker, getAppConfigsWorker } = AppApiSagas;
 
 const LOG = new Logger('AppSagas');
 
@@ -37,7 +45,26 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 
   try {
     yield put(loadApp.request(action.id));
-    yield put(loadApp.success(action.id));
+
+    /*
+     * 1. load App
+     */
+
+    let response :any = {};
+    response = yield call(getAppWorker, getApp(APP_NAME));
+    if (response.error) throw response.error;
+
+    /*
+     * 2. load AppConfigs and AppTypes
+     */
+
+    const app = response.data;
+    response = yield call(getAppConfigsWorker, getAppConfigs(app.id));
+    if (response.error) throw response.error;
+
+    const { data: appConfigs } = response;
+
+    yield put(loadApp.success(action.id, { appConfigs }));
   }
   catch (error) {
     LOG.error('caught exception in loadAppWorker()', error);

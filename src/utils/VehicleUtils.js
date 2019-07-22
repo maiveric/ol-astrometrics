@@ -1,13 +1,13 @@
 import { List, Map } from 'immutable';
 
 import { getEntityKeyId } from './DataUtils';
-import { ENTITY_SETS, PROPERTY_TYPES } from './constants/DataModelConstants';
+import { PROPERTY_TYPES } from './constants/DataModelConstants';
 
-export const getVehicleList = (results, neighborsById) => results
+export const getVehicleList = (results, neighborsById, vehiclesEntitySetId) => results
   .flatMap(record => neighborsById
     .get(getEntityKeyId(record), List())
     .map(neighbor => [neighbor, record]))
-  .filter(([neighbor]) => neighbor.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS);
+  .filter(([neighbor]) => neighbor.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId);
 
 export const getRecordsByVehicleId = (vehicleList) => {
   let recordsByVehicleId = Map();

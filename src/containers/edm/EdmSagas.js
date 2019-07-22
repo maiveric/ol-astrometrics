@@ -9,29 +9,30 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { Map, fromJS } from 'immutable';
-import { EntityDataModelApi } from 'lattice';
+import { AppApi, EntityDataModelApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
-import { getFqnString } from '../../utils/DataUtils';
+import { getFqnString, getFqnObj } from '../../utils/DataUtils';
 import {
   LOAD_DATA_MODEL,
   loadDataModel
 } from './EdmActionFactory';
 
-import { ENTITY_SETS } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 
 function* loadDataModelWorker(action :SequenceAction) {
   try {
     yield put(loadDataModel.request(action.id));
-    const entitySetIds = yield all(
-      Object.values(ENTITY_SETS).map(name => call(EntityDataModelApi.getEntitySetId, name))
+    const appTypes = yield all(
+      Object.values(APP_TYPES).map(fqn => call(AppApi.getAppTypeByFqn, getFqnObj(fqn)))
     );
-    const projection = yield call(EntityDataModelApi.getEntityDataModelProjection, entitySetIds
+    const entityTypeIds = appTypes.map(({ entityTypeId }) => entityTypeId);
+    const projection = yield call(EntityDataModelApi.getEntityDataModelProjection, entityTypeIds
       .filter(id => !!id)
       .map(id => ({
         id,
-        type: 'EntitySet',
-        include: ['EntitySet', 'PropertyTypeInEntitySet']
+        type: 'EntityType',
+        include: ['PropertyTypeInEntitySet']
       })));
 
     let entitySets = Map();

@@ -19,12 +19,14 @@ import {
   REPORT,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
-import { ENTITY_SETS, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getDisplayNameForId } from '../../utils/DataUtils';
+import { getEntitySetId } from '../../utils/AppUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
+  vehiclesEntitySetId :string,
   selectedEntityKeyIds :Set<*>,
   neighborsById :Map<*, *>,
   entitiesById :Map<*, *>,
@@ -226,11 +228,11 @@ const Icon = styled.span`
 class SelectedVehicleSidebar extends React.Component<Props, State> {
 
   getSelectedVehicle = () => {
-    const { neighborsById, selectedReadId } = this.props;
+    const { neighborsById, selectedReadId, vehiclesEntitySetId } = this.props;
 
     let vehicle;
     neighborsById.get(selectedReadId, List()).forEach((neighborObj) => {
-      if (neighborObj.getIn(['neighborEntitySet', 'name']) === ENTITY_SETS.CARS) {
+      if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
         vehicle = neighborObj.get('neighborDetails', Map());
       }
     });
@@ -421,10 +423,12 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const app = state.get(STATE.APP);
   const explore = state.get(STATE.EXPLORE);
   const report = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
   return {
+    vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),

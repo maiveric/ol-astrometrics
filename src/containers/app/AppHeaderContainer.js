@@ -4,9 +4,10 @@
 
 import React, { Component } from 'react';
 
+import Select from 'react-select';
 import styled from 'styled-components';
 import { Map } from 'immutable';
-import { AuthActions } from 'lattice-auth';
+import { AuthActions, AuthUtils } from 'lattice-auth';
 import { Button, Colors } from 'lattice-ui-kit';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -16,11 +17,14 @@ import { Link } from 'react-router-dom';
 import AppNavigationContainer from './AppNavigationContainer';
 import OpenLatticeLogo from '../../assets/images/logo_v2.png';
 import * as Routes from '../../core/router/Routes';
+import { STATE, APP } from '../../utils/constants/StateConstants';
 import {
   APP_CONTAINER_MAX_WIDTH,
   APP_CONTAINER_WIDTH,
   APP_CONTENT_PADDING,
 } from '../../core/style/Sizes';
+import { switchOrganization } from './AppActions';
+import { orgSelectStyles } from '../../core/style/OrgSelectStyles';
 
 const { logout } = AuthActions;
 const { NEUTRALS } = Colors;
@@ -43,6 +47,13 @@ const AppHeaderInnerWrapper = styled.div`
   max-width: ${APP_CONTAINER_MAX_WIDTH}px;
   min-width: ${APP_CONTAINER_WIDTH}px;
   padding: 0 ${APP_CONTENT_PADDING}px;
+`;
+
+const DisplayName = styled.span`
+  margin-right: 10px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  color: #2e2e34;
 `;
 
 const LeftSideContentWrapper = styled.div`
@@ -135,10 +146,43 @@ const SupportLink = styled.a.attrs({
 type Props = {
   actions :{
     logout :() => void;
+    switchOrganization :(orgId :string) => Object;
   };
 };
 
 class AppHeaderContainer extends Component<Props> {
+
+  getDisplayName = () => {
+    const userInfo = AuthUtils.getUserInfo();
+    return (userInfo.email && userInfo.email.length > 0) ? userInfo.email : '';
+  };
+
+  switchOrganization = (organization) => {
+    const { actions, app } = this.props;
+    const selectedOrganizationId = app.get(APP.SELECTED_ORG_ID);
+    if (organization.value !== selectedOrganizationId) {
+      actions.switchOrganization({
+        orgId: organization.value,
+        title: organization.label
+      });
+    }
+  }
+
+  renderOrgSelector = () => {
+    const { organizations, selectedOrg, loading } = this.props;
+
+    return (
+      <Select
+          value={organizations.find(option => option.value === selectedOrg)}
+          isClearable={false}
+          isLoading={loading}
+          isMulti={false}
+          onChange={this.switchOrganization}
+          options={organizations.toJS()}
+          placeholder="Select..."
+          styles={orgSelectStyles} />
+    );
+  }
 
   renderLeftSideContent = () => (
     <LeftSideContentWrapper>
@@ -157,6 +201,8 @@ class AppHeaderContainer extends Component<Props> {
     const { actions } = this.props;
     return (
       <RightSideContentWrapper>
+        <DisplayName>{this.getDisplayName()}</DisplayName>
+        <div>{ this.renderOrgSelector() }</div>
         <SupportLink>
           Contact Support
         </SupportLink>
@@ -182,7 +228,18 @@ class AppHeaderContainer extends Component<Props> {
 
 function mapStateToProps(state :Map<*, *>) :Object {
 
+  const app = state.get(STATE.APP);
+
+  const organizations = app.get(APP.ORGS_BY_ID).entrySeq().map(([value, organization]) => {
+    const label = organization.get('title', '');
+    return { label, value };
+  });
+
   return {
+    app,
+    organizations,
+    selectedOrg: app.get(APP.SELECTED_ORG_ID, ''),
+    loading: app.get(APP.LOADING, false),
     isLoadingApp: state.getIn(['app', 'isLoadingApp'], false),
   };
 }
@@ -190,7 +247,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 function mapDispatchToProps(dispatch :Function) :Object {
 
   return {
-    actions: bindActionCreators({ logout }, dispatch)
+    actions: bindActionCreators({ logout, switchOrganization }, dispatch)
   };
 }
 

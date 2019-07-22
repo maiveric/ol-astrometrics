@@ -24,7 +24,8 @@ import {
   PARAMETERS,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from '../alerts/AlertActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
@@ -37,6 +38,7 @@ type Props = {
   results :List<*>;
   selectedEntityKeyIds :Set<*>;
   selectedReadId :string;
+  vehiclesEntitySetId :string;
   searchParameters :Map<*, *>;
   filter :string;
   edm :Map<*, *>;
@@ -79,7 +81,7 @@ class ExploreContainer extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps) {
     const { actions, edm } = this.props;
-    if (!prevProps.edm.get(EDM.ENTITY_SETS).size && edm.get(EDM.ENTITY_SETS).size) {
+    if (!prevProps.edm.get(EDM.PROPERTY_TYPES).size && edm.get(EDM.PROPERTY_TYPES).size) {
       actions.loadDepartmentsAndDevices();
     }
   }
@@ -91,6 +93,11 @@ class ExploreContainer extends React.Component<Props, State> {
       value: searchZones
     });
     actions.setDrawMode(false);
+  }
+
+  selectEntity = (data) => {
+    const { actions, vehiclesEntitySetId } = this.props;
+    actions.selectEntity({ data, vehiclesEntitySetId });
   }
 
   render() {
@@ -128,7 +135,7 @@ class ExploreContainer extends React.Component<Props, State> {
             setDrawMode={actions.setDrawMode}
             setSearchZones={this.setSearchZones}
             entities={entities}
-            selectEntity={actions.selectEntity}
+            selectEntity={this.selectEntity}
             selectedEntityKeyIds={selectedEntityKeyIds}
             selectedReadId={selectedReadId}
             heatmap />
@@ -139,6 +146,7 @@ class ExploreContainer extends React.Component<Props, State> {
 
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const app = state.get(STATE.APP);
   const edm = state.get(STATE.EDM);
   const explore = state.get(STATE.EXPLORE);
   const params = state.get(STATE.PARAMETERS);
@@ -147,6 +155,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   return {
     edm,
 
+    vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     filter: explore.get(EXPLORE.FILTER),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
