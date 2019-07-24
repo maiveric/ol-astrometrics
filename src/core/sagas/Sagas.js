@@ -30,6 +30,7 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* AppSagas */
     fork(AppSagas.loadAppWatcher),
+    fork(AppSagas.switchOrganizationWatcher),
     fork(AppSagas.authExpirationCleanupWatcher),
     fork(AppSagas.authFailureCleanupWatcher),
     fork(AppSagas.logoutCleanupWatcher),

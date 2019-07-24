@@ -161,10 +161,7 @@ class AppHeaderContainer extends Component<Props> {
     const { actions, app } = this.props;
     const selectedOrganizationId = app.get(APP.SELECTED_ORG_ID);
     if (organization.value !== selectedOrganizationId) {
-      actions.switchOrganization({
-        orgId: organization.value,
-        title: organization.label
-      });
+      actions.switchOrganization(organization.value);
     }
   }
 

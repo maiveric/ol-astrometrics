@@ -5,7 +5,7 @@
 /* eslint-disable no-use-before-define */
 
 import { call, put, takeEvery } from '@redux-saga/core/effects';
-import { AuthActions } from 'lattice-auth';
+import { AuthActions, AccountUtils } from 'lattice-auth';
 import type { SequenceAction } from 'redux-reqseq';
 import {
   AppApiActions,
@@ -18,7 +18,9 @@ import { ERR_ACTION_VALUE_NOT_DEFINED } from '../../utils/Errors';
 import { APP_NAME } from '../../utils/constants/DataModelConstants';
 import {
   LOAD_APP,
+  SWITCH_ORGANIZATION,
   loadApp,
+  switchOrganization
 } from './AppActions';
 
 const { getApp, getAppConfigs } = AppApiActions;
@@ -75,6 +77,16 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
   }
 }
 
+function* switchOrganizationWorker(action :Object) :Generator<*, *, *> {
+  yield put(switchOrganization.request(action.id));
+  AccountUtils.storeOrganizationId(action.value);
+  yield put(switchOrganization.success(action.id));
+}
+
+function* switchOrganizationWatcher() :Generator<*, *, *> {
+  yield takeEvery(SWITCH_ORGANIZATION, switchOrganizationWorker);
+}
+
 function cleanupWorker() {
   clearCookies();
 }
@@ -96,5 +108,6 @@ export {
   loadAppWorker,
   authExpirationCleanupWatcher,
   authFailureCleanupWatcher,
-  logoutCleanupWatcher
+  logoutCleanupWatcher,
+  switchOrganizationWatcher
 };

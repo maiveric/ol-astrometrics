@@ -5,6 +5,7 @@
 import { Map, fromJS } from 'immutable';
 import isNumber from 'lodash/isNumber';
 import type { SequenceAction } from 'redux-reqseq';
+import { AccountUtils } from 'lattice-auth';
 
 import { loadApp, SWITCH_ORGANIZATION } from './AppActions';
 
@@ -57,16 +58,11 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
           let entitySetsByOrgId = Map();
           let configByOrgId = Map();
           let orgsById = Map();
-          let selectedOrg = state.get(APP.SELECTED_ORG_ID);
 
           appConfigs.forEach((appConfig :Object) => {
 
             const { organization } :Object = appConfig;
             const orgId :string = organization.id;
-
-            if (appConfigs.length === 1) {
-              selectedOrg = orgId;
-            }
 
             if (fromJS(appConfig.config).size) {
 
@@ -91,6 +87,12 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
               });
             }
           });
+
+          let selectedOrg = AccountUtils.retrieveOrganizationId();
+
+          if ((!selectedOrg && appConfigs.length > 0) || !orgsById.has(selectedOrg)) {
+            selectedOrg = appConfigs[0].organization.id;
+          }
 
           return newState
             .set(APP.CONFIG_BY_ORG_ID, configByOrgId)
