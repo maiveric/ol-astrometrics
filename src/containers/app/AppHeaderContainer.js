@@ -44,7 +44,7 @@ const AppHeaderInnerWrapper = styled.div`
   flex: 1 0 auto;
   justify-content: space-between;
   min-width: ${APP_CONTAINER_WIDTH}px;
-  padding: 0 ${APP_CONTENT_PADDING}px;
+  padding: 0 24px;
 `;
 
 const DisplayName = styled.span`

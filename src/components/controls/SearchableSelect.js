@@ -43,23 +43,32 @@ const SearchInputWrapper = styled.div`
 `;
 
 const inputStyle = `
-  border: 1px solid #dcdce7;
+  width: 100%;
+  background: #4F4E54;
+
+  background: #36353B;
+  color: #ffffff;
   border-radius: 3px;
-  color: #135;
-  flex: 1 0 auto;
+  border: none;
+  height: 36px;
+  padding: 0 16px;
   font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 24px;
-  outline: none;
-  padding: 0 45px 0 20px;
+
   &:focus {
-    border-color: #6124e2;
+    border: 1px solid #98979D;
+    background: #4F4E54;
+    outline: none;
   }
+
+  &:hover {
+    background: #4F4E54;
+    cursor: pointer;
+  }
+
   &::placeholder {
     font-family: 'Open Sans', sans-serif;
     font-size: 14px;
-    color: #8e929b;
+    color: #807F85;
   }
 `;
 
@@ -69,9 +78,9 @@ const SearchInput = styled.input.attrs({
   ${inputStyle}
   background-color: ${(props) => {
     if (props.disabled) {
-      return '#dcdce7';
+      return '#36353B';
     }
-    return (props.transparent ? '#f9f9fd' : '#ffffff');
+    return (props.transparent ? '#f9f9fd' : '#36353B');
   }};
 `;
 
@@ -87,7 +96,7 @@ const SearchIcon = styled.div`
 const SearchButton = styled.button`
   ${inputStyle}
   text-align: left;
-  background-color: ${props => (props.transparent ? '#f9f9fd' : '#ffffff')};
+  background-color: ${props => (props.transparent ? '#f9f9fd' : '#36353B')};
 `;
 
 const CloseIcon = styled.div`
@@ -102,14 +111,13 @@ const CloseIcon = styled.div`
 `;
 
 const DataTableWrapper = styled.div`
-  background-color: #fefefe;
-  border-radius: 5px;
-  border: 1px solid #e1e1eb;
+  background-color: #36353B;
+  border-radius: 3px;
   position: absolute;
   z-index: 5;
   width: 100%;
   visibility: ${props => (props.isVisible ? 'visible' : 'hidden')}};
-  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
   margin: ${props => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
   bottom: ${props => (props.openAbove ? '45px' : 'auto')};
 `;
@@ -127,18 +135,15 @@ const NoContentWrapper = styled.div`
 `;
 
 const SearchOption = styled.div`
-  padding: 10px 20px;
-  color: #000000;
+  padding: 7px 24px;
+  color: #ffffff;
   font-size: 14px;
+  line-height: 150%;
   font-weight: 400;
 
   &:hover {
-    background-color: #f0f0f7;
+    background-color: #4F4E54;
     cursor: pointer;
-  }
-
-  &:active {
-    background-color: #e6e6f7;
   }
 `;
 

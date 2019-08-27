@@ -83,28 +83,33 @@ type Props = {
 };
 
 const SearchParameterWrapper = styled.div`
-  width: 100%;
+  width: 368px;
+  height: 100%;
   position: fixed;
-  padding: 50px 0;
   z-index: 2;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: #1F1E24;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  overflow-y: scroll;
+`;
+
+const MenuSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 24px 32px;
+  border-bottom: 1px solid #36353B;
 `;
 
 const InnerWrapper = styled.div`
-  width: 1300px;
+  width: 368px;
+  height: 100%;
   display: flex;
   flex-direction: column;
-
-  h1 {
-    color: #ffffff;
-    font-size: 22px;
-    font-weight: 400;
-    margin-bottom: 50px;
-  }
 `;
 
 type State = {
@@ -113,22 +118,11 @@ type State = {
 
 const Row = styled.div`
   width: ${props => (props.width || '100')}%;
-  margin-top: ${props => (props.marginTop ? 30 : 0)}px;
+  margin: 5px 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-`;
-
-const SubHeader = styled.div`
-  margin: 30px 0 15px 0;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
 `;
 
 const StyledInputWrapper = styled.div`
@@ -161,13 +155,24 @@ const StyledInput = styled.input.attrs({
   type: 'text'
 })`
   width: 100%;
+  background: #4F4E54;
+
+  background: #36353B;
+  color: #ffffff;
   border-radius: 3px;
-  padding: 10px 15px;
   border: none;
-  height: 39px;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
 
   &:focus {
+    border: 1px solid #98979D;
+    background: #4F4E54;
     outline: none;
+  }
+
+  &:hover {
+    background: #4F4E54;
   }
 `;
 
@@ -180,7 +185,7 @@ const InputGroup = styled.div`
   span {
     color: #ffffff;
     font-size: 12px;
-    font-weight: 300;
+    font-weight: 500;
     margin-bottom: 10px;
   }
 `;
@@ -332,6 +337,25 @@ const ButtonWrapper = styled.button`
 
 `;
 
+const InlineGroup = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const HelperText = styled.span`
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 150%;
+  color: #807F85 !important;
+
+  padding-left: ${props => (props.offset ? 8 : 0)}px;
+`;
+
+const Accent = styled.span`
+  color: #e53b36 !important;
+`;
+
 class SearchParameters extends React.Component<Props, State> {
 
   addressSearchTimeout :any;
@@ -441,30 +465,53 @@ class SearchParameters extends React.Component<Props, State> {
     return (
       <SearchParameterWrapper>
         <InnerWrapper>
-          <h1>ALPR Vehicle Search</h1>
-          <Row>
-            <Row width={20}>
+
+          <MenuSection>
+
+            <Row>
               <InputGroup>
-                <span>Case Number*</span>
+                <span>
+                  Case Number
+                  <Accent>*</Accent>
+                </span>
                 {this.renderInput(PARAMETERS.CASE_NUMBER)}
               </InputGroup>
             </Row>
-            <Row width={53}>
+
+            <Row>
               <InputGroup>
-                <span>Search Reason*</span>
+                <span>
+                  Search Reason
+                  <Accent>*</Accent>
+                </span>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.REASON)}
                     searchPlaceholder="Select"
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.REASON, value })}
                     options={this.getAsMap(SEARCH_REASONS)}
                     selectOnly
-                    transparent
                     short />
               </InputGroup>
             </Row>
-            <Row width={20}>
+
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
               <InputGroup>
-                <span>Full or Partial Plate (minimum 3 characters)</span>
+                <HelperText>
+                  At least two of license plate, location, or search date range must be present to search.
+                </HelperText>
+              </InputGroup>
+            </Row>
+
+            <Row>
+              <InputGroup>
+                <InlineGroup>
+                  <span>Full or Partial Plate </span>
+                  <HelperText offset> Minimum 3 characters</HelperText>
+                </InlineGroup>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.PLATE)}
                     searchPlaceholder=""
@@ -474,14 +521,15 @@ class SearchParameters extends React.Component<Props, State> {
                     }}
                     options={this.getAsMap(getPreviousLicensePlateSearches())}
                     allowFreeEntry
-                    transparent
                     short />
               </InputGroup>
             </Row>
-          </Row>
-          <SubHeader>Location</SubHeader>
-          <Row>
-            <Row width={65.5}>
+
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
               <InputGroup>
                 <span>Street Address</span>
                 <StyledSearchableSelect
@@ -493,32 +541,33 @@ class SearchParameters extends React.Component<Props, State> {
                     isLoadingResults={isLoadingAddresses}
                     noResults={noAddressResults}
                     inexactMatchesAllowed
-                    transparent
                     short />
               </InputGroup>
             </Row>
-            <Row width={31}>
-              <Row width={46}>
-                <InputGroup>
-                  <span>Search Radius</span>
-                  <StyledInputWrapper>
-                    {this.renderInput(PARAMETERS.RADIUS)}
-                    <span>miles</span>
-                  </StyledInputWrapper>
-                </InputGroup>
-              </Row>
-              <Row width={46}>
-                <span />
-                <ButtonWrapper onClick={this.resetAndGoToDrawMode}>
-                  <FontAwesomeIcon icon={faPencil} />
-                  <span>Draw on map</span>
-                </ButtonWrapper>
-              </Row>
+
+            <Row>
+              <InputGroup>
+                <span>Search Radius</span>
+                <StyledInputWrapper>
+                  {this.renderInput(PARAMETERS.RADIUS)}
+                  <span>miles</span>
+                </StyledInputWrapper>
+              </InputGroup>
             </Row>
-          </Row>
-          <SubHeader>Additional Parameters</SubHeader>
-          <Row>
-            <Row width={31}>
+
+            <Row>
+              <span />
+              <ButtonWrapper onClick={this.resetAndGoToDrawMode}>
+                <FontAwesomeIcon icon={faPencil} />
+                <span>Draw on map</span>
+              </ButtonWrapper>
+            </Row>
+
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
               <InputGroup>
                 <span>Time start</span>
                 <DateTimePickerWrapper>
@@ -533,7 +582,8 @@ class SearchParameters extends React.Component<Props, State> {
                 </DateTimePickerWrapper>
               </InputGroup>
             </Row>
-            <Row width={31}>
+
+            <Row>
               <InputGroup>
                 <span>Time end</span>
                 <DateTimePickerWrapper>
@@ -548,52 +598,50 @@ class SearchParameters extends React.Component<Props, State> {
                 </DateTimePickerWrapper>
               </InputGroup>
             </Row>
-            <Row width={31}>
-              <Row width={46}>
-                <InputGroup>
-                  <span>Department (optional)</span>
-                  <StyledSearchableSelect
-                      value={getDisplayNameForId(agencyOptions, searchParameters.get(PARAMETERS.DEPARTMENT))}
-                      onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value })}
-                      onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value: '' })}
-                      options={agencyOptions}
-                      transparent
-                      short />
-                </InputGroup>
-              </Row>
-              <Row width={46}>
-                <InputGroup>
-                  <span>Device (optional)</span>
-                  <StyledSearchableSelect
-                      value={getDisplayNameForId(deviceOptions, searchParameters.get(PARAMETERS.DEVICE))}
-                      onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
-                      onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
-                      options={deviceOptions}
-                      transparent
-                      short />
-                </InputGroup>
-              </Row>
+
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
+              <InputGroup>
+                <span>Department (optional)</span>
+                <StyledSearchableSelect
+                    value={getDisplayNameForId(agencyOptions, searchParameters.get(PARAMETERS.DEPARTMENT))}
+                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value })}
+                    onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value: '' })}
+                    options={agencyOptions}
+                    short />
+              </InputGroup>
             </Row>
-          </Row>
-          <Row marginTop>
-            <InputGroup>
-              <span>
-                *Required fields. Additionally, at least two of license plate, location, or time range must be present to perform a search.
-              </span>
-            </InputGroup>
-          </Row>
-          <Row>
-            <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
-              <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
-              <span>Additional Details</span>
-            </ButtonWrapper>
-            { isExpanded ? null : this.renderSearchButton() }
-          </Row>
+            <Row>
+              <InputGroup>
+                <span>Device (optional)</span>
+                <StyledSearchableSelect
+                    value={getDisplayNameForId(deviceOptions, searchParameters.get(PARAMETERS.DEVICE))}
+                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
+                    onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
+                    options={deviceOptions}
+                    short />
+              </InputGroup>
+            </Row>
+
+            <Row>
+              <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
+                <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
+                <span>Additional Details</span>
+              </ButtonWrapper>
+              { isExpanded ? null : <Row>{this.renderSearchButton()}</Row> }
+            </Row>
+
+          </MenuSection>
+
           {
             isExpanded ? (
               <>
-                <Row marginTop>
-                  <Row width={15}>
+                <MenuSection>
+
+                  <Row>
                     <InputGroup>
                       <span>Make</span>
                       <StyledSearchableSelect
@@ -601,12 +649,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => this.onMakeChange(value)}
                           onClear={() => this.onMakeChange('')}
                           options={this.getAsMap(MAKES)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Model</span>
                       <StyledSearchableSelect
@@ -615,12 +663,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' })}
                           options={this.getAsMap(MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)] || [])}
                           disabled={!MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)]}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Color</span>
                       <StyledSearchableSelect
@@ -628,12 +676,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value })}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value: '' })}
                           options={this.getAsMap(COLORS)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Accessories</span>
                       <StyledSearchableSelect
@@ -644,12 +692,12 @@ class SearchParameters extends React.Component<Props, State> {
                           }}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: '' })}
                           options={this.getAsMap(ACCESSORIES)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Style</span>
                       <StyledSearchableSelect
@@ -657,12 +705,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value })}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value: '' })}
                           options={this.getAsMap(STYLES)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Label</span>
                       <StyledSearchableSelect
@@ -672,15 +720,14 @@ class SearchParameters extends React.Component<Props, State> {
                           options={this.getAsMap(LABELS)}
                           selectOnly
                           openAbove
-                          transparent
                           short />
                     </InputGroup>
                   </Row>
-                </Row>
-                <Row marginTop>
-                  <Row width={10} />
-                  {this.renderSearchButton()}
-                </Row>
+
+                  <Row marginTop>
+                    {this.renderSearchButton()}
+                  </Row>
+                </MenuSection>
               </>
             ) : null
           }
