@@ -25,6 +25,7 @@ import {
 import type { RequestSequence } from 'redux-reqseq';
 
 import InfoButton from '../../components/buttons/InfoButton';
+import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getDisplayNameForId } from '../../utils/DataUtils';
@@ -61,6 +62,7 @@ type Props = {
   geocodedAddresses :List<*>;
   isLoadingAddresses :boolean;
   noAddressResults :boolean;
+  isDrawMode :boolean;
   agencyOptions :Map<*>;
   deviceOptions :Map<*>;
   isLoadingResults :boolean;
@@ -451,12 +453,22 @@ class SearchParameters extends React.Component<Props, State> {
     });
   }
 
+  exitDrawMode = () => {
+    const { actions } = this.props;
+    actions.setDrawMode(false);
+    actions.updateSearchParameters({
+      field: PARAMETERS.SEARCH_ZONES,
+      value: List()
+    });
+  }
+
   renderFullSearchParameters() {
     const { isExpanded } = this.state;
     const {
       actions,
       searchParameters,
       isLoadingAddresses,
+      isDrawMode,
       noAddressResults,
       agencyOptions,
       deviceOptions
@@ -530,39 +542,55 @@ class SearchParameters extends React.Component<Props, State> {
           <MenuSection>
 
             <Row>
-              <InputGroup>
-                <span>Street Address</span>
-                <StyledSearchableSelect
-                    value={searchParameters.get(PARAMETERS.ADDRESS)}
-                    searchPlaceholder="Enter address"
-                    onInputChange={this.handleAddressChange}
-                    onSelect={actions.selectAddress}
-                    options={this.getAddressesAsMap()}
-                    isLoadingResults={isLoadingAddresses}
-                    noResults={noAddressResults}
-                    inexactMatchesAllowed
-                    short />
-              </InputGroup>
+              <ButtonToolbar
+                  value={isDrawMode}
+                  options={[
+                    {
+                      value: false,
+                      label: 'Address',
+                      onClick: this.exitDrawMode
+                    },
+                    {
+                      value: true,
+                      label: 'Draw',
+                      onClick: this.resetAndGoToDrawMode
+                    }
+                  ]} />
             </Row>
 
-            <Row>
-              <InputGroup>
-                <span>Search Radius</span>
-                <StyledInputWrapper>
-                  {this.renderInput(PARAMETERS.RADIUS)}
-                  <span>miles</span>
-                </StyledInputWrapper>
-              </InputGroup>
-            </Row>
+            {
+              isDrawMode ? null : (
+                <>
 
-            <Row>
-              <span />
-              <ButtonWrapper onClick={this.resetAndGoToDrawMode}>
-                <FontAwesomeIcon icon={faPencil} />
-                <span>Draw on map</span>
-              </ButtonWrapper>
-            </Row>
+                  <Row>
+                    <InputGroup>
+                      <span>Street Address</span>
+                      <StyledSearchableSelect
+                          value={searchParameters.get(PARAMETERS.ADDRESS)}
+                          searchPlaceholder="Enter address"
+                          onInputChange={this.handleAddressChange}
+                          onSelect={actions.selectAddress}
+                          options={this.getAddressesAsMap()}
+                          isLoadingResults={isLoadingAddresses}
+                          noResults={noAddressResults}
+                          inexactMatchesAllowed
+                          short />
+                    </InputGroup>
+                  </Row>
 
+                  <Row>
+                    <InputGroup>
+                      <span>Search Radius</span>
+                      <StyledInputWrapper>
+                        {this.renderInput(PARAMETERS.RADIUS)}
+                        <span>miles</span>
+                      </StyledInputWrapper>
+                    </InputGroup>
+                  </Row>
+
+                </>
+              )
+            }
           </MenuSection>
 
           <MenuSection>
@@ -854,7 +882,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     geocodedAddresses,
     isLoadingAddresses: params.get(SEARCH_PARAMETERS.IS_LOADING_ADDRESSES),
     noAddressResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_ADDRESSES) && !geocodedAddresses.size,
-    isTopNav: params.get(SEARCH_PARAMETERS.DRAW_MODE) || !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
+    isDrawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
+    isTopNav: !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     agencyOptions: params.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: params.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
 
