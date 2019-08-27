@@ -14,9 +14,8 @@ import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 
-import AppNavigationContainer from './AppNavigationContainer';
-import OpenLatticeLogo from '../../assets/images/logo_v2.png';
 import AstrometricsIcon from '../../components/icons/AstrometricsIcon';
+import UsernameAndIcon from '../../components/icons/UsernameAndIcon';
 import * as Routes from '../../core/router/Routes';
 import { STATE, APP } from '../../utils/constants/StateConstants';
 import {
@@ -28,7 +27,6 @@ import { switchOrganization } from './AppActions';
 import { orgSelectStyles } from '../../core/style/OrgSelectStyles';
 
 const { logout } = AuthActions;
-const { NEUTRALS } = Colors;
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
 const APP_HEADER_BORDER :string = '#36353B';
@@ -89,26 +87,42 @@ const LogoTitleWrapperLink = styled(Link)`
   }
 `;
 
-const AppLogoIcon = styled.img.attrs({
-  alt: 'OpenLattice Logo Icon',
-  src: OpenLatticeLogo,
-})`
-  height: 26px;
-`;
-
 const AppTitle = styled.h1`
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
-  line-height: normal;
-  margin: 0 0 0 10px;
+  line-height: 17px;
+  margin: 0 0 0 23px;
+`;
+
+const AppSubtitle = styled(AppTitle)`
+  font-weight: normal;
+  margin: 0 0 0 12px;
 `;
 
 const LogoutButton = styled(Button)`
   font-size: 12px;
   line-height: 16px;
   margin-left: 30px;
-  padding: 6px 29px;
+  padding: 7px 29px;
+  background: #36353B;
+  border-radius: 3px;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 150%;
+  border: none;
+
+  text-align: center;
+
+  color: #FFFFFF;
+
+  &:hover {
+    background: #4F4E54;
+  }
+
+  &:active {
+    background: #4F4E54;
+  }
 `;
 
 const SupportLink = styled.a.attrs({
@@ -117,32 +131,12 @@ const SupportLink = styled.a.attrs({
   text-decoration: none;
   border: none;
   border-radius: 3px;
-  background-color: #f0f0f7;
-  color: #8e929b;
+  color: #ffffff;
   font-family: 'Open Sans', sans-serif;
-  padding: 12px 35px;
+  font-weight: 500;
   font-size: 12px;
-  line-height: 16px;
+  line-height: 150%;
   margin-left: 30px;
-  padding: 6px 29px;
-
-  &:hover:enabled {
-    background-color: #dcdce7;
-    cursor: pointer;
-  }
-
-  &:active {
-    background-color: #b6bbc7;
-    color: #ffffff;
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-  &:disabled {
-    color: #b6bbc7;
-  }
 `;
 
 type Props = {
@@ -190,8 +184,10 @@ class AppHeaderContainer extends Component<Props> {
         <AppTitle>
           Astrometrics
         </AppTitle>
+        <AppSubtitle>
+          ALPR Vehicle Search
+        </AppSubtitle>
       </LogoTitleWrapperLink>
-      <AppNavigationContainer />
     </LeftSideContentWrapper>
   )
 
@@ -200,10 +196,10 @@ class AppHeaderContainer extends Component<Props> {
     const { actions } = this.props;
     return (
       <RightSideContentWrapper>
-        <DisplayName>{this.getDisplayName()}</DisplayName>
+        <UsernameAndIcon username={this.getDisplayName()} />
         <div>{ this.renderOrgSelector() }</div>
         <SupportLink>
-          Contact Support
+          Support
         </SupportLink>
         <LogoutButton onClick={actions.logout}>
           Log Out
