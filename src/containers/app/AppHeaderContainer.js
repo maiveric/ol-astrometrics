@@ -19,7 +19,6 @@ import UsernameAndIcon from '../../components/icons/UsernameAndIcon';
 import * as Routes from '../../core/router/Routes';
 import { STATE, APP } from '../../utils/constants/StateConstants';
 import {
-  APP_CONTAINER_MAX_WIDTH,
   APP_CONTAINER_WIDTH,
   APP_CONTENT_PADDING,
 } from '../../core/style/Sizes';
@@ -44,7 +43,6 @@ const AppHeaderInnerWrapper = styled.div`
   display: flex;
   flex: 1 0 auto;
   justify-content: space-between;
-  max-width: ${APP_CONTAINER_MAX_WIDTH}px;
   min-width: ${APP_CONTAINER_WIDTH}px;
   padding: 0 ${APP_CONTENT_PADDING}px;
 `;
