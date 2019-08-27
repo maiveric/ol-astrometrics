@@ -336,6 +336,12 @@ class SearchableSelect extends React.Component<Props, State> {
     return null;
   }
 
+  clearOnDelete = ({ keyCode }) => {
+    if (keyCode === 8) { // backspace
+      this.handleOnSelect('');
+    }
+  }
+
   render() {
     const {
       className,
@@ -355,6 +361,7 @@ class SearchableSelect extends React.Component<Props, State> {
           {
             selectOnly ? (
               <SearchButton
+                  onKeyUp={this.clearOnDelete}
                   innerRef={(ref) => {
                     this.buttonRef = ref;
                   }}
