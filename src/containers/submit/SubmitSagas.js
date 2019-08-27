@@ -17,6 +17,7 @@ import { AuthUtils } from 'lattice-auth';
 import { stripIdField, getFqnObj, getSearchTerm } from '../../utils/DataUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { ID_FIELDS } from '../../utils/constants/DataConstants';
+import { APP } from '../../utils/constants/StateConstants';
 import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
 import {
   REPLACE_ENTITY,

@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 
 import AppNavigationContainer from './AppNavigationContainer';
 import OpenLatticeLogo from '../../assets/images/logo_v2.png';
+import AstrometricsIcon from '../../components/icons/AstrometricsIcon';
 import * as Routes from '../../core/router/Routes';
 import { STATE, APP } from '../../utils/constants/StateConstants';
 import {
@@ -30,13 +31,14 @@ const { logout } = AuthActions;
 const { NEUTRALS } = Colors;
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
-const APP_HEADER_BORDER :string = '#e6e6eb';
+const APP_HEADER_BORDER :string = '#36353B';
 
 const AppHeaderOuterWrapper = styled.header`
   border-bottom: 1px solid ${APP_HEADER_BORDER};
   display: flex;
   flex: 0 0 auto;
   justify-content: center;
+  background-color: #121117;
 `;
 
 const AppHeaderInnerWrapper = styled.div`
@@ -95,7 +97,7 @@ const AppLogoIcon = styled.img.attrs({
 `;
 
 const AppTitle = styled.h1`
-  color: ${NEUTRALS[0]};
+  color: #ffffff;
   font-size: 14px;
   font-weight: 600;
   line-height: normal;
@@ -184,7 +186,7 @@ class AppHeaderContainer extends Component<Props> {
   renderLeftSideContent = () => (
     <LeftSideContentWrapper>
       <LogoTitleWrapperLink to={Routes.ROOT}>
-        <AppLogoIcon />
+        <AstrometricsIcon />
         <AppTitle>
           Astrometrics
         </AppTitle>
