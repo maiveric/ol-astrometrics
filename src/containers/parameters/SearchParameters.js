@@ -27,6 +27,7 @@ import type { RequestSequence } from 'redux-reqseq';
 import InfoButton from '../../components/buttons/InfoButton';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
+import Slider from '../../components/controls/Slider';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getDisplayNameForId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
@@ -133,26 +134,6 @@ const StyledInputWrapper = styled.div`
   width: 100%;
   height: 39px;
   position: relative;
-
-  input {
-    position: absolute;
-    padding-right: 32%;
-  }
-
-  span {
-    height: 100%;
-    width: 30%;
-    margin: 0;
-    right: 0;
-    background-color: #555e6f;
-    z-index: 2;
-    position: absolute;
-    border-radius: 0 3px 3px 0;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
 `;
 
 const StyledInput = styled.input.attrs({
@@ -596,8 +577,17 @@ class SearchParameters extends React.Component<Props, State> {
                         <HelperText offset>Maximum 50 miles</HelperText>
                       </InlineGroup>
                       <StyledInputWrapper>
-                        {this.renderInput(PARAMETERS.RADIUS)}
-                        <span>miles</span>
+                        <Slider
+                            min={0}
+                            max={50}
+                            value={20}
+                            unitLabel="mi"
+                            onChange={(value) => {
+                              actions.updateSearchParameters({
+                                field: PARAMETERS.RADIUS,
+                                value
+                              })
+                            }} />
                       </StyledInputWrapper>
                     </InputGroup>
                   </Row>
