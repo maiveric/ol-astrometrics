@@ -13,8 +13,8 @@ const orgSelectStyles = {
   control: (base, state) => {
 
     const { isFocused, isDisabled, selectProps } = state;
-    let backgroundColor = isFocused ? 'white' : '#f9f9fd';
-    let border = isFocused ? 'solid 1px #6124e2' : 'solid 1px #dcdce7';
+    let backgroundColor = isFocused ? '#4F4E54' : '#36353B';
+    let border = isFocused ? '1px solid #98979D' : 'none';
 
     if (selectProps && selectProps.noBorder) {
       backgroundColor = 'transparent';
@@ -42,19 +42,27 @@ const orgSelectStyles = {
   menu: (base, state) => {
     const { selectProps } = state;
     const display = (selectProps && selectProps.hideMenu) ? 'none' : 'block';
-    return { ...base, display, zIndex: 500 };
+    return {
+      ...base,
+      display,
+      zIndex: 500,
+      backgroundColor: '#36353B',
+      boxShadow: '0px 5px 20px rgba(0, 0, 0, 0.1)'
+    };
   },
   option: (base, state) => {
 
     const { isFocused, isSelected } = state;
-    const color = isSelected ? '#6124e2' : '#555e6f';
-    let backgroundColor = 'white';
+    let color = isSelected ? '#FFFFFF' : '#CAC9CE';
+    let backgroundColor = '#36353B';
 
     if (isSelected) {
-      backgroundColor = '#e6e6f7';
+      color = '#FFFFF';
+      backgroundColor = '#4F4E54';
     }
     else if (isFocused) {
-      backgroundColor = '#f0f0f7';
+      color = '#FFFFF';
+      backgroundColor = '#4F4E54';
     }
 
     return {
@@ -63,21 +71,21 @@ const orgSelectStyles = {
       backgroundColor,
       fontSize: '12px',
       ':active': {
-        backgroundColor: '#e4d8ff'
+        backgroundColor: '#36353B'
       }
     };
   },
   singleValue: (base, state) => {
     const { isDisabled } = state;
-    return { ...base, color: isDisabled ? '#8e929b' : '#2e2e34' };
+    return { ...base, color: isDisabled ? '#807F85' : '#FFFFFF' };
   },
   indicatorSeparator: () => ({ display: 'none' }),
-  indicatorsContainer: base => ({ ...base, marginRight: '5px', color: '#b6bbc7' }),
+  indicatorsContainer: base => ({ ...base, marginRight: '5px', color: '#CAC9CE' }),
   clearIndicator: base => ({ ...base, padding: '0', margin: '5px' }),
   dropdownIndicator: (base, state) => {
     const { selectProps } = state;
     const style = {
-      color: '#b6bbc7',
+      color: '#CAC9CE',
       padding: '0',
       margin: '4px',
       display: selectProps && selectProps.hideMenu ? 'none' : 'flex'

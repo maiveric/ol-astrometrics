@@ -137,6 +137,10 @@ const SupportLink = styled.a.attrs({
   margin-left: 30px;
 `;
 
+const OrgSelect = styled.div`
+  margin-right: 24px;
+`;
+
 type Props = {
   actions :{
     logout :() => void;
@@ -194,8 +198,8 @@ class AppHeaderContainer extends Component<Props> {
     const { actions } = this.props;
     return (
       <RightSideContentWrapper>
+        <OrgSelect>{ this.renderOrgSelector() }</OrgSelect>
         <UsernameAndIcon username={this.getDisplayName()} />
-        <div>{ this.renderOrgSelector() }</div>
         <SupportLink>
           Support
         </SupportLink>
