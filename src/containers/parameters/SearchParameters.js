@@ -11,17 +11,9 @@ import { bindActionCreators } from 'redux';
 import { List, Map, OrderedMap } from 'immutable';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faChevronLeft,
-  faMinus,
-  faPlus,
-  faPrint
-} from '@fortawesome/pro-regular-svg-icons';
-
-import {
-  faBell,
-  faPencil
-} from '@fortawesome/pro-solid-svg-icons';
+import { faChevronDown, faChevronUp } from '@fortawesome/pro-light-svg-icons';
+import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
+import { faBell } from '@fortawesome/pro-solid-svg-icons';
 import type { RequestSequence } from 'redux-reqseq';
 
 import InfoButton from '../../components/buttons/InfoButton';
@@ -294,21 +286,20 @@ const TopNavLargeButton = styled.button`
 const ButtonWrapper = styled.button`
   background: transparent;
   border: none;
-  width: ${props => (props.fitContent ? 'fit-content' : '100%')};
+  width: 100%;
   margin-top: 20px;
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  color: #649df7;
+  color: #ffffff;
 
   span {
-    margin-left: 10px;
+    margin-right: 10px;
   }
 
   &:hover:not(:disabled) {
     cursor: pointer;
-    color: #7cacf8;
   }
 
   &:focus {
@@ -660,8 +651,8 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
-                <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
                 <span>Additional details</span>
+                <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
               </ButtonWrapper>
             </Row>
 
