@@ -304,7 +304,7 @@ class SimpleMap extends React.Component<Props, State> {
           ref={(drawControl) => {
             this.drawControl = drawControl;
           }}
-          position="bottom-left"
+          position="bottom-right"
           displayControlsDefault={false}
           controls={{
             polygon: true,
