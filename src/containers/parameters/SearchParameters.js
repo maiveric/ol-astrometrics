@@ -107,6 +107,19 @@ const InnerWrapper = styled.div`
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #CAC9CE;
+    border-radius: 10px;
+  }
 `;
 
 type State = {

@@ -18,7 +18,7 @@ const StyledButton = styled.button`
   border-bottom: 1px solid #CAC9CE;
   border-right: 1px solid #CAC9CE;
   text-decoration: none;
-  padding: 10px 50px;
+  padding: 6px 50px;
   min-width: 130px;
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
