@@ -94,7 +94,6 @@ const SearchParameterWrapper = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  overflow-y: scroll;
 `;
 
 const MenuSection = styled.div`
@@ -108,8 +107,11 @@ const MenuSection = styled.div`
 `;
 
 const InnerWrapper = styled.div`
+  position: absolute;
+  top: 0;
   width: 368px;
-  height: 100%;
+  height: calc(100% - 150px);
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
 `;
@@ -358,6 +360,15 @@ const Accent = styled.span`
   color: #e53b36 !important;
 `;
 
+const SearchButtonWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  bottom: 40px;
+  left: 0;
+  width: 368px;
+`;
+
 class SearchParameters extends React.Component<Props, State> {
 
   addressSearchTimeout :any;
@@ -483,7 +494,7 @@ class SearchParameters extends React.Component<Props, State> {
             <Row>
               <InputGroup>
                 <span>
-                  Case Number
+                  Case number
                   <Accent>*</Accent>
                 </span>
                 {this.renderInput(PARAMETERS.CASE_NUMBER)}
@@ -493,7 +504,7 @@ class SearchParameters extends React.Component<Props, State> {
             <Row>
               <InputGroup>
                 <span>
-                  Search Reason
+                  Search reason
                   <Accent>*</Accent>
                 </span>
                 <StyledSearchableSelect
@@ -521,7 +532,7 @@ class SearchParameters extends React.Component<Props, State> {
             <Row>
               <InputGroup>
                 <InlineGroup>
-                  <span>Full or Partial Plate </span>
+                  <span>Full or partial plate </span>
                   <HelperText offset> Minimum 3 characters</HelperText>
                 </InlineGroup>
                 <StyledSearchableSelect
@@ -564,7 +575,7 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Street Address</span>
+                      <span>Street address</span>
                       <StyledSearchableSelect
                           value={searchParameters.get(PARAMETERS.ADDRESS)}
                           searchPlaceholder="Enter address"
@@ -580,7 +591,10 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Search Radius</span>
+                      <InlineGroup>
+                        <span>Search radius</span>
+                        <HelperText offset>Maximum 50 miles</HelperText>
+                      </InlineGroup>
                       <StyledInputWrapper>
                         {this.renderInput(PARAMETERS.RADIUS)}
                         <span>miles</span>
@@ -597,7 +611,7 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InputGroup>
-                <span>Time start</span>
+                <span>Search start</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       hideIcon
@@ -613,7 +627,7 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InputGroup>
-                <span>Time end</span>
+                <span>Search end</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       hideIcon
@@ -657,9 +671,8 @@ class SearchParameters extends React.Component<Props, State> {
             <Row>
               <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
                 <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
-                <span>Additional Details</span>
+                <span>Additional details</span>
               </ButtonWrapper>
-              { isExpanded ? null : <Row>{this.renderSearchButton()}</Row> }
             </Row>
 
           </MenuSection>
@@ -751,14 +764,15 @@ class SearchParameters extends React.Component<Props, State> {
                           short />
                     </InputGroup>
                   </Row>
-
-                  <Row marginTop>
-                    {this.renderSearchButton()}
-                  </Row>
                 </MenuSection>
+
+
               </>
             ) : null
           }
+
+          {this.renderSearchButton()}
+
         </InnerWrapper>
       </SearchParameterWrapper>
     );
@@ -784,7 +798,11 @@ class SearchParameters extends React.Component<Props, State> {
     const { searchParameters } = this.props;
     const isReadyToSubmit = getSearchFields(searchParameters).length > 0;
 
-    return <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>;
+    return (
+      <SearchButtonWrapper>
+        <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
+      </SearchButtonWrapper>
+    );
   }
 
   renderTopNav = () => {

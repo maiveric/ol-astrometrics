@@ -1,9 +1,8 @@
-import React from 'react';
 import styled from 'styled-components';
 
 const InfoButton = styled.button`
   border-radius: 3px;
-  background-color: #6124e2;
+  background-color: #674FEF;
   color: #ffffff;
   border: none;
   font-family: 'Open Sans', sans-serif;
@@ -12,17 +11,17 @@ const InfoButton = styled.button`
   width: ${props => (props.fullSize ? '100%' : 'fit-content')};
 
   &:hover {
-    background-color: #8045ff;
+    background-color: #8471F1;
     cursor: pointer;
   }
 
   &:active {
-    background-color: #361876;
+    background-color: #8471F1;
   }
 
   &:disabled {
-    background-color: #f0f0f7;
-    color: #b6bbc7;
+    background-color: #48416E;
+    color: #5F5887;
     border: none;
 
     &:hover {
