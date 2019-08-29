@@ -87,7 +87,10 @@ export const PARAMETERS = {
   COLOR: 'color',
   ACCESSORIES: 'accessories',
   STYLE: 'style',
-  LABEL: 'label'
+  LABEL: 'label',
+
+  // placeholder item to indicate search criteria is not met
+  NOT_READY: 'notReady'
 };
 
 export const SUBMIT = {

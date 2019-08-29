@@ -789,7 +789,7 @@ class SearchParameters extends React.Component<Props, State> {
 
   renderSearchButton = () => {
     const { searchParameters } = this.props;
-    const isReadyToSubmit = getSearchFields(searchParameters).length > 0;
+    const isReadyToSubmit = !getSearchFields(searchParameters).includes(PARAMETERS.NOT_READY);
 
     return (
       <SearchButtonWrapper>

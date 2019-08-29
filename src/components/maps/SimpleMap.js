@@ -13,6 +13,7 @@ import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { DRAW_INSTRUCTIONS, HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
@@ -42,10 +43,13 @@ type State = {
 };
 
 const Wrapper = styled.div`
+  position: absolute;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: calc(100% - ${SIDEBAR_WIDTH}px);
   height: 100%;
+  bottom: 0;
+  right: 0;
 `;
 
 const DrawModeInstructionBox = styled.div`
