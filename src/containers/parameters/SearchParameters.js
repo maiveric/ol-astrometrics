@@ -104,7 +104,7 @@ const InnerWrapper = styled.div`
   position: absolute;
   top: 0;
   width: ${SIDEBAR_WIDTH}px;
-  height: calc(100% - 150px);
+  height: calc(100% - 120px);
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
@@ -350,7 +350,7 @@ const SearchButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
   position: fixed;
-  bottom: 40px;
+  bottom: 16px;
   left: 0;
   width: ${SIDEBAR_WIDTH}px;
 `;
