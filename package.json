@@ -23,7 +23,7 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "@atlaskit/datetime-picker": "7.0.2",
+    "@atlaskit/datetime-picker": "8.0.16",
     "@atlaskit/modal-dialog": "8.0.4",
     "@babel/polyfill": "~7.4.0",
     "@babel/runtime": "~7.4.0",
@@ -57,7 +57,7 @@
     "react-redux": "~6.0.0",
     "react-router": "~5.0.0",
     "react-router-dom": "~5.0.0",
-    "react-select": "^2.0.0",
+    "react-select": "^3.0.4",
     "redux": "~4.0.0",
     "redux-immutable": "4.0.0",
     "redux-reqseq": "0.5.0",

@@ -9,7 +9,6 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { List, Map, OrderedMap } from 'immutable';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-light-svg-icons';
 import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
@@ -20,6 +19,7 @@ import InfoButton from '../../components/buttons/InfoButton';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Slider from '../../components/controls/Slider';
+import DateTimePicker from '../../components/controls/DateTimePicker';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getDisplayNameForId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
@@ -338,7 +338,7 @@ const HelperText = styled.span`
   line-height: 150%;
   color: #807F85 !important;
 
-  padding-left: ${props => (props.offset ? 8 : 0)}px;
+  padding-left: ${props => (props.offsetLeft ? 8 : 0)}px;
 `;
 
 const Accent = styled.span`
@@ -518,7 +518,7 @@ class SearchParameters extends React.Component<Props, State> {
               <InputGroup>
                 <InlineGroup>
                   <span>Full or partial plate </span>
-                  <HelperText offset> Minimum 3 characters</HelperText>
+                  <HelperText offsetLeft> Minimum 3 characters</HelperText>
                 </InlineGroup>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.PLATE)}
@@ -578,7 +578,7 @@ class SearchParameters extends React.Component<Props, State> {
                     <InputGroup>
                       <InlineGroup>
                         <span>Search radius</span>
-                        <HelperText offset>Maximum 50 miles</HelperText>
+                        <HelperText offsetLeft>Maximum 50 miles</HelperText>
                       </InlineGroup>
                       <StyledInputWrapper>
                         <Slider
@@ -611,7 +611,6 @@ class SearchParameters extends React.Component<Props, State> {
                       hideIcon
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.START)}
                       value={searchParameters.get(PARAMETERS.START)}
-                      dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
                         placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
                       }} />
@@ -627,7 +626,6 @@ class SearchParameters extends React.Component<Props, State> {
                       hideIcon
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.END)}
                       value={searchParameters.get(PARAMETERS.END)}
-                      dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
                         placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
                       }} />
