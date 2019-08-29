@@ -5,6 +5,7 @@ import reactMapboxGl, {
   Feature,
   GeoJSONLayer,
   Layer,
+  Marker
 } from 'react-mapbox-gl';
 import { List, Map, Set } from 'immutable';
 
@@ -50,6 +51,26 @@ const Wrapper = styled.div`
   height: 100%;
   bottom: 0;
   right: 0;
+`;
+
+const Pin = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  div:first-child {
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background-color: white;
+    margin-bottom: -5px;
+  }
+
+  div:last-child {
+    width: 2px;
+    background-color: white;
+    height: 16px;
+  }
 `;
 
 const DrawModeInstructionBox = styled.div`
@@ -223,6 +244,26 @@ class SimpleMap extends React.Component<Props, State> {
   metersToPixelsAtMaxZoom = (meters, latitude) => meters / 0.075 / Math.cos(latitude * Math.PI / 180);
 
   milesToPixelsAtMaxZoom = (miles, latitude) => this.metersToPixelsAtMaxZoom(miles * 1609.34, latitude);
+
+  renderLatLong = () => {
+    const { searchParameters } = this.props;
+
+    const latitude = searchParameters.get(PARAMETERS.LATITUDE);
+    const longitude = searchParameters.get(PARAMETERS.LONGITUDE);
+
+    if (!latitude || !longitude) {
+      return null;
+    }
+
+    return (
+      <Marker coordinates={[longitude, latitude]} anchor="bottom">
+        <Pin>
+          <div />
+          <div />
+        </Pin>
+      </Marker>
+    );
+  }
 
   renderSearchAreaLayer = () => {
     const { searchParameters } = this.props;
@@ -498,6 +539,22 @@ class SimpleMap extends React.Component<Props, State> {
     }
   }
 
+  renderAddressAndRadiusSearchParams = (searchFields) => {
+    const { drawMode, searchParameters } = this.props;
+
+    const shouldRender = searchFields.includes(SEARCH_TYPES.GEO_RADIUS) && !drawMode;
+
+    const radiusArea = this.renderSearchAreaLayer();
+    const addressPin = this.renderLatLong();
+
+    return shouldRender ? (
+      <>
+        {radiusArea}
+        {addressPin}
+      </>
+    ) : null;
+  }
+
   render() {
     const { drawMode, searchParameters } = this.props;
     const { fitToBounds } = this.state;
@@ -545,7 +602,7 @@ class SimpleMap extends React.Component<Props, State> {
           {this.renderSelectedFeaturesInnerCircles()}
 
           {this.renderSearchZones()}
-          {searchFields.includes(SEARCH_TYPES.GEO_RADIUS) && !drawMode ? this.renderSearchAreaLayer() : null}
+          {this.renderAddressAndRadiusSearchParams(searchFields)}
         </MapComponent>
       </Wrapper>
     );
