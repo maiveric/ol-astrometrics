@@ -131,7 +131,7 @@ const NoContentWrapper = styled.div`
   font-size: 14px;
   font-weight: 600;
   font-style: italic;
-  color: #2e2e34;
+  color: #CAC9CE;
 `;
 
 const SearchOption = styled.div`
@@ -314,7 +314,7 @@ class SearchableSelect extends React.Component<Props, State> {
       return (
         <DataTableWrapper isVisible openAbove={openAbove}>
           <NoContentWrapper searching>
-            <Spinner />
+            <Spinner light />
           </NoContentWrapper>
         </DataTableWrapper>
       );

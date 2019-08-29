@@ -13,9 +13,9 @@ const spin = keyframes`
 const Spinner = styled.div`
   &::before {
     animation: ${spin} 0.75s linear infinite;
-    border: 1px solid #c5d5e5;
+    border: 1px solid ${props => (props.light ? '#4F4E54' : '#c5d5e5')};
     border-radius: 50%;
-    border-top-color: #135;
+    border-top-color: ${props => (props.light ? '#CAC9CE' : '#135')};
     box-sizing: border-box;
     content: '';
     top: 50%;

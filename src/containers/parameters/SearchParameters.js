@@ -42,6 +42,7 @@ import {
   REPORT,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import * as AlertActionFactory from '../alerts/AlertActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
@@ -78,7 +79,7 @@ type Props = {
 };
 
 const SearchParameterWrapper = styled.div`
-  width: 368px;
+  width: ${SIDEBAR_WIDTH}px;
   height: 100%;
   position: fixed;
   z-index: 2;
@@ -102,7 +103,7 @@ const MenuSection = styled.div`
 const InnerWrapper = styled.div`
   position: absolute;
   top: 0;
-  width: 368px;
+  width: ${SIDEBAR_WIDTH}px;
   height: calc(100% - 150px);
   overflow-y: scroll;
   display: flex;
@@ -351,7 +352,7 @@ const SearchButtonWrapper = styled.div`
   position: fixed;
   bottom: 40px;
   left: 0;
-  width: 368px;
+  width: ${SIDEBAR_WIDTH}px;
 `;
 
 class SearchParameters extends React.Component<Props, State> {
