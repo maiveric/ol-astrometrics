@@ -238,6 +238,8 @@ class SimpleMap extends React.Component<Props, State> {
             paint={{
               'circle-opacity': 0.3,
               'circle-color': SEARCH_ZONE_COLORS[0],
+              'circle-stroke-color': SEARCH_ZONE_COLORS[0],
+              'circle-stroke-width': 1,
               'circle-radius': {
                 stops: [
                   [0, 0],

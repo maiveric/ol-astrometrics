@@ -1,5 +1,7 @@
 export const SEARCH_ZONE_COLORS = [
-  '#f4d681', // yellow
-  '#da3bca', // pink
-  '#5d9df8' // blue
+  '#E1DCFC', // purple
+  '#FAD5D1', // orange
+  '#AADFC9', // green
+  '#F4E6C9', // yellow
+  '#ADD9F1' // blue
 ];
