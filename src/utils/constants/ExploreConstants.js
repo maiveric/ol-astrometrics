@@ -21,3 +21,5 @@ export const SEARCH_TYPES = {
 };
 
 export const PAGE_SIZE = 20;
+
+export const NEW_MAP = 'New map';
