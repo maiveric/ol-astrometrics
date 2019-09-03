@@ -11,7 +11,7 @@ import { List, Map, Set } from 'immutable';
 
 import mapMarker from '../../assets/images/map-marker.png';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
-import { DRAW_INSTRUCTIONS, HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
+import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
 import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
@@ -70,80 +70,6 @@ const Pin = styled.div`
     width: 2px;
     background-color: white;
     height: 16px;
-  }
-`;
-
-const DrawModeInstructionBox = styled.div`
-  position: absolute;
-  z-index: 1;
-  top: 150px;
-  right: 50px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 3px;
-  padding: 20px;
-  display: flex;
-  flex-direction: row;
-  width: 650px;
-
-  section {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: space-between;
-
-    &:first-child {
-      width: 100%;
-      font-size: 15px;
-
-      span {
-        font-style: italic;
-        font-weight: 600;
-        margin-bottom: 15px;
-      }
-    }
-
-    &:last-child {
-      width: 220px;
-      margin-left: 20px;
-
-      button {
-        height: 48%;
-        width: 100%;
-        border: none;
-        border-radius: 3px;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 15px;
-
-        &:first-child {
-          background-color: #6124e2;
-
-          &:hover {
-            background-color: #8045ff;
-          }
-
-          &:active {
-            background-color: #361876;
-          }
-        }
-
-        &:last-child {
-          background-color: transparent;
-
-          &:hover {
-            color: #dcdce7;
-          }
-        }
-
-        &:hover {
-          cursor: pointer;
-        }
-
-        &:focus {
-          outline: none;
-        }
-      }
-    }
   }
 `;
 
@@ -310,12 +236,16 @@ class SimpleMap extends React.Component<Props, State> {
     const { searchParameters } = this.props;
 
     return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
+      const color = SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length];
+
       return (
         <GeoJSONLayer
             key={`polygon-${index}`}
             fillPaint={{
               'fill-opacity': 0.3,
-              'fill-color': SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length]
+              'fill-color': color,
+              'fill-stroke-color': color,
+              'fill-stroke-width': 1,
             }}
             data={{
               type: 'Feature',
@@ -326,23 +256,6 @@ class SimpleMap extends React.Component<Props, State> {
             }} />
       );
     });
-  }
-
-  renderDrawModeInstructions = () => {
-    const { setDrawMode } = this.props;
-
-    return (
-      <DrawModeInstructionBox>
-        <section>
-          <span>Drawing mode</span>
-          <div>{DRAW_INSTRUCTIONS}</div>
-        </section>
-        <section>
-          <button onClick={this.saveSearchZones}>Save search zones</button>
-          <button onClick={() => setDrawMode(false)}>Cancel</button>
-        </section>
-      </DrawModeInstructionBox>
-    );
   }
 
   renderDrawControl = () => {
@@ -588,7 +501,6 @@ class SimpleMap extends React.Component<Props, State> {
             {...optionalProps}>
 
           {this.addSource()}
-          {drawMode ? this.renderDrawModeInstructions() : null}
           {drawMode ? this.renderDrawControl() : null}
           {this.renderClusters()}
           {this.renderClusteredCounts()}

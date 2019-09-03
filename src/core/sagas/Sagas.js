@@ -11,6 +11,7 @@ import * as EdmSagas from '../../containers/edm/EdmSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
 import * as ParametersSagas from '../../containers/parameters/ParametersSagas';
 import * as ReportSagas from '../../containers/report/ReportSagas';
+import * as RoutingSagas from '../router/RoutingSagas';
 import * as SubmitSagas from '../../containers/submit/SubmitSagas';
 
 export default function* sagas() :Generator<*, *, *> {
@@ -48,6 +49,10 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* ReportSagas */
     fork(ReportSagas.exportReportWatcher),
+
+    /* RoutingSagas */
+    fork(RoutingSagas.goToPathWatcher),
+    fork(RoutingSagas.goToRootWatcher),
 
     /* SubmitSagas */
     fork(SubmitSagas.replaceEntityWatcher),

@@ -556,7 +556,15 @@ class SearchParameters extends React.Component<Props, State> {
             </Row>
 
             {
-              isDrawMode ? null : (
+              isDrawMode ? (
+                <Row>
+                  <HelperText>
+                    {`Start defining multiple search zones by clicking Draw on the top right corner of the map.
+                      Click and release to place a corner of a polygon, and click a placed corner a second time
+                      to complete a polygon. Click then drag any corner to edit.`}
+                  </HelperText>
+                </Row>
+              ) : (
                 <>
 
                   <Row>

@@ -12,10 +12,12 @@ import { Redirect, Route, Switch } from 'react-router';
 import type { RequestSequence } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
+import EulaContainer from '../eula/EulaContainer';
 import ExploreContainer from '../explore/ExploreContainer';
 import Spinner from '../../components/spinner/Spinner';
 import * as Routes from '../../core/router/Routes';
 import { loadApp } from './AppActions';
+import { termsAreAccepted } from '../../utils/CookieUtils';
 import { APP_NAME } from '../../utils/constants/Constants';
 import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
 
@@ -70,6 +72,10 @@ class AppContainer extends Component<Props> {
       return (
         <Spinner />
       );
+    }
+
+    if (!termsAreAccepted()) {
+      return <EulaContainer />;
     }
 
     return (

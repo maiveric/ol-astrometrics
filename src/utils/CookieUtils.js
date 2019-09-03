@@ -5,8 +5,12 @@ import { AuthUtils } from 'lattice-auth';
 const { getAuthTokenExpiration } = AuthUtils;
 
 const LICENSE_PLATE_SEARCHES = 'licensePlateSearches';
+const TERMS_ACCEPTED_TOKEN = 'openlattice_astrometrics_eula_terms_accepted';
 
-const ALL_COOKIES = [LICENSE_PLATE_SEARCHES];
+const ALL_COOKIES = [
+  LICENSE_PLATE_SEARCHES,
+  TERMS_ACCEPTED_TOKEN
+];
 
 function getDomain() {
 
@@ -43,3 +47,11 @@ export const saveLicensePlateSearch = (plate) => {
   const plateList = getPreviousLicensePlateSearches().unshift(plate);
   updateCookie(LICENSE_PLATE_SEARCHES, JSON.stringify(plateList.toJS()));
 };
+
+export function termsAreAccepted() {
+  return cookies.get(TERMS_ACCEPTED_TOKEN);
+}
+
+export function acceptTerms() {
+  updateCookie(TERMS_ACCEPTED_TOKEN, true);
+}
