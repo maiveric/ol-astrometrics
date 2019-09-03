@@ -1,5 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { OrderedMap } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faTrash } from '@fortawesome/pro-light-svg-icons';
@@ -8,6 +10,7 @@ import SearchableSelect from '../../components/controls/SearchableSelect';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import InnerNavBar from '../../components/nav/InnerNavBar';
 import { NEW_MAP } from '../../utils/constants/ExploreConstants';
+import * as DrawActionFactory from './DrawActionFactory';
 
 const NavBar = styled(InnerNavBar)`
   justify-content: space-between;
@@ -34,13 +37,15 @@ const Icon = styled(FontAwesomeIcon)`
   margin-right: 10px;
 `;
 
-export default class SavedMapNavBar extends React.Component {
+class SavedMapNavBar extends React.Component {
 
   saveMap = () => {
     console.log('save');
   }
 
   discardMap = () => {
+    const { actions } = this.props;
+    actions.discardDrawZones();
     console.log('discard');
   }
 
@@ -85,3 +90,20 @@ export default class SavedMapNavBar extends React.Component {
     );
   }
 }
+
+function mapDispatchToProps(dispatch :Function) :Object {
+  const actions :{ [string] :Function } = {};
+
+  Object.keys(DrawActionFactory).forEach((action :string) => {
+    actions[action] = DrawActionFactory[action];
+  });
+
+  return {
+    actions: {
+      ...bindActionCreators(actions, dispatch)
+    }
+  };
+}
+
+
+export default connect(null, mapDispatchToProps)(SavedMapNavBar);

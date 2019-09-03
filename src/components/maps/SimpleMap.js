@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import DrawControl from 'react-mapbox-gl-draw';
 import reactMapboxGl, {
   Feature,
   GeoJSONLayer,
@@ -9,12 +8,13 @@ import reactMapboxGl, {
 } from 'react-mapbox-gl';
 import { List, Map, Set } from 'immutable';
 
+import DrawComponent from '../../containers/map/DrawComponent';
 import mapMarker from '../../assets/images/map-marker.png';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
-import { SIDEBAR_WIDTH, HEADER_HEIGHT, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
+import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
@@ -34,7 +34,6 @@ type Props = {
   searchParameters :Map<*, *>,
   selectedEntityKeyIds :Set<*>,
   selectedReadId :string,
-  setDrawMode :(drawMode :boolean) => void,
   setSearchZones :(searchZones :number[][]) => void,
   selectEntity :(entityKeyId :string) => void
 };
@@ -224,15 +223,6 @@ class SimpleMap extends React.Component<Props, State> {
     return null;
   }
 
-  saveSearchZones = () => {
-    const { setSearchZones } = this.props;
-    const searchZones = this.drawControl.draw.getAll();
-    if (searchZones && searchZones.features && searchZones.features.length) {
-      const coordinateSets = searchZones.features.map(feature => feature.geometry.coordinates[0]);
-      setSearchZones(coordinateSets);
-    }
-  }
-
   renderSearchZones = () => {
     const { searchParameters } = this.props;
 
@@ -257,21 +247,6 @@ class SimpleMap extends React.Component<Props, State> {
             }} />
       );
     });
-  }
-
-  renderDrawControl = () => {
-    return (
-      <DrawControl
-          ref={(drawControl) => {
-            this.drawControl = drawControl;
-          }}
-          position="top-right"
-          displayControlsDefault={false}
-          controls={{
-            polygon: true,
-            trash: true
-          }} />
-    );
   }
 
   mapEntityToFeature = (entity) => {
@@ -454,7 +429,7 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   renderAddressAndRadiusSearchParams = (searchFields) => {
-    const { drawMode, searchParameters } = this.props;
+    const { drawMode } = this.props;
 
     const shouldRender = searchFields.includes(SEARCH_TYPES.GEO_RADIUS) && !drawMode;
 
@@ -470,7 +445,7 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   render() {
-    const { drawMode, searchParameters } = this.props;
+    const { searchParameters } = this.props;
     const { fitToBounds } = this.state;
 
     const searchFields = getSearchFields(searchParameters);
@@ -502,7 +477,7 @@ class SimpleMap extends React.Component<Props, State> {
             {...optionalProps}>
 
           {this.addSource()}
-          {drawMode ? this.renderDrawControl() : null}
+          <DrawComponent />
           {this.renderClusters()}
           {this.renderClusteredCounts()}
           {this.renderUnclusteredPoints()}

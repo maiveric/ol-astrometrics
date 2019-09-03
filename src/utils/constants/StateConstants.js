@@ -1,6 +1,7 @@
 export const STATE = {
   APP: 'app',
   ALERTS: 'ALERTS',
+  DRAW: 'draw',
   EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
   EXPLORE: 'EXPLORE',
@@ -14,6 +15,11 @@ export const APP = {
   CONFIG_BY_ORG_ID: 'appConfigsByOrgId',
   SETTINGS_BY_ORG_ID: 'appSettingsByOrgId',
   ORGS_BY_ID: 'orgsById'
+};
+
+export const DRAW = {
+  DRAW_CONTROL: 'drawControl',
+  DRAW_ZONES: 'drawZones'
 };
 
 export const ALERTS = {

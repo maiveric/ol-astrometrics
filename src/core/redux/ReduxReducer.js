@@ -8,6 +8,7 @@ import { combineReducers } from 'redux-immutable';
 
 import appReducer from '../../containers/app/AppReducer';
 import AlertReducer from '../../containers/alerts/AlertReducer';
+import DrawReducer from '../../containers/map/DrawReducer';
 import EdmReducer from '../../containers/edm/EdmReducer';
 import ExploreReducer from '../../containers/explore/ExploreReducer';
 import ParametersReducer from '../../containers/parameters/ParametersReducer';
@@ -22,6 +23,7 @@ export default function reduxReducer(routerHistory :any) {
     auth: AuthReducer,
     router: connectRouter(routerHistory),
     [STATE.ALERTS]: AlertReducer,
+    [STATE.DRAW]: DrawReducer,
     [STATE.EDM]: EdmReducer,
     [STATE.EXPLORE]: ExploreReducer,
     [STATE.PARAMETERS]: ParametersReducer,
