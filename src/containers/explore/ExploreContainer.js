@@ -15,6 +15,8 @@ import Sidebar from './Sidebar';
 import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
 import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';
+import AppNavigationContainer from '../app/AppNavigationContainer';
+import SavedMapNavBar from '../map/SavedMapNavBar';
 import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
 import {
   STATE,
@@ -25,6 +27,7 @@ import {
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from '../alerts/AlertActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
@@ -59,9 +62,19 @@ type State = {
 
 const Wrapper = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   height: 100%;
+`;
+
+const LeftSidebar = styled.div`
+  height: 100%;
+  max-width: ${SIDEBAR_WIDTH}px;
+`;
+
+const MainContent = styled.div`
+  height: 100%;
+  width: calc(100% - ${SIDEBAR_WIDTH}px);
 `;
 
 class ExploreContainer extends React.Component<Props, State> {
@@ -119,9 +132,11 @@ class ExploreContainer extends React.Component<Props, State> {
 
     return (
       <Wrapper>
-        <SearchParameters />
-        {displayFullSearchOptions ? null : <Sidebar />}
-        {selectedEntityKeyIds.size && !displayFullSearchOptions ? <SelectedVehicleSidebar /> : null}
+        <LeftSidebar>
+          <SearchParameters />
+          {displayFullSearchOptions ? null : <Sidebar />}
+          {selectedEntityKeyIds.size && !displayFullSearchOptions ? <SelectedVehicleSidebar /> : null}
+        </LeftSidebar>
         <ModalTransition>
           {alertModalOpen && (
             <Modal onClose={() => actions.toggleAlertModal(false)}>
@@ -129,16 +144,20 @@ class ExploreContainer extends React.Component<Props, State> {
             </Modal>
           )}
         </ModalTransition>
-        <SimpleMap
-            drawMode={drawMode}
-            searchParameters={searchParameters}
-            setDrawMode={actions.setDrawMode}
-            setSearchZones={this.setSearchZones}
-            entities={entities}
-            selectEntity={this.selectEntity}
-            selectedEntityKeyIds={selectedEntityKeyIds}
-            selectedReadId={selectedReadId}
-            heatmap />
+        <MainContent>
+          <AppNavigationContainer />
+          <SimpleMap
+              drawMode={drawMode}
+              searchParameters={searchParameters}
+              setDrawMode={actions.setDrawMode}
+              setSearchZones={this.setSearchZones}
+              entities={entities}
+              selectEntity={this.selectEntity}
+              selectedEntityKeyIds={selectedEntityKeyIds}
+              selectedReadId={selectedReadId}
+              heatmap />
+          {drawMode ? <SavedMapNavBar /> : null}
+        </MainContent>
       </Wrapper>
     );
   }

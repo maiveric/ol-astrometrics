@@ -4,22 +4,21 @@
 
 import React, { Component } from 'react';
 
+
 import styled from 'styled-components';
 import { Colors } from 'lattice-ui-kit';
 import { withRouter } from 'react-router';
 import { NavLink } from 'react-router-dom';
 
+import InnerNavBar from '../../components/nav/InnerNavBar';
 import * as Routes from '../../core/router/Routes';
 
 const { NEUTRALS, PURPLES } = Colors;
 
 const NAV_LINK_ACTIVE_CLASSNAME :string = 'nav-link-active';
 
-const NavigationContentWrapper = styled.nav`
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: flex-start;
-  margin-left: 30px;
+const NavigationContentWrapper = styled(InnerNavBar)`
+  padding: 0 28px;
 `;
 
 const NavLinkWrapper = styled(NavLink).attrs({
@@ -27,13 +26,13 @@ const NavLinkWrapper = styled(NavLink).attrs({
 })`
   align-items: center;
   border-bottom: 3px solid transparent;
-  color: ${NEUTRALS[1]};
+  color: #807F85;
   display: flex;
   font-size: 12px;
   letter-spacing: 0;
   margin-right: 30px;
   outline: none;
-  padding: 13px 2px 10px 2px;
+  padding: 20px 0;
   text-align: left;
   text-decoration: none;
 
@@ -42,15 +41,16 @@ const NavLinkWrapper = styled(NavLink).attrs({
   }
 
   &:hover {
-    color: ${NEUTRALS[0]};
+    color: #ffffff;
     cursor: pointer;
     outline: none;
     text-decoration: none;
   }
 
   &.${NAV_LINK_ACTIVE_CLASSNAME} {
-    border-bottom: 3px solid ${PURPLES[1]};
-    color: ${PURPLES[1]};
+    border-bottom: 1px solid #ffffff;
+    color: #FFFFFF;
+    font-weight: 600;
   }
 `;
 
@@ -63,7 +63,13 @@ class AppNavigationContainer extends Component<Props> {
     return (
       <NavigationContentWrapper>
         <NavLinkWrapper to={Routes.EXPLORE}>
-          Explore
+          Map
+        </NavLinkWrapper>
+        <NavLinkWrapper to={Routes.ALERTS}>
+          Alerts
+        </NavLinkWrapper>
+        <NavLinkWrapper to={Routes.REPORTS}>
+          Reports
         </NavLinkWrapper>
       </NavigationContentWrapper>
     );

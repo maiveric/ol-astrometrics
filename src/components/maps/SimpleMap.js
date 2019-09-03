@@ -14,7 +14,7 @@ import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
+import { SIDEBAR_WIDTH, HEADER_HEIGHT, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
@@ -48,7 +48,7 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: calc(100% - ${SIDEBAR_WIDTH}px);
-  height: 100%;
+  height: calc(100% - ${INNER_NAV_BAR_HEIGHT - 1}px);
   bottom: 0;
   right: 0;
 `;
@@ -74,7 +74,8 @@ const Pin = styled.div`
 `;
 
 const MapComponent = reactMapboxGl({
-  accessToken: __MAPBOX_TOKEN__
+  accessToken: __MAPBOX_TOKEN__,
+  logoPosition: 'top-right'
 });
 
 class SimpleMap extends React.Component<Props, State> {
@@ -264,7 +265,7 @@ class SimpleMap extends React.Component<Props, State> {
           ref={(drawControl) => {
             this.drawControl = drawControl;
           }}
-          position="bottom-right"
+          position="top-right"
           displayControlsDefault={false}
           controls={{
             polygon: true,

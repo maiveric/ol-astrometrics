@@ -11,3 +11,4 @@ export const APP_CONTENT_WIDTH :number = APP_CONTAINER_WIDTH - (APP_CONTENT_PADD
 
 export const SIDEBAR_WIDTH :number = 368;
 export const HEADER_HEIGHT :number = 56;
+export const INNER_NAV_BAR_HEIGHT :number = 54;
