@@ -12,9 +12,11 @@ import {
 import StyledInput from '../../components/controls/StyledInput';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import SubtleButton from '../../components/buttons/SubtleButton';
+import Spinner from '../../components/spinner/Spinner';
 
 import * as DrawActionFactory from './DrawActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
+import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 const Input = styled(StyledInput)`
   margin-bottom: 10px;
@@ -46,9 +48,14 @@ const Label = styled.span`
 
 const NewMapModalBody = ({
   actions,
+  isSubmitting,
   newMapName,
   caseNumber
 }) => {
+
+  if (isSubmitting) {
+    return <Spinner light />;
+  }
 
   const onInputChange = ({ target }) => {
     actions.editMapName(target.value);
@@ -68,6 +75,10 @@ const NewMapModalBody = ({
     actions.toggleCreateNewMap(false);
   };
 
+  const isReadyToSubmit = () => {
+    return newMapName && caseNumber;
+  };
+
   return (
     <>
       <Label>Case number</Label>
@@ -76,7 +87,7 @@ const NewMapModalBody = ({
       <Input value={newMapName} onChange={onInputChange} />
       <ButtonRow>
         <SubtleButton onClick={clearAndClose}>Cancel</SubtleButton>
-        <SecondaryButton onClick={actions.saveMap}>Save</SecondaryButton>
+        <SecondaryButton onClick={actions.saveMap} disabled={!isReadyToSubmit()}>Save</SecondaryButton>
       </ButtonRow>
     </>
   );
@@ -88,7 +99,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
   return {
     newMapName: draw.get(DRAW.NEW_MAP_NAME),
-    caseNumber: params.getIn([SEARCH_PARAMETERS.SEARCH_PARAMETERS, PARAMETERS.CASE_NUMBER], '')
+    caseNumber: params.getIn([SEARCH_PARAMETERS.SEARCH_PARAMETERS, PARAMETERS.CASE_NUMBER], ''),
+    isSubmitting: draw.get(DRAW.IS_SAVING_MAP)
   };
 }
 
@@ -101,6 +113,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ParametersActionFactory).forEach((action :string) => {
     actions[action] = ParametersActionFactory[action];
+  });
+
+  Object.keys(SubmitActionFactory).forEach((action :string) => {
+    actions[action] = SubmitActionFactory[action];
   });
 
   return {

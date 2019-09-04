@@ -111,7 +111,7 @@ const getEntityIdObject = (entitySetId, idOrIndex, isId) => ({
   isId
 });
 
-function* getOrCreateUserId() {
+export function* getOrCreateUserId() {
   try {
     const userInfo = AuthUtils.getUserInfo();
     const userId = userInfo.id;

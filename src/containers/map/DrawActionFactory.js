@@ -17,3 +17,6 @@ export const editMapName = newRequestSequence(EDIT_MAP_NAME);
 
 export const SAVE_MAP = 'SAVE_MAP';
 export const saveMap = newRequestSequence(SAVE_MAP);
+
+export const LOAD_SAVED_MAPS = 'LOAD_SAVED_MAPS';
+export const loadSavedMaps = newRequestSequence(LOAD_SAVED_MAPS);

@@ -24,7 +24,9 @@ export const DRAW = {
   NEW_MAP_NAME: 'newMapName',
   NEW_MAP_DEFINITION: 'newMapDefinition',
   IS_CREATING_MAP: 'isCreatingMap',
-  IS_SAVING_MAP: 'isSavingMap'
+  IS_SAVING_MAP: 'isSavingMap',
+  SAVED_MAPS: 'savedMaps',
+  SELECTED_MAPS: 'selectedMaps'
 };
 
 export const ALERTS = {
@@ -109,4 +111,11 @@ export const SUBMIT = {
   SUCCESS: 'submitSuccess',
   SUBMITTED: 'submitted',
   ERROR: 'error'
+};
+
+export const SAVED_MAP = {
+  NAME: 'name',
+  FEATURES: 'features',
+  DATE_CREATED: 'dateCreated',
+  CREATED_BY: 'createdBy'
 };
