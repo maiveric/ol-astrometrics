@@ -8,13 +8,13 @@ import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import type { RequestSequence } from 'redux-reqseq';
 
 import Sidebar from './Sidebar';
 import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
 import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';
+import Modal from '../../components/modals/Modal';
 import AppNavigationContainer from '../app/AppNavigationContainer';
 import SavedMapNavBar from '../map/SavedMapNavBar';
 import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
@@ -137,13 +137,9 @@ class ExploreContainer extends React.Component<Props, State> {
           {displayFullSearchOptions ? null : <Sidebar />}
           {selectedEntityKeyIds.size && !displayFullSearchOptions ? <SelectedVehicleSidebar /> : null}
         </LeftSidebar>
-        <ModalTransition>
-          {alertModalOpen && (
-            <Modal onClose={() => actions.toggleAlertModal(false)}>
-              <ManageAlertsContainer />
-            </Modal>
-          )}
-        </ModalTransition>
+        <Modal isOpen={alertModalOpen} onClose={() => actions.toggleAlertModal(false)}>
+          <ManageAlertsContainer />
+        </Modal>
         <MainContent>
           <AppNavigationContainer />
           <SimpleMap

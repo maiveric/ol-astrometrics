@@ -17,6 +17,7 @@ type Props = {
   searchParameters :Map<*, *>,
   actions :{
     setSearchZones :Function,
+    setDrawZones :Function,
     setDrawMode :Function
   }
 };
@@ -62,6 +63,16 @@ class DrawComponent extends React.Component<Props, State> {
     });
   }
 
+  handleUpdate = () => {
+    const { actions } = this.props;
+    const { setDrawZones } = actions;
+
+    const searchZones = this.drawControl.draw.getAll();
+    if (searchZones && searchZones.features) {
+      setDrawZones(searchZones.features);
+    }
+  }
+
   render() {
     const { actions, drawMode } = this.props;
 
@@ -76,6 +87,9 @@ class DrawComponent extends React.Component<Props, State> {
             const draw = drawControl ? drawControl.draw : null;
             actions.setDrawControl(draw);
           }}
+          onDrawCreate={this.handleUpdate}
+          onDrawDelete={this.handleUpdate}
+          onDrawUpdate={this.handleUpdate}
           position="top-right"
           displayControlsDefault={false}
           controls={{

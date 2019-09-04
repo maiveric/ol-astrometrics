@@ -14,7 +14,8 @@ import { DRAW } from '../../utils/constants/StateConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   DISCARD_DRAW_ZONES,
-  SET_DRAW_CONTROL
+  SET_DRAW_CONTROL,
+  SET_DRAW_ZONES
 } from './DrawActionFactory';
 
 const {
@@ -38,8 +39,11 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       if (drawControl) {
         drawControl.deleteAll();
       }
-      return state;
+      return state.set(DRAW_ZONES, List());
     }
+
+    case SET_DRAW_ZONES:
+      return state.set(DRAW_ZONES, fromJS(Object.values(action.value)));
 
     default:
       return state;

@@ -10,6 +10,7 @@ import SearchableSelect from '../../components/controls/SearchableSelect';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import InnerNavBar from '../../components/nav/InnerNavBar';
 import { NEW_MAP } from '../../utils/constants/ExploreConstants';
+import { STATE, DRAW } from '../../utils/constants/StateConstants';
 import * as DrawActionFactory from './DrawActionFactory';
 
 const NavBar = styled(InnerNavBar)`
@@ -46,7 +47,6 @@ class SavedMapNavBar extends React.Component {
   discardMap = () => {
     const { actions } = this.props;
     actions.discardDrawZones();
-    console.log('discard');
   }
 
   getSelectOptions = () => {
@@ -61,6 +61,7 @@ class SavedMapNavBar extends React.Component {
   }
 
   render() {
+    const { currentZones } = this.props;
 
     const currentMap = NEW_MAP;
 
@@ -76,11 +77,11 @@ class SavedMapNavBar extends React.Component {
             short />
 
         <ButtonGroup>
-          <SecondaryButton onClick={this.discardMap}>
+          <SecondaryButton onClick={this.discardMap} disabled={!currentZones.size}>
             <Icon icon={faTrash} />
             Discard
           </SecondaryButton>
-          <SecondaryButton onClick={this.saveMap}>
+          <SecondaryButton onClick={this.saveMap} disabled={!currentZones.size}>
             <Icon icon={faSave} />
             Save
           </SecondaryButton>
@@ -89,6 +90,14 @@ class SavedMapNavBar extends React.Component {
       </NavBar>
     );
   }
+}
+
+function mapStateToProps(state :Map<*, *>) :Object {
+  const draw = state.get(STATE.DRAW);
+
+  return {
+    currentZones: draw.get(DRAW.DRAW_ZONES)
+  };
 }
 
 function mapDispatchToProps(dispatch :Function) :Object {
@@ -106,4 +115,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 
-export default connect(null, mapDispatchToProps)(SavedMapNavBar);
+export default connect(mapStateToProps, mapDispatchToProps)(SavedMapNavBar);
