@@ -19,7 +19,11 @@ export const APP = {
 
 export const DRAW = {
   DRAW_CONTROL: 'drawControl',
-  DRAW_ZONES: 'drawZones'
+  DRAW_ZONES: 'drawZones',
+
+  NEW_MAP_NAME: 'newMapName',
+  IS_CREATING_MAP: 'isCreatingMap',
+  IS_SAVING_MAP: 'isSavingMap'
 };
 
 export const ALERTS = {

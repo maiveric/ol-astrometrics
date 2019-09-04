@@ -15,12 +15,14 @@ import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
 import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';
 import Modal from '../../components/modals/Modal';
+import NewMapModalBody from '../map/NewMapModalBody';
 import AppNavigationContainer from '../app/AppNavigationContainer';
 import SavedMapNavBar from '../map/SavedMapNavBar';
 import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
 import {
   STATE,
   ALERTS,
+  DRAW,
   EDM,
   EXPLORE,
   PARAMETERS,
@@ -30,12 +32,14 @@ import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConsta
 import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from '../alerts/AlertActionFactory';
+import * as DrawActionFactory from '../map/DrawActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 
 type Props = {
   alertModalOpen :boolean;
+  newMapModalOpen :boolean;
   drawMode :boolean;
   displayFullSearchOptions :boolean;
   results :List<*>;
@@ -113,10 +117,52 @@ class ExploreContainer extends React.Component<Props, State> {
     actions.selectEntity({ data, vehiclesEntitySetId });
   }
 
-  render() {
+  renderModal = () => {
     const {
       actions,
       alertModalOpen,
+      newMapModalOpen,
+      drawMode,
+      displayFullSearchOptions,
+      filter,
+      results,
+      searchParameters,
+      selectedEntityKeyIds,
+      selectedReadId
+    } = this.props;
+
+    let modalProps = {
+      isOpen: false,
+      onClose: () => {}
+    };
+    let content;
+
+    if (newMapModalOpen) {
+      modalProps = {
+        isOpen: true,
+        header: 'Save current map',
+        onClose: () => actions.toggleCreateNewMap(false)
+      };
+
+      content = <NewMapModalBody />;
+    }
+
+    else if (alertModalOpen) {
+      modalProps = {
+        isOpen: true,
+        onClose: () => actions.toggleAlertModal(false)
+      }
+      content = <ManageAlertsContainer />;
+    }
+
+    return (
+      <Modal {...modalProps}>{content}</Modal>
+    )
+  }
+
+  render() {
+    const {
+      actions,
       drawMode,
       displayFullSearchOptions,
       filter,
@@ -132,14 +178,12 @@ class ExploreContainer extends React.Component<Props, State> {
 
     return (
       <Wrapper>
+        {this.renderModal()}
         <LeftSidebar>
           <SearchParameters />
           {displayFullSearchOptions ? null : <Sidebar />}
           {selectedEntityKeyIds.size && !displayFullSearchOptions ? <SelectedVehicleSidebar /> : null}
         </LeftSidebar>
-        <Modal isOpen={alertModalOpen} onClose={() => actions.toggleAlertModal(false)}>
-          <ManageAlertsContainer />
-        </Modal>
         <MainContent>
           <AppNavigationContainer />
           <SimpleMap
@@ -162,6 +206,7 @@ class ExploreContainer extends React.Component<Props, State> {
 
 function mapStateToProps(state :Map<*, *>) :Object {
   const app = state.get(STATE.APP);
+  const draw = state.get(STATE.DRAW);
   const edm = state.get(STATE.EDM);
   const explore = state.get(STATE.EXPLORE);
   const params = state.get(STATE.PARAMETERS);
@@ -180,7 +225,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
 
-    alertModalOpen: alerts.get(ALERTS.ALERT_MODAL_OPEN)
+    alertModalOpen: alerts.get(ALERTS.ALERT_MODAL_OPEN),
+    newMapModalOpen: draw.get(DRAW.IS_CREATING_MAP)
   };
 }
 
@@ -189,6 +235,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(AlertActionFactory).forEach((action :string) => {
     actions[action] = AlertActionFactory[action];
+  });
+
+  Object.keys(DrawActionFactory).forEach((action :string) => {
+    actions[action] = DrawActionFactory[action];
   });
 
   Object.keys(EdmActionFactory).forEach((action :string) => {

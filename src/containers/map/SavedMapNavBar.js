@@ -41,7 +41,8 @@ const Icon = styled(FontAwesomeIcon)`
 class SavedMapNavBar extends React.Component {
 
   saveMap = () => {
-    console.log('save');
+    const { actions } = this.props;
+    actions.toggleCreateNewMap(true);
   }
 
   discardMap = () => {

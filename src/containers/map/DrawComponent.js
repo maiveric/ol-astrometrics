@@ -6,6 +6,7 @@ import { bindActionCreators } from 'redux';
 import { GeoJSONLayer } from 'react-mapbox-gl';
 import { Map } from 'immutable';
 
+import Modal from '../../components/modals/Modal';
 import { STATE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
 import * as DrawActionFactory from './DrawActionFactory';
@@ -38,27 +39,35 @@ class DrawComponent extends React.Component<Props, State> {
   }
 
   renderSearchZones = () => {
-    const { searchParameters } = this.props;
+    const { actions, searchParameters } = this.props;
 
     return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
       const color = SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length];
 
       return (
-        <GeoJSONLayer
-            key={`polygon-${index}`}
-            fillPaint={{
-              'fill-opacity': 0.3,
-              'fill-color': color,
-              'fill-stroke-color': color,
-              'fill-stroke-width': 1,
-            }}
-            data={{
-              type: 'Feature',
-              geometry: {
-                type: 'Polygon',
-                coordinates: [zone]
-              }
-            }} />
+        <>
+          <Modal
+              isOpen={true}
+              onClose={() => actions.toggleCreateNewMap(false)}
+              header="Save current map">
+            <div>hi</div>
+          </Modal>
+          <GeoJSONLayer
+              key={`polygon-${index}`}
+              fillPaint={{
+                'fill-opacity': 0.3,
+                'fill-color': color,
+                'fill-stroke-color': color,
+                'fill-stroke-width': 1,
+              }}
+              data={{
+                type: 'Feature',
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: [zone]
+                }
+              }} />
+        </>
       );
     });
   }
