@@ -12,6 +12,7 @@ export const APP_TYPES = {
   USERS: 'app.staff',
   ALERTS: 'app.searchalert',
   REGISTERED_FOR: 'app.registeredfor',
+  SAVED_MAPS: 'app.savedmaps',
   SEARCHES: 'app.searchalert',
   SEARCHED_BY: 'app.searchedby'
 };
@@ -45,6 +46,7 @@ export const PROPERTY_TYPES = {
   CAMERA_ID: 'ol.resourceid',
   HIT_TYPE: 'ol.description',
   DESCRIPTION: 'ol.description',
+  TEXT: 'ol.text',
 
   TIMESTAMP: 'ol.datelogged',
   CONFIDENCE: 'ol.confidence',

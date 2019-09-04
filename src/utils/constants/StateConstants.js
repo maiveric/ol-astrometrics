@@ -22,6 +22,7 @@ export const DRAW = {
   DRAW_ZONES: 'drawZones',
 
   NEW_MAP_NAME: 'newMapName',
+  NEW_MAP_DEFINITION: 'newMapDefinition',
   IS_CREATING_MAP: 'isCreatingMap',
   IS_SAVING_MAP: 'isSavingMap'
 };

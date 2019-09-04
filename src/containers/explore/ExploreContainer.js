@@ -151,13 +151,13 @@ class ExploreContainer extends React.Component<Props, State> {
       modalProps = {
         isOpen: true,
         onClose: () => actions.toggleAlertModal(false)
-      }
+      };
       content = <ManageAlertsContainer />;
     }
 
     return (
       <Modal {...modalProps}>{content}</Modal>
-    )
+    );
   }
 
   render() {

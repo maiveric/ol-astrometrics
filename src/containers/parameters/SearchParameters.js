@@ -600,7 +600,7 @@ class SearchParameters extends React.Component<Props, State> {
                               actions.updateSearchParameters({
                                 field: PARAMETERS.RADIUS,
                                 value
-                              })
+                              });
                             }} />
                       </StyledInputWrapper>
                     </InputGroup>
