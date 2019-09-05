@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import Immutable from 'immutable';
+import { Map } from 'immutable';
 import styled, { css } from 'styled-components';
 import { faTimes } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -190,7 +190,7 @@ type State = {
 class SearchableSelect extends React.Component<Props, State> {
 
   static defaultProps = {
-    options: Immutable.List(),
+    options: Map(),
     className: '',
     maxHeight: -1,
     searchPlaceholder: 'Search...',
@@ -213,7 +213,7 @@ class SearchableSelect extends React.Component<Props, State> {
     super(props);
 
     this.state = {
-      filteredTypes: props.options.keySeq(),
+      filteredTypes: props.options,
       isVisibleDataTable: false,
       searchQuery: ''
     };
@@ -224,7 +224,7 @@ class SearchableSelect extends React.Component<Props, State> {
     const { value, options } = nextProps;
 
     this.setState({
-      filteredTypes: this.filterResultsForOptions(value, options).keySeq(),
+      filteredTypes: this.filterResultsForOptions(value, options),
       searchQuery: ''
     });
   }
@@ -253,10 +253,10 @@ class SearchableSelect extends React.Component<Props, State> {
 
   }
 
-  handleOnSelect = (label :string) => {
-    const { onSelect, options } = this.props;
+  handleOnSelect = (value :string) => {
+    const { onSelect } = this.props;
 
-    onSelect(options.get(label));
+    onSelect(value);
     this.setState({
       searchQuery: ''
     });
@@ -267,20 +267,19 @@ class SearchableSelect extends React.Component<Props, State> {
 
     return inexactMatchesAllowed
       ? options
-      : options.filter((obj, label) => label.toLowerCase().includes(value.toLowerCase()));
+      : options.filter((v, key) => key.toLowerCase().includes(value.toLowerCase()));
   }
 
   filterResults = (value :string) => {
     const { options } = this.props;
-    return this.filterResultsForOptions(value, options)
+    return this.filterResultsForOptions(value, options);
   }
-
 
   handleOnChangeSearchQuery = (event :SyntheticInputEvent<*>) => {
     const { onInputChange } = this.props;
 
     this.setState({
-      filteredTypes: this.filterResults(event.target.value).keySeq(),
+      filteredTypes: this.filterResults(event.target.value),
       searchQuery: event.target.value
     });
 
@@ -289,13 +288,19 @@ class SearchableSelect extends React.Component<Props, State> {
 
   renderTable = () => {
     const { filteredTypes } = this.state;
-    const options = filteredTypes.map(type => (
-      <SearchOption
-          key={type}
-          onMouseDown={() => this.handleOnSelect(type)}>
-        {type}
-      </SearchOption>
-    ));
+
+    const options = [];
+
+    filteredTypes.entrySeq().forEach(([value, label]) => {
+      options.push(
+        <SearchOption
+            key={value}
+            onMouseDown={() => this.handleOnSelect(value)}>
+          {label}
+        </SearchOption>
+      );
+    });
+
     return <SearchOptionContainer>{options}</SearchOptionContainer>;
   }
 
@@ -338,7 +343,7 @@ class SearchableSelect extends React.Component<Props, State> {
 
   clearOnDelete = ({ keyCode }) => {
     if (keyCode === 8) { // backspace
-      this.handleOnSelect('');
+      this.handleOnSelect(undefined);
     }
   }
 

@@ -20,3 +20,6 @@ export const saveMap = newRequestSequence(SAVE_MAP);
 
 export const LOAD_SAVED_MAPS = 'LOAD_SAVED_MAPS';
 export const loadSavedMaps = newRequestSequence(LOAD_SAVED_MAPS);
+
+export const SELECT_MAP = 'SELECT_MAP';
+export const selectMap = newRequestSequence(SELECT_MAP);

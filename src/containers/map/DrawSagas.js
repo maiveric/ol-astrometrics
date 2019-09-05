@@ -17,7 +17,7 @@ import { AuthUtils } from 'lattice-auth';
 import type { SequenceAction } from 'redux-reqseq';
 
 import NewMapConfig from '../../config/formconfig/NewMapConfig';
-import { getFqnString, getFqnObj } from '../../utils/DataUtils';
+import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   getAppFromState,
   getEntitySetId,
@@ -125,9 +125,13 @@ function* loadSavedMapsWorker(action :SequenceAction) {
     );
 
     const savedMapsForUser = savedMapNeighbors[userEntityKeyId];
-    const savedMaps = savedMapsForUser
-      ? savedMapsForUser.map(({ neighborDetails }) => neighborDetails)
-      : [];
+    let savedMaps = Map();
+
+    fromJS(savedMapsForUser).forEach((neighborObj) => {
+      const neighborDetails = neighborObj.get('neighborDetails');
+      const entityKeyId = getEntityKeyId(neighborDetails);
+      savedMaps = savedMaps.set(entityKeyId, neighborDetails);
+    });
 
     yield put(loadSavedMaps.success(action.id, savedMaps));
   }

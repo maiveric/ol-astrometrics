@@ -7,7 +7,14 @@ import { GeoJSONLayer } from 'react-mapbox-gl';
 import { Map } from 'immutable';
 
 import Modal from '../../components/modals/Modal';
-import { STATE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
+import {
+  STATE,
+  DRAW,
+  PARAMETERS,
+  SEARCH_PARAMETERS,
+  SAVED_MAP
+} from '../../utils/constants/StateConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
 import * as DrawActionFactory from './DrawActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
@@ -16,6 +23,8 @@ import * as ParametersActionFactory from '../parameters/ParametersActionFactory'
 type Props = {
   drawMode :boolean,
   searchParameters :Map<*, *>,
+  draw :Object,
+  selectedMap :Map<*, *>,
   actions :{
     setSearchZones :Function,
     setDrawZones :Function,
@@ -29,29 +38,29 @@ type State = {
 
 class DrawComponent extends React.Component<Props, State> {
 
-  saveSearchZones = () => {
-    const { setSearchZones } = this.props;
-    const searchZones = this.drawControl.draw.getAll();
-    if (searchZones && searchZones.features && searchZones.features.length) {
-      const coordinateSets = searchZones.features.map(feature => feature.geometry.coordinates[0]);
-      setSearchZones(coordinateSets);
+  componentDidUpdate(prevProps) {
+    const { selectedMapId, selectedMap, draw } = this.props;
+    if (draw && prevProps.selectedMapId !== selectedMapId) {
+
+      const {
+        [SAVED_MAP.FEATURES]: features
+      } = JSON.parse(selectedMap.getIn([PROPERTY_TYPES.TEXT, 0], '{}'));
+
+      draw.set({
+        type: 'FeatureCollection',
+        features
+      });
     }
   }
 
   renderSearchZones = () => {
-    const { actions, searchParameters } = this.props;
+    const { searchParameters } = this.props;
 
     return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
       const color = SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length];
 
       return (
         <>
-          <Modal
-              isOpen={true}
-              onClose={() => actions.toggleCreateNewMap(false)}
-              header="Save current map">
-            <div>hi</div>
-          </Modal>
           <GeoJSONLayer
               key={`polygon-${index}`}
               fillPaint={{
@@ -111,10 +120,14 @@ class DrawComponent extends React.Component<Props, State> {
 
 function mapStateToProps(state :Map<*, *>) :Object {
   const params = state.get(STATE.PARAMETERS);
+  const draw = state.get(STATE.DRAW);
 
   return {
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
-    drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE)
+    drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
+    selectedMapId: draw.get(DRAW.SELECTED_MAP_ID),
+    selectedMap: draw.getIn([DRAW.SAVED_MAPS, draw.get(DRAW.SELECTED_MAP_ID)], Map()),
+    draw: draw.get(DRAW.DRAW_CONTROL)
   };
 }
 

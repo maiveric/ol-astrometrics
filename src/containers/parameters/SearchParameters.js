@@ -414,7 +414,7 @@ class SearchParameters extends React.Component<Props, State> {
     const { geocodedAddresses } = this.props;
     let options = OrderedMap();
     geocodedAddresses.forEach((addr) => {
-      options = options.set(addr.get('display_name'), addr);
+      options = options.set(addr, addr.get('display_name'));
     });
 
     return options;

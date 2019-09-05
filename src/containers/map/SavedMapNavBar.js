@@ -55,10 +55,9 @@ class SavedMapNavBar extends React.Component {
 
   getSelectOptions = () => {
     const { savedMaps } = this.props;
-    let options = OrderedMap().set(NEW_MAP, NEW_MAP);
+    let options = OrderedMap().set('', NEW_MAP);
 
-    savedMaps.forEach((savedMap) => {
-      console.log(savedMap.toJS())
+    savedMaps.entrySeq().forEach(([entityKeyId, savedMap]) => {
 
       try {
         const {
@@ -68,10 +67,8 @@ class SavedMapNavBar extends React.Component {
 
         const formattedDate = moment(dateCreated).format('MM/DD/YYYY');
 
-        const entityKeyId = getEntityKeyId(savedMap);
-
         const label = `${name} (${formattedDate})`;
-        options = options.set(label, entityKeyId);
+        options = options.set(entityKeyId, label);
       }
       catch (error) {
         console.error(error);
@@ -81,9 +78,9 @@ class SavedMapNavBar extends React.Component {
     return options;
   }
 
-  onSelect = (value) => {
-    console.log('selected')
-    console.log(value);
+  onSelect = (entityKeyId) => {
+    const { actions } = this.props;
+    actions.selectMap(entityKeyId);
   }
 
   render() {
