@@ -18,7 +18,8 @@ import {
   SET_DRAW_ZONES,
   TOGGLE_CREATE_NEW_MAP,
   EDIT_MAP_NAME,
-  saveMap
+  saveMap,
+  loadSavedMaps
 } from './DrawActionFactory';
 
 const {
@@ -27,7 +28,9 @@ const {
 
   NEW_MAP_NAME,
   IS_CREATING_MAP,
-  IS_SAVING_MAP
+  IS_SAVING_MAP,
+  SAVED_MAPS,
+  SELECTED_MAP_ID
 } = DRAW;
 
 const INITIAL_STATE :Map<> = fromJS({
@@ -36,7 +39,10 @@ const INITIAL_STATE :Map<> = fromJS({
 
   [IS_CREATING_MAP]: false,
   [IS_SAVING_MAP]: false,
-  [NEW_MAP_NAME]: ''
+  [NEW_MAP_NAME]: '',
+
+  [SAVED_MAPS]: List(),
+  [SELECTED_MAP_ID]: null
 });
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
@@ -65,7 +71,15 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case saveMap.case(action.type): {
       return saveMap.reducer(state, action, {
         REQUEST: () => state.set(IS_SAVING_MAP, true),
+        SUCCESS: () => state.set(SELECTED_MAP_ID, action.value),
         FINALLY: () => state.set(IS_SAVING_MAP, false)
+      });
+    }
+
+    case loadSavedMaps.case(action.type): {
+      return loadSavedMaps.reducer(state, action, {
+        SUCCESS: () => state.set(SAVED_MAPS, fromJS(action.value)),
+        FAILURE: () => state.set(SAVED_MAPS, List()),
       });
     }
 

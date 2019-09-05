@@ -63,16 +63,29 @@ function* saveMapWorker(action :SequenceAction) {
     const app = yield select(getAppFromState);
     const config = NewMapConfig;
     const values = {
-      [DRAW.NEW_MAP_DEFINITION]: mapDefinition,
+      [DRAW.NEW_MAP_DEFINITION]: JSON.stringify(mapDefinition),
       [PARAMETERS.CASE_NUMBER]: params.get(PARAMETERS.CASE_NUMBER)
     };
 
-    const submitAction = submit({ app, config, values });
+    const submitAction = submit({
+      app,
+      config,
+      values,
+      includeUserId: true
+    });
     yield put(submitAction);
     const submitRes = yield takeReqSeqSuccessFailure(submit, submitAction);
 
     if (submitRes.type === submit.SUCCESS) {
-      yield put(saveMap.success(action.id, mapDefinition));
+
+      const { value } = submitRes;
+      const newMapEntityKeyId = value[APP_TYPES.SAVED_MAP][0];
+
+      const reloadMapsAction = loadSavedMaps();
+      yield put(reloadMapsAction);
+      yield takeReqSeqSuccessFailure(submit, reloadMapsAction);
+
+      yield put(saveMap.success(action.id, newMapEntityKeyId));
     }
     else {
       yield put(saveMap.failure(action.id));
@@ -111,11 +124,15 @@ function* loadSavedMapsWorker(action :SequenceAction) {
       }
     );
 
-    const savedMaps = savedMapNeighbors.map(({ neighborEntityDetails }) => neighborEntityDetails);
+    const savedMapsForUser = savedMapNeighbors[userEntityKeyId];
+    const savedMaps = savedMapsForUser
+      ? savedMapsForUser.map(({ neighborEntityDetails }) => neighborEntityDetails)
+      : [];
 
     yield put(loadSavedMaps.success(action.id, savedMaps));
   }
   catch (error) {
+    console.error(error)
     yield put(loadSavedMaps.failure(action.id, error));
   }
   finally {

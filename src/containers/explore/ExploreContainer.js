@@ -57,6 +57,7 @@ type Props = {
     updateSearchParameters :({ field :string, value :string }) => void;
     toggleAlertModal :(modalOpen :boolean) => void;
     selectEntity :RequestSequence;
+    laodSavedMaps :RequestSequence;
   }
 };
 
@@ -100,6 +101,7 @@ class ExploreContainer extends React.Component<Props, State> {
     const { actions, edm } = this.props;
     if (!prevProps.edm.get(EDM.PROPERTY_TYPES).size && edm.get(EDM.PROPERTY_TYPES).size) {
       actions.loadDepartmentsAndDevices();
+      actions.loadSavedMaps();
     }
   }
 

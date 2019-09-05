@@ -62,7 +62,9 @@ class SavedMapNavBar extends React.Component {
   }
 
   render() {
-    const { currentZones } = this.props;
+    const { currentZones, savedMaps, selectedMapId } = this.props;
+
+    console.log({ currentZones, savedMaps, selectedMapId });
 
     const currentMap = NEW_MAP;
 
@@ -97,7 +99,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const draw = state.get(STATE.DRAW);
 
   return {
-    currentZones: draw.get(DRAW.DRAW_ZONES)
+    currentZones: draw.get(DRAW.DRAW_ZONES),
+    savedMaps: draw.get(DRAW.SAVED_MAPS),
+    selectedMapId: draw.get(DRAW.SELECTED_MAP_ID)
   };
 }
 

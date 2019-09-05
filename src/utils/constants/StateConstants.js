@@ -26,7 +26,7 @@ export const DRAW = {
   IS_CREATING_MAP: 'isCreatingMap',
   IS_SAVING_MAP: 'isSavingMap',
   SAVED_MAPS: 'savedMaps',
-  SELECTED_MAPS: 'selectedMaps'
+  SELECTED_MAP_ID: 'selectedMapId'
 };
 
 export const ALERTS = {
