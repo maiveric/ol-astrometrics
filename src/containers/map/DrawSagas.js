@@ -126,13 +126,13 @@ function* loadSavedMapsWorker(action :SequenceAction) {
 
     const savedMapsForUser = savedMapNeighbors[userEntityKeyId];
     const savedMaps = savedMapsForUser
-      ? savedMapsForUser.map(({ neighborEntityDetails }) => neighborEntityDetails)
+      ? savedMapsForUser.map(({ neighborDetails }) => neighborDetails)
       : [];
 
     yield put(loadSavedMaps.success(action.id, savedMaps));
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(loadSavedMaps.failure(action.id, error));
   }
   finally {

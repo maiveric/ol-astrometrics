@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import moment from 'moment';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { OrderedMap } from 'immutable';
@@ -9,8 +10,10 @@ import { faSave, faTrash } from '@fortawesome/pro-light-svg-icons';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import InnerNavBar from '../../components/nav/InnerNavBar';
+import { getEntityKeyId } from '../../utils/DataUtils';
 import { NEW_MAP } from '../../utils/constants/ExploreConstants';
-import { STATE, DRAW } from '../../utils/constants/StateConstants';
+import { STATE, DRAW, SAVED_MAP } from '../../utils/constants/StateConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import * as DrawActionFactory from './DrawActionFactory';
 
 const NavBar = styled(InnerNavBar)`
@@ -51,7 +54,29 @@ class SavedMapNavBar extends React.Component {
   }
 
   getSelectOptions = () => {
+    const { savedMaps } = this.props;
     let options = OrderedMap().set(NEW_MAP, NEW_MAP);
+
+    savedMaps.forEach((savedMap) => {
+      console.log(savedMap.toJS())
+
+      try {
+        const {
+          [SAVED_MAP.NAME]: name,
+          [SAVED_MAP.DATE_CREATED]: dateCreated
+        } = JSON.parse(savedMap.getIn([PROPERTY_TYPES.TEXT, 0], '{}'));
+
+        const formattedDate = moment(dateCreated).format('MM/DD/YYYY');
+
+        const entityKeyId = getEntityKeyId(savedMap);
+
+        const label = `${name} (${formattedDate})`;
+        options = options.set(label, entityKeyId);
+      }
+      catch (error) {
+        console.error(error);
+      }
+    });
 
     return options;
   }

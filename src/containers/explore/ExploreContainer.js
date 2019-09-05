@@ -99,7 +99,7 @@ class ExploreContainer extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps) {
     const { actions, edm } = this.props;
-    if (!prevProps.edm.get(EDM.PROPERTY_TYPES).size && edm.get(EDM.PROPERTY_TYPES).size) {
+    if (prevProps.edm.get(EDM.IS_LOADING_DATA_MODEL) && !edm.get(EDM.IS_LOADING_DATA_MODEL)) {
       actions.loadDepartmentsAndDevices();
       actions.loadSavedMaps();
     }
