@@ -572,7 +572,7 @@ class SearchParameters extends React.Component<Props, State> {
                     <InputGroup>
                       <span>Street address</span>
                       <StyledSearchableSelect
-                          value={searchParameters.get(PARAMETERS.ADDRESS)}
+                          inputValue={searchParameters.get(PARAMETERS.ADDRESS)}
                           searchPlaceholder="Enter address"
                           onInputChange={this.handleAddressChange}
                           onSelect={actions.selectAddress}

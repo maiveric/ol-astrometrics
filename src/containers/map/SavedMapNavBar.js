@@ -86,16 +86,12 @@ class SavedMapNavBar extends React.Component {
   render() {
     const { currentZones, savedMaps, selectedMapId } = this.props;
 
-    console.log({ currentZones, savedMaps, selectedMapId });
-
-    const currentMap = NEW_MAP;
-
     return (
       <NavBar bottom>
 
         <StyledSearchableSelect
-            value={currentMap}
-            searchPlaceholder=""
+            value={selectedMapId}
+            searchPlaceholder="New map"
             onSelect={this.onSelect}
             options={this.getSelectOptions()}
             openAbove

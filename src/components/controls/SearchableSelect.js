@@ -343,7 +343,7 @@ class SearchableSelect extends React.Component<Props, State> {
 
   clearOnDelete = ({ keyCode }) => {
     if (keyCode === 8) { // backspace
-      this.handleOnSelect(undefined);
+      this.handleOnSelect('');
     }
   }
 
@@ -356,7 +356,9 @@ class SearchableSelect extends React.Component<Props, State> {
       selectOnly,
       short,
       transparent,
-      value
+      value,
+      inputValue,
+      options
     } = this.props;
     const { isVisibleDataTable, searchQuery } = this.state;
 
@@ -375,14 +377,14 @@ class SearchableSelect extends React.Component<Props, State> {
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable}>
-                {value || searchPlaceholder}
+                {options.get(value, inputValue) || searchPlaceholder}
               </SearchButton>
             ) : (
               <SearchInput
                   disabled={disabled}
                   placeholder={searchPlaceholder}
                   transparent={transparent}
-                  value={value || searchQuery}
+                  value={options.get(value, inputValue) || searchQuery}
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable} />
