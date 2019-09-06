@@ -170,6 +170,7 @@ type Props = {
   onSelect :Function,
   short :?boolean,
   value :?string,
+  inputValue :?string,
   onClear? :?() => void,
   transparent? :boolean,
   openAbove? :boolean,

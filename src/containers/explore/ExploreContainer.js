@@ -5,12 +5,18 @@
 import React from 'react';
 import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
-import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import {
+  Redirect,
+  Route,
+  Switch,
+  withRouter
+} from 'react-router';
 import type { RequestSequence } from 'redux-reqseq';
 
-import Sidebar from './Sidebar';
+import Sidebar from '../../components/body/Sidebar';
+import VehicleSidebar from './Sidebar';
 import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
 import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';
@@ -31,6 +37,7 @@ import {
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { getEntitySetId } from '../../utils/AppUtils';
+import * as Routes from '../../core/router/Routes';
 import * as AlertActionFactory from '../alerts/AlertActionFactory';
 import * as DrawActionFactory from '../map/DrawActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
@@ -162,11 +169,10 @@ class ExploreContainer extends React.Component<Props, State> {
     );
   }
 
-  render() {
+  renderMap = () => {
     const {
       actions,
       drawMode,
-      displayFullSearchOptions,
       filter,
       results,
       searchParameters,
@@ -179,32 +185,83 @@ class ExploreContainer extends React.Component<Props, State> {
       : results;
 
     return (
+      <>
+        <SimpleMap
+            drawMode={drawMode}
+            searchParameters={searchParameters}
+            setDrawMode={actions.setDrawMode}
+            setSearchZones={this.setSearchZones}
+            entities={entities}
+            selectEntity={this.selectEntity}
+            selectedEntityKeyIds={selectedEntityKeyIds}
+            selectedReadId={selectedReadId}
+            heatmap />
+        {drawMode ? <SavedMapNavBar /> : null}
+      </>
+    );
+  }
+
+  renderAlerts = () => {
+    return <div>alerts</div>;
+  }
+
+  renderReports = () => {
+    return <div>reports</div>;
+  }
+
+  renderSidebar = () => {
+    const {
+      displayFullSearchOptions,
+      selectedEntityKeyIds
+    } = this.props;
+
+    let sidebarContent;
+    if (displayFullSearchOptions) {
+      sidebarContent = <SearchParameters />;
+    }
+    else if (selectedEntityKeyIds.size) {
+      sidebarContent = <SelectedVehicleSidebar />;
+    }
+    else {
+      sidebarContent = <VehicleSidebar />;
+    }
+
+    return (
+      <LeftSidebar>
+        <Sidebar>
+          {sidebarContent}
+        </Sidebar>
+        <SearchParameters />
+      </LeftSidebar>
+    );
+
+  }
+
+  render() {
+
+    return (
       <Wrapper>
+
         {this.renderModal()}
-        <LeftSidebar>
-          <SearchParameters />
-          {displayFullSearchOptions ? null : <Sidebar />}
-          {selectedEntityKeyIds.size && !displayFullSearchOptions ? <SelectedVehicleSidebar /> : null}
-        </LeftSidebar>
+
+        {this.renderSidebar()}
+
         <MainContent>
           <AppNavigationContainer />
-          <SimpleMap
-              drawMode={drawMode}
-              searchParameters={searchParameters}
-              setDrawMode={actions.setDrawMode}
-              setSearchZones={this.setSearchZones}
-              entities={entities}
-              selectEntity={this.selectEntity}
-              selectedEntityKeyIds={selectedEntityKeyIds}
-              selectedReadId={selectedReadId}
-              heatmap />
-          {drawMode ? <SavedMapNavBar /> : null}
+
+          <Switch>
+            <Route path={Routes.MAP_ROUTE} render={this.renderMap} />
+            <Route path={Routes.ALERTS_ROUTE} component={ManageAlertsContainer} />
+            <Route path={Routes.REPORTS_ROUTE} render={this.renderReports} />
+            <Redirect to={Routes.MAP_ROUTE} />
+          </Switch>
+
         </MainContent>
+
       </Wrapper>
     );
   }
 }
-
 
 function mapStateToProps(state :Map<*, *>) :Object {
   const app = state.get(STATE.APP);

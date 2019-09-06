@@ -62,13 +62,13 @@ class AppNavigationContainer extends Component<Props> {
 
     return (
       <NavigationContentWrapper>
-        <NavLinkWrapper to={Routes.EXPLORE}>
+        <NavLinkWrapper to={Routes.MAP_ROUTE}>
           Map
         </NavLinkWrapper>
-        <NavLinkWrapper to={Routes.ALERTS}>
+        <NavLinkWrapper to={Routes.ALERTS_ROUTE}>
           Alerts
         </NavLinkWrapper>
-        <NavLinkWrapper to={Routes.REPORTS}>
+        <NavLinkWrapper to={Routes.REPORTS_ROUTE}>
           Reports
         </NavLinkWrapper>
       </NavigationContentWrapper>

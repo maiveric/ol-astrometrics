@@ -33,8 +33,8 @@ const NormalizeCSS = createGlobalStyle`
 const GlobalStyle = createGlobalStyle`
   html,
   body {
-    background-color: ${WHITE};
-    color: ${NEUTRALS[1]};
+    background-color: #1F1E24;
+    color: #ffffff;
     font-family: 'Open Sans', sans-serif;
     height: 100%;
     width: 100%;

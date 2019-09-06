@@ -12,10 +12,10 @@ import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 
+import AlertRow from './AlertRow';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
-import BasicButton from '../../components/buttons/BasicButton';
 import InfoButton from '../../components/buttons/InfoButton';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import {
@@ -26,6 +26,7 @@ import {
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
+import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
@@ -68,10 +69,24 @@ type State = {
   isSettingNewAlert :boolean
 };
 
+const Wrapper = styled.div`
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - ${SIDEBAR_WIDTH}px);
+  height: calc(100% - ${INNER_NAV_BAR_HEIGHT - 1}px);
+  background-color: #1F1E24;
+  color: #ffffff;
+  bottom: 0;
+  right: 0;
+  padding: 56px 104px;
+  line-height: 150%;
+`;
+
 const ModalHeader = styled.div`
-  color: #135;
   font-size: 18px;
   font-weight: 600;
+  font-size: 24px;
 `;
 
 const ModalSubtitle = styled.div`
@@ -82,7 +97,10 @@ const ModalSubtitle = styled.div`
 `;
 
 const SubHeader = styled(ModalHeader)`
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 16px;
+  margin-top: 40px;
+  margin-bottom: 16px;
 `;
 
 const DateTimePickerWrapper = styled.div`
@@ -138,39 +156,10 @@ const EvenlySpacedRow = styled(Row)`
   margin-bottom: 20px;
 `;
 
-const Alert = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  font-size: 14px;
-  color: ${props => (props.expired ? '#b6bbc7' : '#135')};
-
-  span {
-    font-size: 12px;
-    width: 100%;
-    text-align: center;
-  }
-
-  b {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  div {
-    margin-bottom: 4px;
-  }
-
-  padding: 10px 0;
-  margin: 10px 0;
-  border-bottom: 1px solid #dcdce7;
-`;
-
 const NoAlerts = styled.div`
   width: 100%;
-  text-align: center;
-  margin: 20px 0;
   font-size: 14px;
-  color: #8e929b;
+  color: #98979D;
 `;
 
 class ManageAlertsContainer extends React.Component<Props, State> {
@@ -254,7 +243,8 @@ class ManageAlertsContainer extends React.Component<Props, State> {
       alertMetadata: {
         caseNum,
         searchReason,
-        licensePlate: plate
+        licensePlate: plate,
+        createDate: moment().toISOString(true)
       }
     };
 
@@ -286,9 +276,8 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     return (
       <FormContainer>
         <EvenlySpacedRow>
-          <ModalHeader>Create new alert</ModalHeader>
+          <ModalHeader>New alert</ModalHeader>
         </EvenlySpacedRow>
-        {this.renderEmailSubtitle()}
 
         <InputHeader>Case number</InputHeader>
         <StyledInput value={caseNum} onChange={this.getOnChange(ALERTS.CASE_NUMBER)} />
@@ -348,34 +337,12 @@ class ManageAlertsContainer extends React.Component<Props, State> {
   }
 
   renderAlerts = (sortedAlerts, expired) => {
-    const { actions } = this.props;
 
     if (!sortedAlerts.size) {
-      return <NoAlerts>{`No ${expired ? 'expired' : 'active'} alerts`}</NoAlerts>;
+      return <NoAlerts>{`You have no ${expired ? 'expired' : 'active'} alerts.`}</NoAlerts>;
     }
 
-    return sortedAlerts.map((alert) => {
-      let expiration = moment(alert.get('expiration', ''));
-      const alertMetadata = alert.get('alertMetadata', Map());
-
-      expiration = expiration.isValid() ? expiration.format('MM/DD/YYYY hh:mm a') : 'Invalid expiration date';
-
-      return (
-        <Alert expired={expired} key={alert.get('id')}>
-          <span>{`Expire${expired ? 'd' : 's'} ${expiration}`}</span>
-          <div>License plate: <b>{alertMetadata.get('licensePlate')}</b></div>
-          <div>Case number: <b>{alertMetadata.get('caseNum')}</b></div>
-          <div>Search Reason: <b>{alertMetadata.get('searchReason')}</b></div>
-          {
-            expired ? null : (
-              <CenteredRow>
-                <BasicButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire alert</BasicButton>
-              </CenteredRow>
-            )
-          }
-        </Alert>
-      );
-    });
+    return sortedAlerts.map(alert => <AlertRow key={alert.get('id')} alert={alert} expired={expired} />);
   }
 
   renderAlertList = () => {
@@ -433,10 +400,9 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     return (
       <FormContainer>
         <EvenlySpacedRow>
-          <ModalHeader>Manage existing alerts</ModalHeader>
-          <SecondaryButton onClick={() => this.setState({ isSettingNewAlert: true })}>Create new alert</SecondaryButton>
+          <ModalHeader>Alerts</ModalHeader>
+          <InfoButton onClick={() => this.setState({ isSettingNewAlert: true })}>Create new alert</InfoButton>
         </EvenlySpacedRow>
-        {this.renderEmailSubtitle(true)}
         {content}
       </FormContainer>
     );
@@ -451,9 +417,9 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     }
 
     return (
-      <div>
+      <Wrapper>
         {isSettingNewAlert ? this.renderForm() : this.renderAlertList()}
-      </div>
+      </Wrapper>
     );
   }
 

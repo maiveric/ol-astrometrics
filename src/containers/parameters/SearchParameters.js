@@ -15,6 +15,7 @@ import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
 import { faBell } from '@fortawesome/pro-solid-svg-icons';
 import type { RequestSequence } from 'redux-reqseq';
 
+import Sidebar from '../../components/body/Sidebar';
 import InfoButton from '../../components/buttons/InfoButton';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
