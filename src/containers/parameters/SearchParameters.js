@@ -524,7 +524,7 @@ class SearchParameters extends React.Component<Props, State> {
                   <HelperText offsetLeft> Minimum 3 characters</HelperText>
                 </InlineGroup>
                 <StyledSearchableSelect
-                    value={searchParameters.get(PARAMETERS.PLATE)}
+                    inputValue={searchParameters.get(PARAMETERS.PLATE)}
                     searchPlaceholder=""
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.PLATE, value })}
                     onInputChange={({ target }) => {
