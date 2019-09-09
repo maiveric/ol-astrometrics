@@ -36,6 +36,10 @@ const AppHeaderOuterWrapper = styled.header`
   flex: 0 0 auto;
   justify-content: center;
   background-color: #121117;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
 `;
 
 const AppHeaderInnerWrapper = styled.div`

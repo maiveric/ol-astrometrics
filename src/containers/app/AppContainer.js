@@ -19,7 +19,7 @@ import * as Routes from '../../core/router/Routes';
 import { loadApp } from './AppActions';
 import { termsAreAccepted } from '../../utils/CookieUtils';
 import { APP_NAME } from '../../utils/constants/Constants';
-import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
+import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
 const APP_CONTENT_BG :string = '#f8f8fb';
@@ -30,7 +30,7 @@ const AppContainerWrapper = styled.div`
   height: 100%;
   margin: 0;
   min-width: ${APP_CONTAINER_WIDTH}px;
-  padding: 0;
+  padding: ${HEADER_HEIGHT}px 0 0 0;
 `;
 
 const AppContentOuterWrapper = styled.main`
