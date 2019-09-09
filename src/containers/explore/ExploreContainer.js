@@ -22,7 +22,7 @@ import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';
 import Modal from '../../components/modals/Modal';
 import NewMapModalBody from '../map/NewMapModalBody';
-import AppNavigationContainer from '../app/AppNavigationContainer';
+import ExploreNavigationContainer from './ExploreNavigationContainer';
 import SavedMapNavBar from '../map/SavedMapNavBar';
 import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
 import NewAlertModal from '../alerts/NewAlertModal';
@@ -248,7 +248,7 @@ class ExploreContainer extends React.Component<Props, State> {
         {this.renderSidebar()}
 
         <MainContent>
-          <AppNavigationContainer />
+          <ExploreNavigationContainer />
 
           <Switch>
             <Route path={Routes.MAP_ROUTE} render={this.renderMap} />

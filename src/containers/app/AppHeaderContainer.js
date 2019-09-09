@@ -14,14 +14,12 @@ import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 
+import AppNavigationContainer from './AppNavigationContainer';
 import AstrometricsIcon from '../../components/icons/AstrometricsIcon';
 import UsernameAndIcon from '../../components/icons/UsernameAndIcon';
 import * as Routes from '../../core/router/Routes';
 import { STATE, APP } from '../../utils/constants/StateConstants';
-import {
-  APP_CONTAINER_WIDTH,
-  APP_CONTENT_PADDING,
-} from '../../core/style/Sizes';
+import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
 import { switchOrganization } from './AppActions';
 import { orgSelectStyles } from '../../core/style/OrgSelectStyles';
 
@@ -49,13 +47,6 @@ const AppHeaderInnerWrapper = styled.div`
   justify-content: space-between;
   min-width: ${APP_CONTAINER_WIDTH}px;
   padding: 0 24px;
-`;
-
-const DisplayName = styled.span`
-  margin-right: 10px;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 12px;
-  color: #2e2e34;
 `;
 
 const LeftSideContentWrapper = styled.div`
@@ -95,11 +86,6 @@ const AppTitle = styled.h1`
   font-weight: 600;
   line-height: 17px;
   margin: 0 0 0 23px;
-`;
-
-const AppSubtitle = styled(AppTitle)`
-  font-weight: normal;
-  margin: 0 0 0 12px;
 `;
 
 const LogoutButton = styled(Button)`
@@ -190,10 +176,8 @@ class AppHeaderContainer extends Component<Props> {
         <AppTitle>
           Astrometrics
         </AppTitle>
-        <AppSubtitle>
-          ALPR Vehicle Search
-        </AppSubtitle>
       </LogoTitleWrapperLink>
+      <AppNavigationContainer />
     </LeftSideContentWrapper>
   )
 
