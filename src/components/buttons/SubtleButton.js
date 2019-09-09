@@ -13,7 +13,7 @@ const SubtleButton = styled.button`
   border: none;
 
   &:hover:enabled {
-    background-color: #36353B;
+    background-color: ${props => (props.noHover ? 'transparent' : '#36353B')};
     cursor: pointer;
   }
 

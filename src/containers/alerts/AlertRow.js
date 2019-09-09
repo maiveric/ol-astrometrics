@@ -217,7 +217,7 @@ class AlertRow extends React.Component<Props, State> {
 
           <div>
             {expired ? null : <SubtleButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire</SubtleButton>}
-            <SubtleButton onClick={() => this.setState({ expanded: !expanded })}>
+            <SubtleButton noHover onClick={() => this.setState({ expanded: !expanded })}>
               <Icon expanded={expanded} />
             </SubtleButton>
           </div>
