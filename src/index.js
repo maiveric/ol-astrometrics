@@ -38,6 +38,7 @@ const GlobalStyle = createGlobalStyle`
     font-family: 'Open Sans', sans-serif;
     height: 100%;
     width: 100%;
+    line-height: 150%;
   }
 
   * {
