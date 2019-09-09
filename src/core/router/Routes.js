@@ -7,7 +7,7 @@ export const ROOT :string = '/';
 export const LOGIN :string = '/login';
 
 export const EXPLORE :string = '/explore';
-export const AUIDT :string = '/audit';
+export const AUDIT :string = '/audit';
 export const QUALITY :string = '/quality';
 
 export const MAP :string = '/map';

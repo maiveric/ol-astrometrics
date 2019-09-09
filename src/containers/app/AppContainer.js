@@ -12,6 +12,7 @@ import { Redirect, Route, Switch } from 'react-router';
 import type { RequestSequence } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
+import AuditContainer from '../audit/AuditContainer';
 import EulaContainer from '../eula/EulaContainer';
 import ExploreContainer from '../explore/ExploreContainer';
 import Spinner from '../../components/spinner/Spinner';
@@ -22,7 +23,7 @@ import { APP_NAME } from '../../utils/constants/Constants';
 import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
-const APP_CONTENT_BG :string = '#f8f8fb';
+const APP_CONTENT_BG :string = '#1F1E24';
 
 const AppContainerWrapper = styled.div`
   display: flex;
@@ -81,6 +82,7 @@ class AppContainer extends Component<Props> {
     return (
       <Switch>
         <Route path={Routes.EXPLORE} component={ExploreContainer} />
+        <Route path={Routes.AUDIT} component={AuditContainer} />
         <Redirect to={Routes.EXPLORE} />
       </Switch>
     );

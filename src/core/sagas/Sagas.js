@@ -7,6 +7,7 @@ import { AuthSagas } from 'lattice-auth';
 
 import * as AlertSagas from '../../containers/alerts/AlertSagas';
 import * as AppSagas from '../../containers/app/AppSagas';
+import * as AuditSagas from '../../containers/audit/AuditSagas';
 import * as DrawSagas from '../../containers/map/DrawSagas';
 import * as EdmSagas from '../../containers/edm/EdmSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
@@ -36,6 +37,9 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AppSagas.authExpirationCleanupWatcher),
     fork(AppSagas.authFailureCleanupWatcher),
     fork(AppSagas.logoutCleanupWatcher),
+
+    /* AuditSagas */
+    fork(AuditSagas.loadAuditDataWatcher),
 
     /* DrawSagas */
     fork(DrawSagas.loadSavedMapsWatcher),

@@ -1,5 +1,6 @@
 export const STATE = {
   APP: 'app',
+  AUDIT: 'audit',
   ALERTS: 'ALERTS',
   DRAW: 'draw',
   EDM: 'EDM',
@@ -15,6 +16,14 @@ export const APP = {
   CONFIG_BY_ORG_ID: 'appConfigsByOrgId',
   SETTINGS_BY_ORG_ID: 'appSettingsByOrgId',
   ORGS_BY_ID: 'orgsById'
+};
+
+export const AUDIT = {
+  IS_LOADING_RESULTS: 'isLoadingResults',
+  RESULTS: 'results',
+  START_DATE: 'startDate',
+  END_DATE: 'endDate',
+  FILTER: 'filter'
 };
 
 export const DRAW = {
@@ -41,7 +50,8 @@ export const ALERTS = {
 
 export const EDM = {
   PROPERTY_TYPES: 'propertyTypes',
-  IS_LOADING_DATA_MODEL: 'isLoadingDataModel'
+  IS_LOADING_DATA_MODEL: 'isLoadingDataModel',
+  EDM_LOADED: 'edmLoaded'
 };
 
 export const ENTITY_SETS = {

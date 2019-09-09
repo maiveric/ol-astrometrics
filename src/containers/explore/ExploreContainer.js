@@ -46,6 +46,7 @@ import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 
 type Props = {
+  edmLoaded :boolean;
   alertModalOpen :boolean;
   newMapModalOpen :boolean;
   drawMode :boolean;
@@ -61,6 +62,7 @@ type Props = {
     loadAlerts :(edm :Map) => void;
     loadDataModel :() => void;
     loadDepartmentsAndDevices :() => void;
+    loadSavedMaps :() => void;
     setDrawMode :(isDrawMode :boolean) => void;
     updateSearchParameters :({ field :string, value :string }) => void;
     toggleAlertModal :(modalOpen :boolean) => void;
@@ -106,8 +108,8 @@ class ExploreContainer extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps) {
-    const { actions, edm } = this.props;
-    if (prevProps.edm.get(EDM.IS_LOADING_DATA_MODEL) && !edm.get(EDM.IS_LOADING_DATA_MODEL)) {
+    const { actions, edmLoaded } = this.props;
+    if (!prevProps.edmLoaded && edmLoaded) {
       actions.loadDepartmentsAndDevices();
       actions.loadSavedMaps();
     }
@@ -274,6 +276,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
   return {
     edm,
+    edmLoaded: edm.get(EDM.EDM_LOADED),
 
     vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     filter: explore.get(EXPLORE.FILTER),
