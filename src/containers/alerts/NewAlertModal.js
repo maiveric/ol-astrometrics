@@ -71,6 +71,12 @@ const ModalHeader = styled.div`
   line-height: 150%;
 `;
 
+const SubHeader = styled.div`
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 150%;
+`;
+
 const ModalSubtitle = styled.div`
   color: #8e929b;
   font-style: italic;
@@ -238,9 +244,9 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     actions.createAlert(alert);
   }
 
-  renderEmailSubtitle = (adjustTop) => {
+  getEmail = () => {
     const { email } = AuthUtils.getUserInfo();
-    return <ModalSubtitle adjustTop={adjustTop}>{`Alerts will be sent to ${email}`}</ModalSubtitle>;
+    return email;
   }
 
   render() {
@@ -317,6 +323,20 @@ class ManageAlertsContainer extends React.Component<Props, State> {
             </SectionRow>
 
           </SpaceBetweenRow>
+        </Section>
+
+        <Section>
+
+          <SectionRow>
+            <EvenlySpacedRow>
+              <SubHeader>Email alerts</SubHeader>
+            </EvenlySpacedRow>
+          </SectionRow>
+
+          <SectionRow>
+            <InputHeader>{`Sending alerts to ${this.getEmail()}`}</InputHeader>
+          </SectionRow>
+
         </Section>
 
         <Section>
