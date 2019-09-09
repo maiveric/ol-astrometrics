@@ -12,10 +12,10 @@ import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 
-import AlertRow from './AlertRow';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
+import SubtleButton from '../../components/buttons/SubtleButton';
 import InfoButton from '../../components/buttons/InfoButton';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import {
@@ -26,27 +26,23 @@ import {
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
+import { getSearchTerm } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from './AlertActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
-  alerts :List,
   isLoadingAlerts :boolean,
   isSubmitting :boolean,
   caseNum :string,
   searchReason :string,
   plate :string,
   expirationDate :string,
-  alertsEntitySetId :string,
   readsEntitySetId :string,
   platePropertyTypeId :string,
   parameters :Map,
-  edm :Map,
   actions :{
     loadAlerts :(edm :Map) => void,
     setAlertValue :({ field :string, value :string }) => void,
@@ -65,24 +61,14 @@ type Props = {
   }
 }
 
-const Wrapper = styled.div`
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  width: calc(100% - ${SIDEBAR_WIDTH}px);
-  height: calc(100% - ${INNER_NAV_BAR_HEIGHT - 1}px);
-  background-color: #1F1E24;
-  color: #ffffff;
-  bottom: 0;
-  right: 0;
-  padding: 56px 104px;
-  line-height: 150%;
-`;
+type State = {
+  isSettingNewAlert :boolean
+};
 
 const ModalHeader = styled.div`
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  font-size: 24px;
+  line-height: 150%;
 `;
 
 const ModalSubtitle = styled.div`
@@ -90,13 +76,6 @@ const ModalSubtitle = styled.div`
   font-style: italic;
   font-size: 14px;
   margin: ${props => (props.adjustTop ? '-20px 0 20px 0' : '-10px 0 10px 0')};
-`;
-
-const SubHeader = styled(ModalHeader)`
-  font-weight: 500;
-  font-size: 16px;
-  margin-top: 40px;
-  margin-bottom: 16px;
 `;
 
 const DateTimePickerWrapper = styled.div`
@@ -107,7 +86,23 @@ const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 20px 0;
+  padding: 10px 0;
+  width: 100%;
+`;
+
+const Accent = styled.span`
+  color: #e53b36 !important;
+`;
+
+const Section = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  &:not(:last-child) {
+    border-bottom: 1px solid #36353B;
+  }
+  padding-top: 32px;
 `;
 
 const SpinnerWrapper = styled.div`
@@ -117,13 +112,18 @@ const SpinnerWrapper = styled.div`
 `;
 
 const InputHeader = styled.span`
-  font-size: 14px;
-  font-weight: 600;
-  margin: 20px 0 5px 0;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 20px 0 8px 0;
 `;
 
 const StyledSearchableSelect = styled(SearchableSelect)`
   width: 100%;
+`;
+
+const SectionRow = styled.div`
+  width: 100%;
+  padding-bottom: 32px;
 `;
 
 const Row = styled.div`
@@ -149,13 +149,6 @@ const CenteredRow = styled(Row)`
 const EvenlySpacedRow = styled(Row)`
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-`;
-
-const NoAlerts = styled.div`
-  width: 100%;
-  font-size: 14px;
-  color: #98979D;
 `;
 
 class ManageAlertsContainer extends React.Component<Props, State> {
@@ -245,114 +238,91 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     return <ModalSubtitle adjustTop={adjustTop}>{`Alerts will be sent to ${email}`}</ModalSubtitle>;
   }
 
-  getExpiration = alert => moment(alert.get('expiration', ''));
-
-  sortAlerts = (a1, a2) => {
-    const dt1 = this.getExpiration(a1);
-    const dt2 = this.getExpiration(a2);
-    return dt1.isValid() && dt1.isAfter(dt2) ? -1 : 1;
-  }
-
-  expireAlert = (alert) => {
-    const { actions, edm, alertsEntitySetId } = this.props;
-
-    const entityKeyId = getEntityKeyId(alert);
-    const entitySetId = alertsEntitySetId;
-    const values = alert.set(PROPERTY_TYPES.END_DATE_TIME, List.of(moment().toISOString(true))).toJS();
-    actions.replaceEntity({
-      entitySetId,
-      entityKeyId,
-      values,
-      callback: () => actions.loadAlerts({ edm })
-    });
-  }
-
-  renderAlerts = (sortedAlerts, expired) => {
-
-    if (!sortedAlerts.size) {
-      return <NoAlerts>{`You have no ${expired ? 'expired' : 'active'} alerts.`}</NoAlerts>;
-    }
-
-    return sortedAlerts.map(alert => <AlertRow key={alert.get('id')} alert={alert} expired={expired} />);
-  }
-
-  renderAlertList = () => {
-    const { actions, alerts } = this.props;
-
-    let content = <NoAlerts>You have not set any alerts.</NoAlerts>;
-
-    if (alerts.size) {
-      const now = moment();
-
-      let active = List();
-      let inactive = List();
-
-      alerts.forEach((alert) => {
-        const dateTime = this.getExpiration(alert);
-        if (dateTime.isValid() && dateTime.isAfter(now)) {
-          active = active.push(alert);
-        }
-        else {
-          inactive = inactive.push(alert);
-        }
-      });
-
-      active = active.sort(this.sortAlerts);
-      inactive = inactive.sort(this.sortAlerts);
-
-      content = (
-        <>
-          <SubHeader>Active alerts</SubHeader>
-          {this.renderAlerts(active, false)}
-          <SubHeader>Expired alerts</SubHeader>
-          {this.renderAlerts(inactive, true)}
-        </>
-      );
-    }
-
-    const now = moment();
-
-    let active = List();
-    let inactive = List();
-
-    alerts.forEach((alert) => {
-      const dateTime = this.getExpiration(alert);
-      if (dateTime.isValid() && dateTime.isAfter(now)) {
-        active = active.push(alert);
-      }
-      else {
-        inactive = inactive.push(alert);
-      }
-    });
-
-    active = active.sort(this.sortAlerts);
-    inactive = inactive.sort(this.sortAlerts);
-
-    return (
-      <FormContainer>
-        <EvenlySpacedRow>
-          <ModalHeader>Alerts</ModalHeader>
-          <InfoButton onClick={() => actions.toggleAlertModal(true)}>Create new alert</InfoButton>
-        </EvenlySpacedRow>
-        {content}
-      </FormContainer>
-    );
-  }
-
   render() {
-    const { isLoadingAlerts, isSubmitting } = this.props;
+    const {
+      actions,
+      caseNum,
+      searchReason,
+      plate,
+      expirationDate,
+      isLoadingAlerts,
+      isSubmitting
+    } = this.props;
 
     if (isLoadingAlerts || isSubmitting) {
       return <SpinnerWrapper><Spinner /></SpinnerWrapper>;
     }
 
+    const canSubmit = caseNum
+      && searchReason
+      && expirationDate
+      && moment(expirationDate).isValid()
+      && plate
+      && plate.length > 3;
+
     return (
-      <Wrapper>
-        {this.renderAlertList()}
-      </Wrapper>
+      <FormContainer>
+        <Section>
+          <SectionRow>
+            <EvenlySpacedRow>
+              <ModalHeader>Create new alert</ModalHeader>
+            </EvenlySpacedRow>
+          </SectionRow>
+        </Section>
+
+        <Section>
+          <SectionRow>
+            <InputHeader>Case number</InputHeader>
+            <Accent>*</Accent>
+            <StyledInput value={caseNum} onChange={this.getOnChange(ALERTS.CASE_NUMBER)} />
+          </SectionRow>
+
+          <SectionRow>
+            <InputHeader>Search reason</InputHeader>
+            <Accent>*</Accent>
+            <StyledSearchableSelect
+                value={searchReason}
+                searchPlaceholder="Select"
+                onSelect={this.getOnChange(ALERTS.SEARCH_REASON, true)}
+                options={this.getAsMap(SEARCH_REASONS)}
+                selectOnly
+                transparent
+                short />
+          </SectionRow>
+
+          <SectionRow>
+            <InputHeader>Full license plate</InputHeader>
+            <Accent>*</Accent>
+            <StyledInput value={plate} onChange={this.getOnChange(ALERTS.PLATE, false, true)} />
+          </SectionRow>
+
+          <SectionRow>
+            <InputHeader>Alert expiration date and time</InputHeader>
+            <Accent>*</Accent>
+            <DateTimePickerWrapper>
+              <DateTimePicker
+                  onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
+                  value={expirationDate}
+                  dateFormat="MM/DD/YYYY"
+                  datePickerSelectProps={{
+                    placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
+                  }} />
+            </DateTimePickerWrapper>
+          </SectionRow>
+        </Section>
+
+        <Section>
+          <SectionRow>
+            <CenteredRow>
+              <SubtleButton onClick={() => actions.toggleAlertModal(false)}>Cancel</SubtleButton>
+              <InfoButton disabled={!canSubmit} onClick={this.createAlert}>Create Alert</InfoButton>
+            </CenteredRow>
+          </SectionRow>
+        </Section>
+
+      </FormContainer>
     );
   }
-
 
 }
 
@@ -364,9 +334,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const submit = state.get(STATE.SUBMIT);
 
   return {
-    alertsEntitySetId: getEntitySetId(app, APP_TYPES.ALERTS),
     readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
-    alerts: alerts.get(ALERTS.ALERT_LIST),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
     caseNum: alerts.get(ALERTS.CASE_NUMBER),
     searchReason: alerts.get(ALERTS.SEARCH_REASON),
@@ -374,8 +342,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     expirationDate: alerts.get(ALERTS.EXPIRATION),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
-    isSubmitting: submit.get(SUBMIT.SUBMITTING),
-    edm
+    isSubmitting: submit.get(SUBMIT.SUBMITTING)
   };
 }
 

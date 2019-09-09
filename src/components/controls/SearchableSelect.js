@@ -44,9 +44,8 @@ const SearchInputWrapper = styled.div`
 
 const inputStyle = `
   width: 100%;
-  background: #4F4E54;
 
-  background: #36353B;
+  background-color: #36353B !important;
   color: #ffffff;
   border-radius: 3px;
   border: none;
@@ -89,7 +88,9 @@ const SearchIcon = styled.div`
   color: #687F96;
   position: absolute;
   margin: 0 20px;
-  right: 0
+  right: 0;
+  height: 100%;
+  display: flex;
 `;
 
 

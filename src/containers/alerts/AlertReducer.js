@@ -8,6 +8,7 @@ import { ALERTS } from '../../utils/constants/StateConstants';
 import {
   SET_ALERT_VALUE,
   TOGGLE_ALERT_MODAL,
+  createAlert,
   loadAlerts
 } from './AlertActionFactory';
 
@@ -38,6 +39,12 @@ const INITIAL_STATE :Map<> = fromJS({
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
+
+    case createAlert.case(action.type): {
+      return loadAlerts.reducer(state, action, {
+        FINALLY: () => state.set(ALERT_MODAL_OPEN, false)
+      });
+    }
 
     case loadAlerts.case(action.type): {
       return loadAlerts.reducer(state, action, {

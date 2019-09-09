@@ -32,7 +32,7 @@ const NavLinkWrapper = styled(NavLink).attrs({
   letter-spacing: 0;
   margin-right: 30px;
   outline: none;
-  padding: 20px 0;
+  padding: 15px 0;
   text-align: left;
   text-decoration: none;
 

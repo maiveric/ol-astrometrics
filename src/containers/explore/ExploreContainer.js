@@ -25,6 +25,7 @@ import NewMapModalBody from '../map/NewMapModalBody';
 import AppNavigationContainer from '../app/AppNavigationContainer';
 import SavedMapNavBar from '../map/SavedMapNavBar';
 import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
+import NewAlertModal from '../alerts/NewAlertModal';
 import {
   STATE,
   ALERTS,
@@ -161,7 +162,7 @@ class ExploreContainer extends React.Component<Props, State> {
         isOpen: true,
         onClose: () => actions.toggleAlertModal(false)
       };
-      content = <ManageAlertsContainer />;
+      content = <NewAlertModal />;
     }
 
     return (
