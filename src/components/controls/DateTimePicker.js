@@ -1,5 +1,5 @@
 import React from 'react';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
+import { DatePicker, DateTimePicker } from '@atlaskit/datetime-picker';
 import styled from 'styled-components';
 
 const NEUTRALS :string[] = [
@@ -113,6 +113,19 @@ const StyledDateTimePicker = (props) => {
   };
 
   return <DateTimePicker {...props} {...allProps} />;
+};
+
+export const StyledDatePicker = (props) => {
+
+  const allProps = {
+    dateFormat: 'MM/DD/YYYY',
+    selectProps: { styles },
+    innerProps: {
+      style: { border: 'none' }
+    }
+  };
+
+  return <DatePicker {...props} {...allProps} />;
 };
 
 export default StyledDateTimePicker;

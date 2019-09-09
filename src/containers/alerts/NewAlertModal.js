@@ -10,7 +10,6 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
@@ -18,6 +17,7 @@ import SearchableSelect from '../../components/controls/SearchableSelect';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import InfoButton from '../../components/buttons/InfoButton';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
+import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 import {
   STATE,
   ALERTS,
@@ -122,7 +122,7 @@ const StyledSearchableSelect = styled(SearchableSelect)`
 `;
 
 const SectionRow = styled.div`
-  width: 100%;
+  width: ${props => (props.rowCount ? ((100 / props.rowCount) - 1) : 100)}%;
   padding-bottom: 32px;
 `;
 
@@ -134,6 +134,11 @@ const Row = styled.div`
   button {
     width: fit-content;
   }
+`;
+
+const SpaceBetweenRow = styled(Row)`
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const CenteredRow = styled(Row)`
@@ -290,25 +295,28 @@ class ManageAlertsContainer extends React.Component<Props, State> {
                 short />
           </SectionRow>
 
-          <SectionRow>
-            <InputHeader>Full license plate</InputHeader>
-            <Accent>*</Accent>
-            <StyledInput value={plate} onChange={this.getOnChange(ALERTS.PLATE, false, true)} />
-          </SectionRow>
+          <SpaceBetweenRow>
 
-          <SectionRow>
-            <InputHeader>Alert expiration date and time</InputHeader>
-            <Accent>*</Accent>
-            <DateTimePickerWrapper>
-              <DateTimePicker
-                  onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
-                  value={expirationDate}
-                  dateFormat="MM/DD/YYYY"
-                  datePickerSelectProps={{
-                    placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
-                  }} />
-            </DateTimePickerWrapper>
-          </SectionRow>
+            <SectionRow rowCount={2}>
+              <InputHeader>Full license plate</InputHeader>
+              <Accent>*</Accent>
+              <StyledInput value={plate} onChange={this.getOnChange(ALERTS.PLATE, false, true)} />
+            </SectionRow>
+
+            <SectionRow rowCount={2}>
+              <InputHeader>Alert expiration date and time</InputHeader>
+              <Accent>*</Accent>
+              <DateTimePickerWrapper>
+                <StyledDatePicker
+                    onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
+                    value={expirationDate}
+                    datePickerSelectProps={{
+                      placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
+                    }} />
+              </DateTimePickerWrapper>
+            </SectionRow>
+
+          </SpaceBetweenRow>
         </Section>
 
         <Section>
