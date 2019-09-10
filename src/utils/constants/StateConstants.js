@@ -21,6 +21,7 @@ export const APP = {
 export const AUDIT = {
   IS_LOADING_RESULTS: 'isLoadingResults',
   RESULTS: 'results',
+  FILTERED_RESULTS: 'filteredResults',
   START_DATE: 'startDate',
   END_DATE: 'endDate',
   FILTER: 'filter'
@@ -128,4 +129,12 @@ export const SAVED_MAP = {
   FEATURES: 'features',
   DATE_CREATED: 'dateCreated',
   CREATED_BY: 'createdBy'
+};
+
+export const AUDIT_EVENT = {
+  PERSON_ID: 'personId',
+  CASE_NUMBER: 'caseNumber',
+  DATE_TIME: 'dateTime',
+  REASON: 'reason',
+  PLATE: 'plate'
 };

@@ -26,7 +26,7 @@ import {
   loadAuditData
 } from './AuditActionFactory';
 
-import { AUDIT } from '../../utils/constants/StateConstants';
+import { AUDIT, AUDIT_EVENT } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 const getEmailFromNeighbors = (neighborsById, entityKeyId, usersById) => {
@@ -78,6 +78,7 @@ function* loadAuditDataWorker(action :SequenceAction) {
     const searchesEntitySetId = getEntitySetId(app, APP_TYPES.SEARCHES);
     const usersEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
     const dateTimePTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.LAST_REPORTED_DATE_TIME));
+    const platePTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.PLATE));
 
     const startDate = audit.get(AUDIT.START_DATE).format('YYYY-MM-DD');
     const endDate = audit.get(AUDIT.END_DATE).format('YYYY-MM-DD');
@@ -99,12 +100,44 @@ function* loadAuditDataWorker(action :SequenceAction) {
 
     searches = searches.map((search) => {
       const email = getEmailFromNeighbors(neighbors, getEntityKeyId(search), usersById);
-      return search.set([PROPERTY_TYPES.PERSON_ID], email);
-    }).sort((search1, search2) => {
-      const dateTime1 = search1.getIn([PROPERTY_TYPES.LAST_REPORTED_DATE_TIME, 0], '');
-      const dateTime2 = search2.getIn([PROPERTY_TYPES.LAST_REPORTED_DATE_TIME, 0], '');
 
-      return moment(dateTime1).isAfter(dateTime2) ? -1 : 1;
+      let licensePlate = '';
+      try {
+        const params = JSON.parse(search.getIn([PROPERTY_TYPES.SEARCH_QUERY, 0], '{}'));
+        const { constraints } = params;
+        constraints.forEach(({ constraints: nestedConstraints }) => {
+
+          nestedConstraints.forEach((constraint) => {
+            const { searchFields } = constraint;
+
+            if (searchFields && searchFields.length) {
+              searchFields.forEach(({ property, searchTerm }) => {
+
+                if (property === platePTId) {
+                  licensePlate = searchTerm;
+                }
+
+              });
+            }
+
+          });
+        });
+      }
+      catch (error) {
+        console.error(`Unable to parse JSON from search ${search.toJS()}`);
+      }
+
+      return Map()
+        .set(AUDIT_EVENT.PERSON_ID, email)
+        .set(AUDIT_EVENT.CASE_NUMBER, search.getIn([PROPERTY_TYPES.CASE_NUMBER, 0], 'Unknown'))
+        .set(AUDIT_EVENT.REASON, search.getIn([PROPERTY_TYPES.SEARCH_REASON, 0], 'Unknown'))
+        .set(AUDIT_EVENT.DATE_TIME, moment(search.getIn([PROPERTY_TYPES.LAST_REPORTED_DATE_TIME, 0], '')))
+        .set(AUDIT_EVENT.PLATE, licensePlate)
+    }).sort((search1, search2) => {
+      const dateTime1 = search1.get(AUDIT_EVENT.DATE_TIME, moment(''));
+      const dateTime2 = search2.get(AUDIT_EVENT.DATE_TIME, moment(''));
+
+      return dateTime1.isAfter(dateTime2) ? -1 : 1;
     });
 
     yield put(loadAuditData.success(action.id, searches));

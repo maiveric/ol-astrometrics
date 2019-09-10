@@ -14,6 +14,7 @@ import {
   withRouter
 } from 'react-router';
 
+import StyledInput from '../../components/controls/StyledInput';
 import Spinner from '../../components/spinner/Spinner';
 import {
   STATE,
@@ -86,20 +87,27 @@ class AuditContainer extends React.Component<Props, State> {
     }
   }
 
-  renderSomething = () => {
-    return (
-      <div>{this.props.edmLoaded}</div>
-    );
+  onFilterChange = ({ target }) => {
+    const { actions } = this.props;
+    const { value } = target;
+
+    actions.updateAuditFilter(value);
   }
 
 
   render() {
 
-    const { isLoadingEdm, isLoadingResults, edmLoaded } = this.props;
+    const {
+      isLoadingEdm,
+      isLoadingResults,
+      edmLoaded,
+      results,
+      filter
+    } = this.props;
 
-    // if (isLoadingEdm || isLoadingResults) {
-    //   return <Wrapper><Spinner /></Wrapper>;
-    // }
+    if (isLoadingEdm || isLoadingResults) {
+      return <Wrapper><Spinner /></Wrapper>;
+    }
 
     return (
       <Wrapper>
@@ -107,11 +115,12 @@ class AuditContainer extends React.Component<Props, State> {
         <MainContent>
 
           <div>Audit log.</div>
-          {this.renderSomething()}
 
           <div>Edm loaded?</div>
           <div>{edmLoaded}</div>
           <div>{`${edmLoaded}`}</div>
+
+          <StyledInput value={filter} onChange={this.onFilterChange} />
 
 
         </MainContent>
@@ -130,7 +139,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingEdm: edm.get(EDM.IS_LOADING_DATA_MODEL),
 
     isLoadingResults: audit.get(AUDIT.IS_LOADING_RESULTS),
-    results: audit.get(AUDIT.RESULTS),
+    results: audit.get(AUDIT.FILTERED_RESULTS),
     startDate: audit.get(AUDIT.START_DATE),
     endDate: audit.get(AUDIT.END_DATE),
     filter: audit.get(AUDIT.FILTER)
