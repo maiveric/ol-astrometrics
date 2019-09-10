@@ -182,7 +182,7 @@ const VehicleCard = ({
           <span>{state}</span>
           <div>{plate}</div>
           {
-            !hitTypes.size ? (
+            hitTypes.size ? (
               <HitType>
                 <FontAwesomeIcon icon={faExclamationTriangle} />
               </HitType>
