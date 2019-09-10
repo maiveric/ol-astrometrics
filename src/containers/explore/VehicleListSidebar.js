@@ -16,6 +16,7 @@ import type { RequestSequence } from 'redux-reqseq';
 import BasicSidebar from '../../components/body/Sidebar';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import DropdownButton from '../../components/buttons/DropdownButton';
+import FilterIcon from '../../components/icons/FilterIcon';
 import Spinner from '../../components/spinner/Spinner';
 import Pagination from '../../components/pagination/Pagination';
 import VehicleCard from '../../components/vehicles/VehicleCard';
@@ -113,30 +114,28 @@ const VehicleReadCount = styled.div`
 `;
 
 const FilterBar = styled.div`
-  margin: 10px 0 20px 0;
+  padding-bottom: 24px;
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
 `;
 
 const FilterGroup = styled.div`
-  width: 50%;
+  width: fit-content;
   display: flex;
   flex-direction: row;
   align-items: center;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
+`;
 
-  span {
-    font-weight: 300;
-    padding-right: 10px;
-    width: 30%;
-  }
-
-  article {
-    width: 70%;
-  }
+const FilterLabel = styled.span`
+  font-weight: normal;
+  padding-right: 10px;
+  color: #807F85;
 `;
 
 const VehicleListWrapper = styled.div`
@@ -217,13 +216,12 @@ class Sidebar extends React.Component<Props, State> {
     return (
       <FilterBar>
         <FilterGroup>
-          <span>Sort by: </span>
+          <FilterLabel>Sort by </FilterLabel>
           <DropdownButton title={sort} options={sortOptions} invisible />
         </FilterGroup>
         <FilterGroup>
-          <span>Filter: </span>
           <article>
-            <DropdownButton title={filterTitle} options={this.getFilterOptions(records)} invisible />
+            <DropdownButton title="" options={this.getFilterOptions(records)} Icon={FilterIcon} invisible />
           </article>
         </FilterGroup>
       </FilterBar>
