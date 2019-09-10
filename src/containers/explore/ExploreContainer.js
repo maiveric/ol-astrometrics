@@ -16,7 +16,7 @@ import {
 import type { RequestSequence } from 'redux-reqseq';
 
 import Sidebar from '../../components/body/Sidebar';
-import VehicleSidebar from './Sidebar';
+import VehicleSidebar from './VehicleListSidebar';
 import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
 import SearchParameters from '../parameters/SearchParameters';
 import SimpleMap from '../../components/maps/SimpleMap';

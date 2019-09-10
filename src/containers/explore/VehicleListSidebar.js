@@ -9,8 +9,12 @@ import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import type { RequestSequence } from 'redux-reqseq';
 
+import BasicSidebar from '../../components/body/Sidebar';
+import SubtleButton from '../../components/buttons/SubtleButton';
 import DropdownButton from '../../components/buttons/DropdownButton';
 import Spinner from '../../components/spinner/Spinner';
 import Pagination from '../../components/pagination/Pagination';
@@ -27,6 +31,7 @@ import { getEntitySetId } from '../../utils/AppUtils';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
@@ -59,21 +64,46 @@ type State = {
   sort :string
 };
 
-const SidebarWrapper = styled.div`
-  position: absolute;
-  z-index: 1;
-  right: 0;
-  width: 500px;
-  padding: 100px 30px 30px 30px;
-  background-color: rgba(26, 16, 59, 0.9);
+const SidebarWrapper = styled(BasicSidebar)`
   display: flex;
   flex-direction: column;
   height: 100%;
   color: #ffffff;
 
-  h1 {
-    font-size: 20px;
-    font-weight: 400;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const PaddedSection = styled.div`
+  width: 100%;
+  padding: 16px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const HeaderSection = styled(PaddedSection)`
+  border-bottom: 1px solid #36353B;
+`;
+
+const VehicleReadCount = styled.div`
+  padding-top: 4px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 150%;
+
+  div:last-child {
+    padding-left: 10px;
+    color: #807F85;
   }
 `;
 
@@ -106,12 +136,19 @@ const FilterGroup = styled.div`
 
 const VehicleListWrapper = styled.div`
   height: 100%;
-  overflow-y: scroll;
-  -ms-overflow-style: none;
-  overflow: -moz-scrollbars-none;
+`;
 
-  &::-webkit-scrollbar {
-    display: none;
+const BackButton = styled(SubtleButton).attrs({
+  noHover: true
+})`
+  color: #807F85;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  font-size: 11px;
+
+  span {
+    padding-left: 5px;
   }
 `;
 
@@ -274,6 +311,25 @@ class Sidebar extends React.Component<Props, State> {
     return false;
   }
 
+  renderHeader = (numVehicles) => {
+    const { actions, results } = this.props;
+
+    const numReads = results.size;
+
+    return (
+      <HeaderSection>
+        <BackButton onClick={() => actions.editSearchParameters(true)}>
+          <FontAwesomeIcon icon={faChevronLeft} />
+          <span>Update search</span>
+        </BackButton>
+        <VehicleReadCount>
+          <div>{`${numVehicles} vehicles`}</div>
+          <div>{`${numReads} reads`}</div>
+        </VehicleReadCount>
+      </HeaderSection>
+    );
+  }
+
   render() {
     const {
       actions,
@@ -300,9 +356,9 @@ class Sidebar extends React.Component<Props, State> {
 
     return (
       <SidebarWrapper>
-        <h1>{vehicles.size} vehicles found</h1>
-        {this.renderFilters(recordsByVehicleId.valueSeq())}
-        <VehicleListWrapper>
+        {this.renderHeader(vehicles.size)}
+        <PaddedSection>
+          {this.renderFilters(recordsByVehicleId.valueSeq())}
           {vehiclePage.map((vehicle) => {
             const entityKeyId = getEntityKeyId(vehicle);
             const isInReport = reportVehicles.has(entityKeyId);
@@ -324,11 +380,11 @@ class Sidebar extends React.Component<Props, State> {
                   timestampDesc={sort === SORT_TYPE.NEWEST} />
             );
           })}
-        </VehicleListWrapper>
-        <Pagination
-            numPages={Math.ceil(sortedVehicles.size / PAGE_SIZE)}
-            activePage={page}
-            onChangePage={newPage => this.setState({ page: newPage })} />
+          <Pagination
+              numPages={Math.ceil(sortedVehicles.size / PAGE_SIZE)}
+              activePage={page}
+              onChangePage={newPage => this.setState({ page: newPage })} />
+        </PaddedSection>
       </SidebarWrapper>
     );
   }
@@ -371,6 +427,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ReportActionFactory).forEach((action :string) => {
     actions[action] = ReportActionFactory[action];
+  });
+
+  Object.keys(ParametersActionFactory).forEach((action :string) => {
+    actions[action] = ParametersActionFactory[action];
   });
 
   return {
