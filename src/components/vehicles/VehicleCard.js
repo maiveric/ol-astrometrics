@@ -7,11 +7,10 @@ import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faPlus } from '@fortawesome/pro-light-svg-icons';
+import { faPlus } from '@fortawesome/pro-light-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
 
 import SubtleButton from '../buttons/SubtleButton';
-import ToggleReportButton from '../buttons/ToggleReportButton';
-import { getDisplayNameForId } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 type Props = {
@@ -110,16 +109,8 @@ const ReadDetails = styled(BasicRow)`
 `;
 
 const HitType = styled.div`
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  color: #ff3c5d;
-
-  span {
-    margin-left: 10px;
-    font-weight: 600;
-  }
+  padding-left: 8px;
+  color: #EE5345 !important;
 `;
 
 const AddToReportButton = styled(SubtleButton)`
@@ -185,21 +176,18 @@ const VehicleCard = ({
 
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
-      {
-        hitTypes.size ? (
-          <Section>
-            <HitType>
-              <FontAwesomeIcon icon={faExclamationTriangle} />
-              <span>{hitTypes.join(', ')}</span>
-            </HitType>
-          </Section>
-        ) : null
-      }
 
       <HeaderRow>
         <div>
           <span>{state}</span>
           <div>{plate}</div>
+          {
+            !hitTypes.size ? (
+              <HitType>
+                <FontAwesomeIcon icon={faExclamationTriangle} />
+              </HitType>
+            ) : null
+          }
         </div>
 
         <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
