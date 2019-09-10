@@ -26,6 +26,7 @@ import {
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { HEADER_HEIGHT } from '../../core/style/Sizes';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
@@ -67,7 +68,10 @@ type State = {
 const SidebarWrapper = styled(BasicSidebar)`
   display: flex;
   flex-direction: column;
-  height: 100%;
+  justify-content: flex-start;
+  top: ${HEADER_HEIGHT}px;
+  bottom: 0;
+  height: calc(100% - ${HEADER_HEIGHT}px);
   color: #ffffff;
 
   overflow-y: scroll;
@@ -89,6 +93,10 @@ const PaddedSection = styled.div`
 
 const HeaderSection = styled(PaddedSection)`
   border-bottom: 1px solid #36353B;
+`;
+
+const Placeholder = styled.div`
+  height: 100px;
 `;
 
 const VehicleReadCount = styled.div`
@@ -135,7 +143,6 @@ const FilterGroup = styled.div`
 `;
 
 const VehicleListWrapper = styled.div`
-  height: 100%;
 `;
 
 const BackButton = styled(SubtleButton).attrs({
