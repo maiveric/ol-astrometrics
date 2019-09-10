@@ -140,7 +140,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           selectedEntityKeyIds = selectedEntityKeyIds.add(data);
           state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
             if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
-              const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails', Map()));
+              const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
               if (entityKeyId) {
                 idsToMatch = idsToMatch.add(entityKeyId);
               }
@@ -150,7 +150,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
         state.get(ENTITY_NEIGHBORS_BY_ID).entrySeq().forEach(([entityKeyId, neighborList]) => {
           neighborList.forEach((neighbor) => {
-            if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails', Map())))) {
+            if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails') || Map()))) {
               selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
             }
           });

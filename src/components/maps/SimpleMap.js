@@ -27,6 +27,13 @@ const COORDS = {
 
 const DEFAULT_COORDS = COORDS.BAY_AREA;
 
+const LAYERS = {
+  ALL_SOURCE_FEATURES: 'allsourcefeatures',
+  SELECTED_SOURCE_FEATURES: 'selectedsourcefeatures',
+  SELECTED_READ: 'selectedread',
+  SEARCH_RADIUS: 'searchradius'
+};
+
 type Props = {
   drawMode :boolean,
   entities :List<Map<*, *>>,
@@ -143,30 +150,6 @@ class SimpleMap extends React.Component<Props, State> {
     )).toArray();
   }
 
-  renderDefaultLayer = () => {
-    const image = new Image(20, 30);
-    image.src = mapMarker;
-    const images = ['mapMarker', image];
-    return (
-      <Layer
-          type="symbol"
-          id="symbol"
-          images={images}
-          layout={{ 'icon-image': 'mapMarker' }}>
-        {this.getFeatures()}
-      </Layer>
-    );
-  }
-
-  renderHeatmapLayer = () => (
-    <Layer
-        type="heatmap"
-        id="heatmap"
-        paint={HEATMAP_PAINT}>
-      {this.getFeatures()}
-    </Layer>
-  )
-
   metersToPixelsAtMaxZoom = (meters, latitude) => meters / 0.075 / Math.cos(latitude * Math.PI / 180);
 
   milesToPixelsAtMaxZoom = (miles, latitude) => this.metersToPixelsAtMaxZoom(miles * 1609.34, latitude);
@@ -192,7 +175,7 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   renderSearchAreaLayer = () => {
-    const { searchParameters } = this.props;
+    const { entities, searchParameters } = this.props;
     const radius = searchParameters.get(PARAMETERS.RADIUS);
     const latitude = searchParameters.get(PARAMETERS.LATITUDE);
     const longitude = searchParameters.get(PARAMETERS.LONGITUDE);
@@ -201,9 +184,9 @@ class SimpleMap extends React.Component<Props, State> {
       return (
         <Layer
             type="circle"
-            id="search-radius"
+            id={LAYERS.SEARCH_RADIUS}
             paint={{
-              'circle-opacity': 0.3,
+              'circle-opacity': entities.size ? 0.1 : 0.3,
               'circle-color': SEARCH_ZONE_COLORS[0],
               'circle-stroke-color': SEARCH_ZONE_COLORS[0],
               'circle-stroke-width': 1,
@@ -224,7 +207,7 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   renderSearchZones = () => {
-    const { searchParameters } = this.props;
+    const { entities, searchParameters } = this.props;
 
     return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
       const color = SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length];
@@ -233,7 +216,7 @@ class SimpleMap extends React.Component<Props, State> {
         <GeoJSONLayer
             key={`polygon-${index}`}
             fillPaint={{
-              'fill-opacity': 0.3,
+              'fill-opacity': entities.size ? 0.1 : 0.3,
               'fill-color': color,
               'fill-stroke-color': color,
               'fill-stroke-width': 1,
@@ -272,22 +255,17 @@ class SimpleMap extends React.Component<Props, State> {
             features: entities.filter(entityFilter).map(this.mapEntityToFeature).toArray()
           }}
           fillOnClick={console.log}
-          circleOnClick={console.log}
-          sourceOptions={{
-            cluster: false,
-            clusterMaxZoom: 14,
-            clusterRadius: 50
-          }} />
+          circleOnClick={console.log} />
     );
   }
 
-  addSource = () => this.getSourceLayer('sourcefeaturesyes', entity => getCoordinates(entity))
+  addSource = () => this.getSourceLayer(LAYERS.ALL_SOURCE_FEATURES, entity => getCoordinates(entity))
 
   addSelectedSource = () => {
     const { selectedEntityKeyIds } = this.props;
 
     return this.getSourceLayer(
-      'selectedsourcefeatures',
+      LAYERS.SELECTED_SOURCE_FEATURES,
       entity => selectedEntityKeyIds.has(getEntityKeyId(entity)) && getCoordinates(entity)
     );
   }
@@ -296,7 +274,7 @@ class SimpleMap extends React.Component<Props, State> {
     const { selectedReadId } = this.props;
 
     return this.getSourceLayer(
-      'selectedread',
+      LAYERS.SELECTED_READ,
       entity => getEntityKeyId(entity) === selectedReadId && getCoordinates(entity)
     );
   }
@@ -304,7 +282,7 @@ class SimpleMap extends React.Component<Props, State> {
   renderSelectedFeatures = () => (
     <Layer
         type="circle"
-        sourceId="selectedsourcefeatures"
+        sourceId={LAYERS.SELECTED_SOURCE_FEATURES}
         paint={{
           'circle-opacity': 1,
           'circle-color': SEARCH_ZONE_COLORS[0],
@@ -318,7 +296,7 @@ class SimpleMap extends React.Component<Props, State> {
   renderSelectedReadFeature = () => (
     <Layer
         type="circle"
-        sourceId="selectedread"
+        sourceId={LAYERS.SELECTED_READ}
         paint={{
           'circle-opacity': 1,
           'circle-color': '#ff3c5d',
@@ -332,7 +310,7 @@ class SimpleMap extends React.Component<Props, State> {
   renderSelectedFeaturesInnerCircles = () => (
     <Layer
         type="circle"
-        sourceId="selectedsourcefeatures"
+        sourceId={LAYERS.SELECTED_SOURCE_FEATURES}
         paint={{
           'circle-opacity': 1,
           'circle-color': '#ffffff',
@@ -347,7 +325,7 @@ class SimpleMap extends React.Component<Props, State> {
       <Layer
           id="data-points"
           type="circle"
-          sourceId="sourcefeaturesyes"
+          sourceId={LAYERS.ALL_SOURCE_FEATURES}
           paint={{
             'circle-opacity': selectedEntityKeyIds.size ? 0.4 : 1,
             'circle-color': SEARCH_ZONE_COLORS[0],
