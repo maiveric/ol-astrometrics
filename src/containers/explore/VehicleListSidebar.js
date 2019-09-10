@@ -138,9 +138,6 @@ const FilterLabel = styled.span`
   color: #807F85;
 `;
 
-const VehicleListWrapper = styled.div`
-`;
-
 const BackButton = styled(SubtleButton).attrs({
   noHover: true
 })`

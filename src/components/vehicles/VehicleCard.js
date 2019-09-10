@@ -122,11 +122,24 @@ const HitType = styled.div`
   }
 `;
 
+const AddToReportButton = styled(SubtleButton)`
+  background-color: ${props => (props.isInReport ? '#CAC9CE' : 'transparent')};
+  color: ${props => (props.isInReport ? '#36353B' : '#ffffff')};
+  border-radius: 50%;
+  height: 24px !important;
+  width: 24px !important;
+
+  &:hover {
+    background-color: ${props => (props.isInReport ? '#CAC9CE' : '#4F4E54')} !important;
+  }
+`;
+
 const VehicleCard = ({
   vehicle,
   records,
   onClick,
   isUnselected,
+  isInReport,
   timestampDesc,
   toggleReport
 } :Props) => {
@@ -189,9 +202,9 @@ const VehicleCard = ({
           <div>{plate}</div>
         </div>
 
-        <SubtleButton onClick={onToggleReport}>
+        <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
           <FontAwesomeIcon icon={faPlus} />
-        </SubtleButton>
+        </AddToReportButton>
       </HeaderRow>
 
       <Section>
