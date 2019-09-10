@@ -29,13 +29,15 @@ const INITIAL_STATE :Map<> = fromJS({
   [FILTER]: ''
 });
 
+// const applyFilter = (results, )
+
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
 
     case loadAuditData.case(action.type): {
       return loadAuditData.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_RESULTS, true),
-        SUCCESS: () => state.set(RESULTS, fromJS(action.value)),
+        SUCCESS: () => state.set(RESULTS, action.value),
         FINALLY: () => state.set(IS_LOADING_RESULTS, false)
       });
     }

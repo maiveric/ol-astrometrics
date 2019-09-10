@@ -44,7 +44,6 @@ type Props = {
 };
 
 type State = {
-
 };
 
 const Wrapper = styled.div`
@@ -65,7 +64,6 @@ class AuditContainer extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-
     };
   }
 
@@ -74,6 +72,9 @@ class AuditContainer extends React.Component<Props, State> {
 
     if (!edmLoaded) {
       actions.loadDataModel();
+    }
+    else {
+      actions.loadAuditData()
     }
   }
 
@@ -85,13 +86,20 @@ class AuditContainer extends React.Component<Props, State> {
     }
   }
 
+  renderSomething = () => {
+    return (
+      <div>{this.props.edmLoaded}</div>
+    );
+  }
+
+
   render() {
 
-    const { isLoadingEdm, isLoadingResults } = this.props;
+    const { isLoadingEdm, isLoadingResults, edmLoaded } = this.props;
 
-    if (isLoadingEdm || isLoadingResults) {
-      return <Wrapper><Spinner /></Wrapper>;
-    }
+    // if (isLoadingEdm || isLoadingResults) {
+    //   return <Wrapper><Spinner /></Wrapper>;
+    // }
 
     return (
       <Wrapper>
@@ -99,6 +107,11 @@ class AuditContainer extends React.Component<Props, State> {
         <MainContent>
 
           <div>Audit log.</div>
+          {this.renderSomething()}
+
+          <div>Edm loaded?</div>
+          <div>{edmLoaded}</div>
+          <div>{`${edmLoaded}`}</div>
 
 
         </MainContent>
