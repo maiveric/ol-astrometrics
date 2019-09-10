@@ -62,7 +62,8 @@ type Props = {
 };
 
 type State = {
-  sort :string
+  sort :string,
+  page :number
 };
 
 const SidebarWrapper = styled(BasicSidebar)`
@@ -93,10 +94,6 @@ const PaddedSection = styled.div`
 
 const HeaderSection = styled(PaddedSection)`
   border-bottom: 1px solid #36353B;
-`;
-
-const Placeholder = styled.div`
-  height: 100px;
 `;
 
 const VehicleReadCount = styled.div`
@@ -337,16 +334,41 @@ class Sidebar extends React.Component<Props, State> {
     );
   }
 
-  render() {
+  renderVehicles = (vehiclePage, recordsByVehicleId) => {
     const {
       actions,
       departmentOptions,
       deviceOptions,
-      isLoadingResults,
-      isLoadingNeighbors,
       reportVehicles
     } = this.props;
-    const { sort, page } = this.state;
+    const { sort } = this.state;
+
+    return vehiclePage.map((vehicle) => {
+      const entityKeyId = getEntityKeyId(vehicle);
+      const isInReport = reportVehicles.has(entityKeyId);
+      const toggleReport = isInReport
+        ? () => actions.removeVehicleFromReport(entityKeyId)
+        : () => actions.addVehicleToReport(entityKeyId);
+      return (
+        <VehicleCard
+            key={entityKeyId}
+            isUnselected={this.vehicleIsUnselected(recordsByVehicleId.get(entityKeyId, List()))}
+            onClick={() => this.onVehicleClick(entityKeyId)}
+            vehicle={vehicle}
+            departmentOptions={departmentOptions}
+            deviceOptions={deviceOptions}
+            isInReport={isInReport}
+            toggleReport={toggleReport}
+            records={recordsByVehicleId.get(entityKeyId, List())}
+            count={recordsByVehicleId.get(entityKeyId).size}
+            timestampDesc={sort === SORT_TYPE.NEWEST} />
+      );
+    });
+  }
+
+  render() {
+    const { isLoadingResults, isLoadingNeighbors } = this.props;
+    const { page } = this.state;
 
     if (isLoadingResults || isLoadingNeighbors) {
       return <SidebarWrapper><Spinner /></SidebarWrapper>;
@@ -365,28 +387,11 @@ class Sidebar extends React.Component<Props, State> {
       <SidebarWrapper>
         {this.renderHeader(vehicles.size)}
         <PaddedSection>
+
           {this.renderFilters(recordsByVehicleId.valueSeq())}
-          {vehiclePage.map((vehicle) => {
-            const entityKeyId = getEntityKeyId(vehicle);
-            const isInReport = reportVehicles.has(entityKeyId);
-            const toggleReport = isInReport
-              ? () => actions.removeVehicleFromReport(entityKeyId)
-              : () => actions.addVehicleToReport(entityKeyId);
-            return (
-              <VehicleCard
-                  key={entityKeyId}
-                  isUnselected={this.vehicleIsUnselected(recordsByVehicleId.get(entityKeyId, List()))}
-                  onClick={() => this.onVehicleClick(entityKeyId)}
-                  vehicle={vehicle}
-                  departmentOptions={departmentOptions}
-                  deviceOptions={deviceOptions}
-                  isInReport={isInReport}
-                  toggleReport={toggleReport}
-                  records={recordsByVehicleId.get(entityKeyId, List())}
-                  count={recordsByVehicleId.get(entityKeyId).size}
-                  timestampDesc={sort === SORT_TYPE.NEWEST} />
-            );
-          })}
+
+          {this.renderVehicles(vehiclePage, recordsByVehicleId)}
+
           <Pagination
               numPages={Math.ceil(sortedVehicles.size / PAGE_SIZE)}
               activePage={page}
