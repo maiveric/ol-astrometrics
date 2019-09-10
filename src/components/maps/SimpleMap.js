@@ -261,7 +261,7 @@ class SimpleMap extends React.Component<Props, State> {
     };
   }
 
-  getSourceLayer = (id, entityFilter, shouldCluster) => {
+  getSourceLayer = (id, entityFilter) => {
     const { entities } = this.props;
 
     return (
@@ -274,22 +274,21 @@ class SimpleMap extends React.Component<Props, State> {
           fillOnClick={console.log}
           circleOnClick={console.log}
           sourceOptions={{
-            cluster: shouldCluster,
+            cluster: false,
             clusterMaxZoom: 14,
             clusterRadius: 50
           }} />
     );
   }
 
-  addSource = () => this.getSourceLayer('sourcefeatures', entity => getCoordinates(entity), true)
+  addSource = () => this.getSourceLayer('sourcefeaturesyes', entity => getCoordinates(entity))
 
   addSelectedSource = () => {
     const { selectedEntityKeyIds } = this.props;
 
     return this.getSourceLayer(
       'selectedsourcefeatures',
-      entity => selectedEntityKeyIds.has(getEntityKeyId(entity)) && getCoordinates(entity),
-      false
+      entity => selectedEntityKeyIds.has(getEntityKeyId(entity)) && getCoordinates(entity)
     );
   }
 
@@ -298,38 +297,7 @@ class SimpleMap extends React.Component<Props, State> {
 
     return this.getSourceLayer(
       'selectedread',
-      entity => getEntityKeyId(entity) === selectedReadId && getCoordinates(entity),
-      false
-    );
-  }
-
-  renderClusters = () => {
-    const { selectedEntityKeyIds } = this.props;
-    return (
-      <Layer
-          type="circle"
-          sourceId="sourcefeatures"
-          filter={['has', 'point_count']}
-          paint={{
-            'circle-opacity': selectedEntityKeyIds.size ? 0.4 : 1,
-            'circle-color': SEARCH_ZONE_COLORS[0],
-            'circle-radius': [
-              'step',
-              ['get', 'point_count'],
-              10,
-              20,
-              20,
-              100,
-              30,
-              300,
-              40,
-              500,
-              50
-            ],
-            'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': 2,
-            'circle-stroke-opacity': selectedEntityKeyIds.size ? 0.4 : 1
-          }} />
+      entity => getEntityKeyId(entity) === selectedReadId && getCoordinates(entity)
     );
   }
 
@@ -372,20 +340,6 @@ class SimpleMap extends React.Component<Props, State> {
         }} />
   )
 
-  renderClusteredCounts = () => {
-    return (
-      <Layer
-          type="symbol"
-          sourceId="sourcefeatures"
-          filter={['has', 'point_count']}
-          layout={{
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 12
-          }} />
-    );
-  }
-
   renderUnclusteredPoints = () => {
     const { selectedEntityKeyIds } = this.props;
 
@@ -393,8 +347,7 @@ class SimpleMap extends React.Component<Props, State> {
       <Layer
           id="data-points"
           type="circle"
-          sourceId="sourcefeatures"
-          filter={['!', ['has', 'point_count']]}
+          sourceId="sourcefeaturesyes"
           paint={{
             'circle-opacity': selectedEntityKeyIds.size ? 0.4 : 1,
             'circle-color': SEARCH_ZONE_COLORS[0],
@@ -444,6 +397,29 @@ class SimpleMap extends React.Component<Props, State> {
     ) : null;
   }
 
+  renderReads = () => {
+
+    return (
+      <>
+        {this.addSource()}
+        {this.renderUnclusteredPoints()}
+      </>
+    );
+  }
+
+  renderSelectedReads = () => {
+
+    return (
+      <>
+        {this.addSelectedSource()}
+        {this.addSelectedReadSource()}
+        {this.renderSelectedFeatures()}
+        {this.renderSelectedReadFeature()}
+        {this.renderSelectedFeaturesInnerCircles()}
+      </>
+    )
+  }
+
   render() {
     const { searchParameters } = this.props;
     const { fitToBounds } = this.state;
@@ -476,18 +452,11 @@ class SimpleMap extends React.Component<Props, State> {
             }}
             {...optionalProps}>
 
-          {this.addSource()}
           <DrawComponent />
-          {this.renderClusters()}
-          {this.renderClusteredCounts()}
-          {this.renderUnclusteredPoints()}
-          {/* {heatmap ? this.renderHeatmapLayer() : this.renderDefaultLayer()} */}
 
-          {this.addSelectedSource()}
-          {this.addSelectedReadSource()}
-          {this.renderSelectedFeatures()}
-          {this.renderSelectedReadFeature()}
-          {this.renderSelectedFeaturesInnerCircles()}
+          {this.renderReads()}
+
+          {this.renderSelectedReads()}
 
           {this.renderSearchZones()}
           {this.renderAddressAndRadiusSearchParams(searchFields)}

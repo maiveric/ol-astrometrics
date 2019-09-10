@@ -48,13 +48,6 @@ type State = {
   expanded :boolean
 };
 
-const ModalSubtitle = styled.div`
-  color: #8e929b;
-  font-style: italic;
-  font-size: 14px;
-  margin: ${props => (props.adjustTop ? '-20px 0 20px 0' : '-10px 0 10px 0')};
-`;
-
 const Alert = styled.div`
   display: flex;
   flex-direction: column;
@@ -197,7 +190,7 @@ class AlertRow extends React.Component<Props, State> {
           </InfoGroup>
         </InfoRow>
       </>
-    )
+    );
 
   }
 
@@ -218,7 +211,7 @@ class AlertRow extends React.Component<Props, State> {
           <div>
             {expired ? null : <SubtleButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire</SubtleButton>}
             <SubtleButton noHover onClick={() => this.setState({ expanded: !expanded })}>
-              <Icon expanded={expanded} />
+              <Icon expanded={`${expanded}`} />
             </SubtleButton>
           </div>
         </AlertHeaderRow>
