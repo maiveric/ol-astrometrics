@@ -22,30 +22,32 @@ const {
   FILTER
 } = AUDIT;
 
+const INITIAL_FILTERS = fromJS({
+  [AUDIT_EVENT.PERSON_ID]: '',
+  [AUDIT_EVENT.CASE_NUMBER]: '',
+  [AUDIT_EVENT.REASON]: '',
+  [AUDIT_EVENT.PLATE]: ''
+});
+
 const INITIAL_STATE :Map<> = fromJS({
   [IS_LOADING_RESULTS]: false,
   [RESULTS]: List(),
   [FILTERED_RESULTS]: List(),
   [START_DATE]: moment().subtract(2, 'weeks'),
   [END_DATE]: moment(),
-  [FILTER]: ''
+  [FILTER]: INITIAL_FILTERS
 });
 
-const applyFilter = (results, initialFilter) => results.filter((auditEvent) => {
+const applyFilter = (results, filters) => {
+  const activeFilters = filters.map(val => val.trim().toLowerCase()).filter(val => !!val);
 
-  const filter = initialFilter.trim().toLowerCase();
-
-  if (!filter) {
+  if (!activeFilters.size) {
     return results;
   }
 
-  const personId = auditEvent.get(AUDIT_EVENT.PERSON_ID, '').toLowerCase();
-  const caseNumber = auditEvent.get(AUDIT_EVENT.CASE_NUMBER, '').toLowerCase();
-  const reason = auditEvent.get(AUDIT_EVENT.REASON, '').toLowerCase(); // TODO do we want to filter on reason?
-  const plate = auditEvent.get(AUDIT_EVENT.PLATE, '').toLowerCase();
-
-  return personId.includes(filter) || caseNumber.includes(filter) || reason.includes(filter) || plate.includes(filter);
-});
+  return results.filter(auditEvent => activeFilters
+    .find((filter, field) => auditEvent.get(field, '').toLowerCase().includes(filter)));
+};
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
@@ -66,10 +68,12 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case UPDATE_AUDIT_END:
       return state.set(END_DATE, action.value);
 
-    case UPDATE_AUDIT_FILTER:
+    case UPDATE_AUDIT_FILTER: {
+      const newFilters = state.get(FILTER).set(action.value.field, action.value.value);
       return state
-        .set(FILTER, action.value.toLowerCase())
-        .set(FILTERED_RESULTS, applyFilter(state.get(RESULTS), action.value));
+        .set(FILTER, newFilters)
+        .set(FILTERED_RESULTS, applyFilter(state.get(RESULTS), newFilters));
+    }
 
     default:
       return state;

@@ -4,13 +4,14 @@
 
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { List, Map, Set } from 'immutable';
+import { List, Map, OrderedMap } from 'immutable';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
   withRouter
 } from 'react-router';
 
+import SearchableSelect from '../../components/controls/SearchableSelect';
 import StyledInput from '../../components/controls/StyledInput';
 import Spinner from '../../components/spinner/Spinner';
 import {
@@ -19,6 +20,7 @@ import {
   AUDIT_EVENT,
   EDM
 } from '../../utils/constants/StateConstants';
+import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import * as Routes from '../../core/router/Routes';
 import * as AuditActionFactory from './AuditActionFactory';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
@@ -98,6 +100,32 @@ const HeaderCell = styled.th`
   text-align: left;
 `;
 
+const FilterRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  article {
+    width: 32%;
+  }
+`;
+
+const InputGroup = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  p {
+    font-weight: 500;
+    font-size: 12px;
+    margin: 0;
+    padding-bottom: 5px;
+  }
+`;
+
 
 class AuditLog extends React.Component<Props, State> {
 
@@ -109,9 +137,91 @@ class AuditLog extends React.Component<Props, State> {
 
   onFilterChange = ({ target }) => {
     const { actions } = this.props;
-    const { value } = target;
+    const { name: field, value } = target;
 
-    actions.updateAuditFilter(value);
+    actions.updateAuditFilter({ field, value });
+  }
+
+  getAsMap = (valueList) => {
+    let options = OrderedMap().set('', 'All');
+    valueList.forEach((value) => {
+      options = options.set(value, value);
+    });
+    return options;
+  }
+
+  renderFilters = () => {
+    const { actions, filters } = this.props;
+
+    return (
+      <>
+
+        <FilterRow>
+
+          <article>
+            <InputGroup>
+              <p>Email</p>
+              <StyledInput
+                  name={AUDIT_EVENT.PERSON_ID}
+                  value={filters.get(AUDIT_EVENT.PERSON_ID)}
+                  onChange={this.onFilterChange} />
+            </InputGroup>
+          </article>
+
+          <article>
+            <InputGroup>
+              <p>Date range</p>
+            </InputGroup>
+          </article>
+
+          <article>
+            <InputGroup>
+              <p>Search purpose</p>
+            </InputGroup>
+            <SearchableSelect
+                value={filters.get(AUDIT_EVENT.REASON)}
+                searchPlaceholder="Select"
+                onSelect={value => actions.updateAuditFilter({ value, field: AUDIT_EVENT.REASON })}
+                onClear={() => actions.updateAuditFilter({ value: '', field: AUDIT_EVENT.REASON })}
+                options={this.getAsMap(SEARCH_REASONS)}
+                selectOnly
+                short />
+          </article>
+
+        </FilterRow>
+
+        <FilterRow>
+
+          <article>
+            <InputGroup>
+              <p>Case number</p>
+            </InputGroup>
+            <StyledInput
+                name={AUDIT_EVENT.CASE_NUMBER}
+                value={filters.get(AUDIT_EVENT.CASE_NUMBER)}
+                onChange={this.onFilterChange} />
+          </article>
+
+          <article>
+            <InputGroup>
+              <p>License plate</p>
+            </InputGroup>
+            <StyledInput
+                name={AUDIT_EVENT.PLATE}
+                value={filters.get(AUDIT_EVENT.PLATE)}
+                onChange={this.onFilterChange} />
+          </article>
+
+          <article>
+            <InputGroup>
+              <p />
+            </InputGroup>
+          </article>
+
+        </FilterRow>
+
+      </>
+    )
   }
 
   renderRow = auditEvent => (
@@ -126,8 +236,6 @@ class AuditLog extends React.Component<Props, State> {
 
   renderTable = () => {
     const { results } = this.props;
-
-    console.log(results.toJS())
 
     return (
       <AuditTable>
@@ -162,6 +270,7 @@ class AuditLog extends React.Component<Props, State> {
     return (
       <Wrapper>
 
+        {this.renderFilters()}
         {this.renderTable()}
 
       </Wrapper>
@@ -181,7 +290,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     results: audit.get(AUDIT.FILTERED_RESULTS),
     startDate: audit.get(AUDIT.START_DATE),
     endDate: audit.get(AUDIT.END_DATE),
-    filter: audit.get(AUDIT.FILTER)
+    filters: audit.get(AUDIT.FILTER)
   };
 }
 
