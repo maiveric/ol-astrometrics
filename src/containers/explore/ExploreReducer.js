@@ -130,23 +130,21 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case SELECT_ENTITY: {
       let selectedEntityKeyIds = Set();
-      let selectedReadId = action.value;
 
       const { data, vehiclesEntitySetId } = action.value;
+      let selectedReadId = data;
 
       if (data) {
-        let idsToMatch = Set().add(data);
-        if (state.get(ENTITY_NEIGHBORS_BY_ID).has(data)) {
-          selectedEntityKeyIds = selectedEntityKeyIds.add(data);
-          state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
-            if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
-              const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
-              if (entityKeyId) {
-                idsToMatch = idsToMatch.add(entityKeyId);
-              }
+        let idsToMatch = Set.of(data);
+
+        state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
+          if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
+            const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
+            if (entityKeyId) {
+              idsToMatch = idsToMatch.add(entityKeyId);
             }
-          });
-        }
+          }
+        });
 
         state.get(ENTITY_NEIGHBORS_BY_ID).entrySeq().forEach(([entityKeyId, neighborList]) => {
           neighborList.forEach((neighbor) => {

@@ -194,6 +194,12 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     );
   }
 
+  selectEntity = (e, data) => {
+    const { actions, vehiclesEntitySetId } = this.props;
+    e.stopPropagation();
+    actions.selectEntity({ data, vehiclesEntitySetId });
+  }
+
   renderReadList = () => {
     const {
       actions,
@@ -209,7 +215,7 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
     return idAndTimestamp.map(([entityKeyId, timestamp]) => (
       <Fragment key={entityKeyId}>
-        <PaddedSection borderBottom clickable onClick={() => actions.selectEntity(entityKeyId)}>
+        <PaddedSection borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
           <Row>
             <FlexRow>
               <Checkbox checked={false} onChange={console.log} />
