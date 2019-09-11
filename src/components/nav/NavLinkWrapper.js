@@ -11,7 +11,7 @@ export default styled(NavLink).attrs({
   border-bottom: 3px solid transparent;
   color: #807F85;
   display: flex;
-  font-size: 12px;
+  font-size: ${props => (props.large ? 24 : 12)}px;
   letter-spacing: 0;
   margin-right: 30px;
   outline: none;

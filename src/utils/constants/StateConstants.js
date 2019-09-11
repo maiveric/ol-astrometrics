@@ -132,6 +132,7 @@ export const SAVED_MAP = {
 };
 
 export const AUDIT_EVENT = {
+  ID: 'id',
   PERSON_ID: 'personId',
   CASE_NUMBER: 'caseNumber',
   DATE_TIME: 'dateTime',

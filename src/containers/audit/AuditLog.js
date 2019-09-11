@@ -3,29 +3,22 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { List, Map, Set } from 'immutable';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
-  Redirect,
-  Route,
-  Switch,
   withRouter
 } from 'react-router';
 
-import AuditLog from './AuditLog';
-import AuditDashboard from './AuditDashboard';
 import StyledInput from '../../components/controls/StyledInput';
 import Spinner from '../../components/spinner/Spinner';
-import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
 import {
   STATE,
   AUDIT,
+  AUDIT_EVENT,
   EDM
 } from '../../utils/constants/StateConstants';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import * as Routes from '../../core/router/Routes';
 import * as AuditActionFactory from './AuditActionFactory';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
@@ -56,18 +49,57 @@ const Wrapper = styled.div`
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background-color: #1F1E24;
-  padding: 56px 96px;
 `;
 
-const Header = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: flex-start;
-  padding-bottom: 50px;
+const AuditTable = styled.table.attrs({
+  cellspacing: 0
+})`
+
 `;
 
-class AuditContainer extends React.Component<Props, State> {
+const cellStyle = css`
+  font-size: 14px;
+  border-bottom: 1px solid #36353B;
+  padding: 8px;
+
+  &:nth-child(1) {
+    width: 300px;
+  }
+
+  &:nth-child(2) {
+    width: 130px;
+  }
+
+  &:nth-child(3) {
+    width: 130px;
+  }
+
+  &:nth-child(4) {
+    width: 150px;
+  }
+
+  &:nth-child(5) {
+    width: 90px;
+  }
+`;
+
+const Cell = styled.td`
+  ${cellStyle}
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const HeaderCell = styled.th`
+  ${cellStyle}
+
+  color: #807F85;
+  font-weight: normal;
+  text-align: left;
+`;
+
+
+class AuditLog extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
@@ -75,34 +107,52 @@ class AuditContainer extends React.Component<Props, State> {
     };
   }
 
-  componentDidMount() {
-    const { actions, edmLoaded } = this.props;
+  onFilterChange = ({ target }) => {
+    const { actions } = this.props;
+    const { value } = target;
 
-    if (!edmLoaded) {
-      console.log('0')
-      actions.loadDataModel();
-    }
-    else {
-      console.log('1')
-      actions.loadAuditData();
-    }
+    actions.updateAuditFilter(value);
   }
 
-  componentDidUpdate(prevProps) {
-    const { actions, edmLoaded } = this.props;
+  renderRow = auditEvent => (
+    <tr key={auditEvent.get(AUDIT_EVENT.ID, '')}>
+      <Cell>{auditEvent.get(AUDIT_EVENT.PERSON_ID, '')}</Cell>
+      <Cell>{auditEvent.get(AUDIT_EVENT.CASE_NUMBER, '')}</Cell>
+      <Cell>{auditEvent.get(AUDIT_EVENT.DATE_TIME, '').format('YYYY-MM-DD HH:mm')}</Cell>
+      <Cell>{auditEvent.get(AUDIT_EVENT.REASON, '')}</Cell>
+      <Cell>{auditEvent.get(AUDIT_EVENT.PLATE, '')}</Cell>
+    </tr>
+  )
 
-    if (!prevProps.edmLoaded && edmLoaded) {
-      console.log('2')
-      actions.loadAuditData();
-    }
+  renderTable = () => {
+    const { results } = this.props;
+
+    console.log(results.toJS())
+
+    return (
+      <AuditTable>
+        <tbody>
+          <tr>
+            <HeaderCell>Email</HeaderCell>
+            <HeaderCell>Timestamp</HeaderCell>
+            <HeaderCell>Search purpose</HeaderCell>
+            <HeaderCell>Case number</HeaderCell>
+            <HeaderCell>License plate</HeaderCell>
+          </tr>
+          {results.map(this.renderRow)}
+        </tbody>
+      </AuditTable>
+    );
   }
-
 
   render() {
 
     const {
       isLoadingEdm,
-      isLoadingResults
+      isLoadingResults,
+      edmLoaded,
+      results,
+      filter
     } = this.props;
 
     if (isLoadingEdm || isLoadingResults) {
@@ -112,20 +162,7 @@ class AuditContainer extends React.Component<Props, State> {
     return (
       <Wrapper>
 
-        <Header>
-          <NavLinkWrapper to={Routes.AUDIT_DASHBOARD_ROUTE} large>
-            Dashboard
-          </NavLinkWrapper>
-          <NavLinkWrapper to={Routes.AUDIT_LOG_ROUTE} large>
-            Log
-          </NavLinkWrapper>
-        </Header>
-
-        <Switch>
-          <Route path={Routes.AUDIT_LOG_ROUTE} component={AuditLog} />
-          <Route path={Routes.AUDIT_DASHBOARD_ROUTE} component={AuditDashboard} />
-          <Redirect to={Routes.AUDIT_LOG_ROUTE} />
-        </Switch>
+        {this.renderTable()}
 
       </Wrapper>
     );
@@ -167,4 +204,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AuditContainer));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AuditLog));

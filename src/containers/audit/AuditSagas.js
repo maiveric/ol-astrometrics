@@ -99,7 +99,8 @@ function* loadAuditDataWorker(action :SequenceAction) {
     });
 
     searches = searches.map((search) => {
-      const email = getEmailFromNeighbors(neighbors, getEntityKeyId(search), usersById);
+      const entityKeyId = getEntityKeyId(search);
+      const email = getEmailFromNeighbors(neighbors, entityKeyId, usersById);
 
       let licensePlate = '';
       try {
@@ -128,6 +129,7 @@ function* loadAuditDataWorker(action :SequenceAction) {
       }
 
       return Map()
+        .set(AUDIT_EVENT.ID, entityKeyId)
         .set(AUDIT_EVENT.PERSON_ID, email)
         .set(AUDIT_EVENT.CASE_NUMBER, search.getIn([PROPERTY_TYPES.CASE_NUMBER, 0], 'Unknown'))
         .set(AUDIT_EVENT.REASON, search.getIn([PROPERTY_TYPES.SEARCH_REASON, 0], 'Unknown'))

@@ -8,17 +8,11 @@ import { List, Map, Set } from 'immutable';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
-  Redirect,
-  Route,
-  Switch,
   withRouter
 } from 'react-router';
 
-import AuditLog from './AuditLog';
-import AuditDashboard from './AuditDashboard';
 import StyledInput from '../../components/controls/StyledInput';
 import Spinner from '../../components/spinner/Spinner';
-import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
 import {
   STATE,
   AUDIT,
@@ -53,21 +47,13 @@ type State = {
 
 const Wrapper = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   height: 100%;
-  background-color: #1F1E24;
-  padding: 56px 96px;
 `;
 
-const Header = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: flex-start;
-  padding-bottom: 50px;
-`;
 
-class AuditContainer extends React.Component<Props, State> {
+class AuditDashboard extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
@@ -75,26 +61,11 @@ class AuditContainer extends React.Component<Props, State> {
     };
   }
 
-  componentDidMount() {
-    const { actions, edmLoaded } = this.props;
+  onFilterChange = ({ target }) => {
+    const { actions } = this.props;
+    const { value } = target;
 
-    if (!edmLoaded) {
-      console.log('0')
-      actions.loadDataModel();
-    }
-    else {
-      console.log('1')
-      actions.loadAuditData();
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    const { actions, edmLoaded } = this.props;
-
-    if (!prevProps.edmLoaded && edmLoaded) {
-      console.log('2')
-      actions.loadAuditData();
-    }
+    actions.updateAuditFilter(value);
   }
 
 
@@ -102,7 +73,10 @@ class AuditContainer extends React.Component<Props, State> {
 
     const {
       isLoadingEdm,
-      isLoadingResults
+      isLoadingResults,
+      edmLoaded,
+      results,
+      filter
     } = this.props;
 
     if (isLoadingEdm || isLoadingResults) {
@@ -112,20 +86,14 @@ class AuditContainer extends React.Component<Props, State> {
     return (
       <Wrapper>
 
-        <Header>
-          <NavLinkWrapper to={Routes.AUDIT_DASHBOARD_ROUTE} large>
-            Dashboard
-          </NavLinkWrapper>
-          <NavLinkWrapper to={Routes.AUDIT_LOG_ROUTE} large>
-            Log
-          </NavLinkWrapper>
-        </Header>
 
-        <Switch>
-          <Route path={Routes.AUDIT_LOG_ROUTE} component={AuditLog} />
-          <Route path={Routes.AUDIT_DASHBOARD_ROUTE} component={AuditDashboard} />
-          <Redirect to={Routes.AUDIT_LOG_ROUTE} />
-        </Switch>
+        <div>Audit dashboard.</div>
+
+        <div>Edm loaded?</div>
+        <div>{edmLoaded}</div>
+        <div>{`${edmLoaded}`}</div>
+
+        <StyledInput value={filter} onChange={this.onFilterChange} />
 
       </Wrapper>
     );
@@ -167,4 +135,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AuditContainer));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AuditDashboard));
