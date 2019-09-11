@@ -193,9 +193,9 @@ class Sidebar extends React.Component<Props, State> {
   }
 
   onVehicleClick = (entityKeyId) => {
-    const { actions, selectedEntityKeyIds } = this.props;
-    const value = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
-    actions.selectEntity(value);
+    const { actions, selectedEntityKeyIds, vehiclesEntitySetId } = this.props;
+    const data = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
+    actions.selectEntity({ data, vehiclesEntitySetId });
   }
 
   sortVehicles = (vehicles, recordsByVehicleId) => {
