@@ -65,10 +65,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case updateAuditStart.case(action.type): {
       return updateAuditStart.reducer(state, action, {
-        REQUEST: () => {
-          console.log(action)
-          return state.set(IS_LOADING_RESULTS, true).set(START_DATE, moment(action.value))
-        },
+        REQUEST: () => state.set(IS_LOADING_RESULTS, true).set(START_DATE, moment(action.value)),
         SUCCESS: () => state
           .set(RESULTS, action.value)
           .set(FILTERED_RESULTS, applyFilter(action.value, state.get(FILTER))),
