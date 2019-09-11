@@ -45,8 +45,9 @@ const applyFilter = (results, filters) => {
     return results;
   }
 
-  return results.filter(auditEvent => activeFilters
-    .find((filter, field) => auditEvent.get(field, '').toLowerCase().includes(filter)));
+  /* Filter to audit events where there are no filters that don't match the values */
+  return results.filter(auditEvent => !activeFilters
+    .find((filter, field) => !auditEvent.get(field, '').toLowerCase().includes(filter)));
 };
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
