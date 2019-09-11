@@ -60,6 +60,7 @@ const Row = styled.div`
 const FlexRow = styled.div`
   display: flex;
   align-items: center;
+  font-size: 14px;
 `;
 
 const SelectedRead = styled(PaddedSection)`

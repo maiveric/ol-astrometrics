@@ -103,3 +103,5 @@ export const formatNameIdForDisplay = (entity) => {
 
   return `${name} (${id})`;
 };
+
+export const countWithLabel = (count, label) => `${count} ${label}${count && count > 1 ? 's' : ''}`;

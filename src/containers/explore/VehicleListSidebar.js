@@ -24,7 +24,7 @@ import {
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId } from '../../utils/DataUtils';
+import { getEntityKeyId, countWithLabel } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
@@ -273,8 +273,8 @@ class Sidebar extends React.Component<Props, State> {
           backButtonOnClick={() => actions.editSearchParameters(true)}
           mainContent={(
             <VehicleReadCount>
-              <div>{`${numVehicles} vehicles`}</div>
-              <div>{`${numReads} reads`}</div>
+              <div>{countWithLabel(numVehicles, 'vehicle')}</div>
+              <div>{countWithLabel(numReads, 'read')}</div>
             </VehicleReadCount>
           )} />
     );

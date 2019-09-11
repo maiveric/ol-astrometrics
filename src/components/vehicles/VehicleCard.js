@@ -11,6 +11,7 @@ import { faPlus } from '@fortawesome/pro-light-svg-icons';
 import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
 
 import SubtleButton from '../buttons/SubtleButton';
+import { countWithLabel } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 type Props = {
@@ -206,6 +207,10 @@ const VehicleCard = ({
   const hitTypes = getUniqueValues(PROPERTY_TYPES.HIT_TYPE);
 
   const moreReads = records.size - 1;
+  let maybeMoreReadsText = '';
+  if (moreReads) {
+    maybeMoreReadsText = ` + ${countWithLabel(moreReads, ' more read')}`;
+  }
 
   const addButton = (
     <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
@@ -223,7 +228,7 @@ const VehicleCard = ({
         <VehicleImageRow plateSrc={plateImages.get(0)} vehicleSrc={vehicleImages.get(0)} />
 
         <ReadDetails>
-          {`${timestampStr}${moreReads ? ` + ${moreReads} more read${moreReads > 1 ? 's' : ''}` : ''}`}
+          {`${timestampStr}${maybeMoreReadsText}`}
         </ReadDetails>
 
       </Section>
