@@ -13,7 +13,7 @@ import mapMarker from '../../assets/images/map-marker.png';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
-import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
+import { SEARCH_ZONE_COLORS, SEARCH_DOT_COLOR } from '../../utils/constants/Colors';
 import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
@@ -31,7 +31,8 @@ const LAYERS = {
   ALL_SOURCE_FEATURES: 'allsourcefeatures',
   SELECTED_SOURCE_FEATURES: 'selectedsourcefeatures',
   SELECTED_READ: 'selectedread',
-  SEARCH_RADIUS: 'searchradius'
+  SEARCH_RADIUS: 'searchradius',
+  DATA_POINTS: 'datapoints'
 };
 
 type Props = {
@@ -285,10 +286,10 @@ class SimpleMap extends React.Component<Props, State> {
         sourceId={LAYERS.SELECTED_SOURCE_FEATURES}
         paint={{
           'circle-opacity': 1,
-          'circle-color': SEARCH_ZONE_COLORS[0],
-          'circle-radius': 8,
+          'circle-color': SEARCH_DOT_COLOR.UNSELECTED,
+          'circle-radius': 5,
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 4,
+          'circle-stroke-width': 2,
           'circle-stroke-opacity': 1
         }} />
   )
@@ -299,10 +300,10 @@ class SimpleMap extends React.Component<Props, State> {
         sourceId={LAYERS.SELECTED_READ}
         paint={{
           'circle-opacity': 1,
-          'circle-color': '#ff3c5d',
-          'circle-radius': 8,
+          'circle-color': SEARCH_DOT_COLOR.SELECTED,
+          'circle-radius': 5,
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 4,
+          'circle-stroke-width': 2,
           'circle-stroke-opacity': 1
         }} />
   )
@@ -323,15 +324,15 @@ class SimpleMap extends React.Component<Props, State> {
 
     return (
       <Layer
-          id="data-points"
+          id={LAYERS.DATA_POINTS}
           type="circle"
           sourceId={LAYERS.ALL_SOURCE_FEATURES}
           paint={{
-            'circle-opacity': selectedEntityKeyIds.size ? 0.4 : 1,
-            'circle-color': SEARCH_ZONE_COLORS[0],
-            'circle-radius': 6,
+            'circle-opacity': 1,
+            'circle-color': selectedEntityKeyIds.size ? SEARCH_DOT_COLOR.UNSELECTED : SEARCH_DOT_COLOR.SELECTED,
+            'circle-radius': selectedEntityKeyIds.size ? 3 : 5,
             'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': 2,
+            'circle-stroke-width': selectedEntityKeyIds.size ? 0 : 2,
             'circle-stroke-opacity': selectedEntityKeyIds.size ? 0.4 : 1
           }} />
     );
@@ -393,7 +394,6 @@ class SimpleMap extends React.Component<Props, State> {
         {this.addSelectedReadSource()}
         {this.renderSelectedFeatures()}
         {this.renderSelectedReadFeature()}
-        {this.renderSelectedFeaturesInnerCircles()}
       </>
     )
   }
@@ -421,7 +421,7 @@ class SimpleMap extends React.Component<Props, State> {
         <MapComponent
             style={MAP_STYLE.DARK}
             onStyleLoad={(map) => {
-              map.on('click', 'data-points', this.onPointClick);
+              map.on('click', LAYERS.DATA_POINTS, this.onPointClick);
             }}
             onClick={this.onMapClick}
             containerStyle={{

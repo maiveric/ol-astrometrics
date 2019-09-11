@@ -5,3 +5,8 @@ export const SEARCH_ZONE_COLORS = [
   '#F4E6C9', // yellow
   '#ADD9F1' // blue
 ];
+
+export const SEARCH_DOT_COLOR = {
+  SELECTED: '#674FEF',
+  UNSELECTED: '#B1B0B6'
+};
