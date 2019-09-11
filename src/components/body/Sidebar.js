@@ -70,6 +70,10 @@ export const PaddedSection = styled.div`
   flex-direction: column;
   align-items: flex-start;
   border-bottom: ${props => (props.borderBottom ? `1px solid ${getScheme(props, FIELDS.BORDER)}` : 'none')};
+
+  &:hover {
+    cursor: ${props => (props.clickable ? 'pointer' : 'default')};
+  }
 `;
 
 export const HeaderSection = styled(PaddedSection).attrs({

@@ -148,6 +148,16 @@ export const VehicleHeader = ({
   </HeaderRow>
 );
 
+export const VehicleImageRow = ({
+  plateSrc,
+  vehicleSrc
+}) => (
+  <Photos>
+    { plateSrc ? <Img src={plateSrc} /> : null }
+    { plateSrc ? <Img src={vehicleSrc} /> : null }
+  </Photos>
+);
+
 const VehicleCard = ({
   vehicle,
   records,
@@ -210,10 +220,7 @@ const VehicleCard = ({
 
       <Section>
 
-        <Photos>
-          { plateImages.size ? <Img src={plateImages.get(0)} /> : null }
-          { vehicleImages.size ? <Img src={vehicleImages.get(0)} /> : null }
-        </Photos>
+        <VehicleImageRow plateSrc={plateImages.get(0)} vehicleSrc={vehicleImages.get(0)} />
 
         <ReadDetails>
           {`${timestampStr}${moreReads ? ` + ${moreReads} more read${moreReads > 1 ? 's' : ''}` : ''}`}

@@ -17,7 +17,7 @@ import ToggleReportButton from '../../components/buttons/ToggleReportButton';
 import BasicButton from '../../components/buttons/BasicButton';
 import RoundButton from '../../components/buttons/RoundButton';
 import Checkbox from '../../components/controls/StyledCheckbox';
-import { VehicleHeader } from '../../components/vehicles/VehicleCard';
+import { VehicleHeader, VehicleImageRow } from '../../components/vehicles/VehicleCard';
 import {
   STATE,
   EXPLORE,
@@ -100,6 +100,29 @@ const Row = styled.div`
 const FlexRow = styled.div`
   display: flex;
   align-items: center;
+`;
+
+const SelectedRead = styled(PaddedSection)`
+  display: flex;
+  flex-direction: column;
+  background-color: #121117;
+`;
+
+const ReadDetail = styled(Row)`
+  font-size: 14px;
+  line-height: 150%;
+
+  span {
+    color: #807F85;
+  }
+
+  div {
+    color: #ffffff;
+  }
+
+  &:not(:last-child) {
+    padding-bottom: 4px;
+  }
 `;
 
 const VehicleTitle = styled.div`
@@ -389,12 +412,74 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     );
   }
 
-  openGoogleMaps = (entityKeyId) => {
+  openGoogleMaps = (e, entityKeyId) => {
     const { entitiesById } = this.props;
+
+    e.stopPropagation();
 
     const [longitude, latitude] = getCoordinates(entitiesById.get(entityKeyId, Map()));
     const path = `http://www.google.com/maps/place/${latitude},${longitude}`;
     window.open(path, '_blank');
+  }
+
+  renderSelectedReadDetails = () => {
+    const {
+      actions,
+      departmentOptions,
+      deviceOptions,
+      entitiesById,
+      selectedReadId
+    } = this.props;
+
+    const read = entitiesById.get(selectedReadId, Map());
+
+    const details = {};
+
+    const make = read.get(PROPERTY_TYPES.MAKE, List()).join(', ');
+    const model = read.get(PROPERTY_TYPES.MODEL, List()).join(', ');
+    let makeModelStr = `${make}`;
+    if (model) {
+      makeModelStr = `${makeModelStr}${makeModelStr ? ' ' : ''}${model}`;
+    }
+    details['Make/model'] = makeModelStr;
+    details.Color = read.get(PROPERTY_TYPES.COLOR, List()).join(', ');
+
+    details.Department = read
+      .get(PROPERTY_TYPES.AGENCY_NAME, List())
+      .map(d => getDisplayNameForId(departmentOptions, d))
+      .join(', ');
+
+    details.Device = read
+      .get(PROPERTY_TYPES.CAMERA_ID, List())
+      .map(d => getDisplayNameForId(deviceOptions, d))
+      .join(', ');
+
+    details.Year = read.get(PROPERTY_TYPES.YEAR, List()).join(', ');
+    details.Accessories = read.get(PROPERTY_TYPES.ACCESSORIES, List()).join(', ');
+
+    const vehicleSrc = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
+    const plateSrc = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
+
+    return (
+      <SelectedRead>
+
+        <VehicleImageRow vehicleSrc={vehicleSrc} plateSrc={plateSrc} />
+
+        {Object.entries(details).map(([label, value]) => {
+          if (!value) {
+            return null;
+          }
+
+          return (
+            <ReadDetail key={label}>
+              <span>{label}</span>
+              <div>{value}</div>
+            </ReadDetail>
+          );
+        })}
+
+      </SelectedRead>
+    );
   }
 
   renderReadList = () => {
@@ -411,17 +496,22 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     }).sort(([id1, t1], [id2, t2]) => (t1.isBefore(t2) ? -1 : 1));
 
     return idAndTimestamp.map(([entityKeyId, timestamp]) => (
-      <PaddedSection key={entityKeyId} borderBottom>
-        <Row>
-          <FlexRow>
-            <Checkbox checked={false} onChange={console.log} />
-            <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
-          </FlexRow>
-          <RoundButton onClick={() => this.openGoogleMaps(entityKeyId)}>
-            <FontAwesomeIcon icon={faMap} />
-          </RoundButton>
-        </Row>
-      </PaddedSection>
+      <>
+        <PaddedSection key={entityKeyId} borderBottom clickable onClick={() => actions.selectEntity(entityKeyId)}>
+          <Row>
+            <FlexRow>
+              <Checkbox checked={false} onChange={console.log} />
+              <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
+            </FlexRow>
+            <RoundButton onClick={(e) => this.openGoogleMaps(e, entityKeyId)}>
+              <FontAwesomeIcon icon={faMap} />
+            </RoundButton>
+          </Row>
+        </PaddedSection>
+        {
+          entityKeyId === selectedReadId ? this.renderSelectedReadDetails() : null
+        }
+      </>
     ));
   }
 
