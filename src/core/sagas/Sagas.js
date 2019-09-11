@@ -40,6 +40,8 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* AuditSagas */
     fork(AuditSagas.loadAuditDataWatcher),
+    fork(AuditSagas.updateAuditEndWatcher),
+    fork(AuditSagas.updateAuditStartWatcher),
 
     /* DrawSagas */
     fork(DrawSagas.loadSavedMapsWatcher),

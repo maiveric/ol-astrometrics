@@ -7,10 +7,10 @@ import { List, Map, fromJS } from 'immutable';
 
 import { AUDIT, AUDIT_EVENT } from '../../utils/constants/StateConstants';
 import {
-  UPDATE_AUDIT_START,
-  UPDATE_AUDIT_END,
   UPDATE_AUDIT_FILTER,
-  loadAuditData
+  loadAuditData,
+  updateAuditEnd,
+  updateAuditStart
 } from './AuditActionFactory';
 
 const {
@@ -63,12 +63,28 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case UPDATE_AUDIT_START:
-      return state.set(START_DATE, action.value);
+    case updateAuditStart.case(action.type): {
+      return updateAuditStart.reducer(state, action, {
+        REQUEST: () => {
+          console.log(action)
+          return state.set(IS_LOADING_RESULTS, true).set(START_DATE, moment(action.value))
+        },
+        SUCCESS: () => state
+          .set(RESULTS, action.value)
+          .set(FILTERED_RESULTS, applyFilter(action.value, state.get(FILTER))),
+        FINALLY: () => state.set(IS_LOADING_RESULTS, false)
+      });
+    }
 
-    case UPDATE_AUDIT_END:
-      return state.set(END_DATE, action.value);
-
+    case updateAuditEnd.case(action.type): {
+      return updateAuditEnd.reducer(state, action, {
+        REQUEST: () => state.set(IS_LOADING_RESULTS, true).set(END_DATE, moment(action.value)),
+        SUCCESS: () => state
+          .set(RESULTS, action.value)
+          .set(FILTERED_RESULTS, applyFilter(action.value, state.get(FILTER))),
+        FINALLY: () => state.set(IS_LOADING_RESULTS, false)
+      });
+    }
     case UPDATE_AUDIT_FILTER: {
       const newFilters = state.get(FILTER).set(action.value.field, action.value.value);
       return state

@@ -79,11 +79,9 @@ class AuditContainer extends React.Component<Props, State> {
     const { actions, edmLoaded } = this.props;
 
     if (!edmLoaded) {
-      console.log('0')
       actions.loadDataModel();
     }
     else {
-      console.log('1')
       actions.loadAuditData();
     }
   }
@@ -92,7 +90,6 @@ class AuditContainer extends React.Component<Props, State> {
     const { actions, edmLoaded } = this.props;
 
     if (!prevProps.edmLoaded && edmLoaded) {
-      console.log('2')
       actions.loadAuditData();
     }
   }
@@ -113,10 +110,10 @@ class AuditContainer extends React.Component<Props, State> {
       <Wrapper>
 
         <Header>
-          <NavLinkWrapper to={Routes.AUDIT_DASHBOARD_ROUTE} large>
+          <NavLinkWrapper to={Routes.AUDIT_DASHBOARD_ROUTE} large="true">
             Dashboard
           </NavLinkWrapper>
-          <NavLinkWrapper to={Routes.AUDIT_LOG_ROUTE} large>
+          <NavLinkWrapper to={Routes.AUDIT_LOG_ROUTE} large="true">
             Log
           </NavLinkWrapper>
         </Header>

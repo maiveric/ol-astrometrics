@@ -10,6 +10,7 @@ import { bindActionCreators } from 'redux';
 import {
   withRouter
 } from 'react-router';
+import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import StyledInput from '../../components/controls/StyledInput';
@@ -32,7 +33,7 @@ type Props = {
   results :List<*>;
   startDate :Object,
   endDate :Object,
-  filter :string,
+  filters :Map,
   edm :Map<*, *>;
   actions :{
     loadAuditData :(startDate :Object, endDate :Object) => void;
@@ -126,6 +127,17 @@ const InputGroup = styled.div`
   }
 `;
 
+const DoubleInputSection = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  article {
+    width: 48%;
+  }
+`;
 
 class AuditLog extends React.Component<Props, State> {
 
@@ -151,7 +163,12 @@ class AuditLog extends React.Component<Props, State> {
   }
 
   renderFilters = () => {
-    const { actions, filters } = this.props;
+    const {
+      actions,
+      filters,
+      startDate,
+      endDate
+    } = this.props;
 
     return (
       <>
@@ -171,6 +188,17 @@ class AuditLog extends React.Component<Props, State> {
           <article>
             <InputGroup>
               <p>Date range</p>
+              <DoubleInputSection>
+
+                <article>
+                  <StyledDatePicker onChange={actions.updateAuditStart} value={startDate} />
+                </article>
+
+                <article>
+                  <StyledDatePicker onChange={actions.updateAuditEnd} value={endDate} />
+                </article>
+
+              </DoubleInputSection>
             </InputGroup>
           </article>
 
