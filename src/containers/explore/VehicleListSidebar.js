@@ -9,12 +9,9 @@ import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import type { RequestSequence } from 'redux-reqseq';
 
-import BasicSidebar from '../../components/body/Sidebar';
-import SubtleButton from '../../components/buttons/SubtleButton';
+import { ScrollableSidebar, SidebarHeader, PaddedSection } from '../../components/body/Sidebar';
 import DropdownButton from '../../components/buttons/DropdownButton';
 import FilterIcon from '../../components/icons/FilterIcon';
 import Spinner from '../../components/spinner/Spinner';
@@ -27,7 +24,6 @@ import {
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { HEADER_HEIGHT } from '../../core/style/Sizes';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
@@ -66,36 +62,6 @@ type State = {
   sort :string,
   page :number
 };
-
-const SidebarWrapper = styled(BasicSidebar)`
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  top: ${HEADER_HEIGHT}px;
-  bottom: 0;
-  height: calc(100% - ${HEADER_HEIGHT}px);
-  color: #ffffff;
-
-  overflow-y: scroll;
-  -ms-overflow-style: none;
-  overflow: -moz-scrollbars-none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
-
-const PaddedSection = styled.div`
-  width: 100%;
-  padding: 16px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-`;
-
-const HeaderSection = styled(PaddedSection)`
-  border-bottom: 1px solid #36353B;
-`;
 
 const VehicleReadCount = styled.div`
   padding-top: 4px;
@@ -136,20 +102,6 @@ const FilterLabel = styled.span`
   font-weight: normal;
   padding-right: 10px;
   color: #807F85;
-`;
-
-const BackButton = styled(SubtleButton).attrs({
-  noHover: true
-})`
-  color: #807F85;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  font-size: 11px;
-
-  span {
-    padding-left: 5px;
-  }
 `;
 
 const SORT_TYPE = {
@@ -316,16 +268,15 @@ class Sidebar extends React.Component<Props, State> {
     const numReads = results.size;
 
     return (
-      <HeaderSection>
-        <BackButton onClick={() => actions.editSearchParameters(true)}>
-          <FontAwesomeIcon icon={faChevronLeft} />
-          <span>Update search</span>
-        </BackButton>
-        <VehicleReadCount>
-          <div>{`${numVehicles} vehicles`}</div>
-          <div>{`${numReads} reads`}</div>
-        </VehicleReadCount>
-      </HeaderSection>
+      <SidebarHeader
+          backButtonText="Update search"
+          backButtonOnClick={() => actions.editSearchParameters(true)}
+          mainContent={(
+            <VehicleReadCount>
+              <div>{`${numVehicles} vehicles`}</div>
+              <div>{`${numReads} reads`}</div>
+            </VehicleReadCount>
+          )} />
     );
   }
 
@@ -366,7 +317,7 @@ class Sidebar extends React.Component<Props, State> {
     const { page } = this.state;
 
     if (isLoadingResults || isLoadingNeighbors) {
-      return <SidebarWrapper><Spinner /></SidebarWrapper>;
+      return <ScrollableSidebar><Spinner /></ScrollableSidebar>;
     }
 
     const { vehicles, recordsByVehicleId } = this.getVehicleList();
@@ -379,7 +330,7 @@ class Sidebar extends React.Component<Props, State> {
     const vehiclePage = sortedVehicles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     return (
-      <SidebarWrapper>
+      <ScrollableSidebar>
         {this.renderHeader(vehicles.size)}
         <PaddedSection>
 
@@ -392,7 +343,7 @@ class Sidebar extends React.Component<Props, State> {
               activePage={page}
               onChangePage={newPage => this.setState({ page: newPage })} />
         </PaddedSection>
-      </SidebarWrapper>
+      </ScrollableSidebar>
     );
   }
 }

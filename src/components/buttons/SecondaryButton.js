@@ -25,6 +25,10 @@ const SecondaryButton = styled.button`
     outline: none;
   }
 
+  &:focus {
+    outline: none;
+  }
+
 `;
 
 export default SecondaryButton;

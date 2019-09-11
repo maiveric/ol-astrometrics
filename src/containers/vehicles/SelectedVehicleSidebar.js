@@ -10,9 +10,14 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle } from '@fortawesome/pro-light-svg-icons';
+import { faExclamationTriangle, faMap } from '@fortawesome/pro-light-svg-icons';
 
+import { ScrollableSidebar, SidebarHeader, PaddedSection } from '../../components/body/Sidebar';
 import ToggleReportButton from '../../components/buttons/ToggleReportButton';
+import BasicButton from '../../components/buttons/BasicButton';
+import RoundButton from '../../components/buttons/RoundButton';
+import Checkbox from '../../components/controls/StyledCheckbox';
+import { VehicleHeader } from '../../components/vehicles/VehicleCard';
 import {
   STATE,
   EXPLORE,
@@ -20,7 +25,7 @@ import {
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getDisplayNameForId } from '../../utils/DataUtils';
+import { getEntityKeyId, getDisplayNameForId, getCoordinates } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
@@ -45,20 +50,6 @@ type State = {
   sort :string
 };
 
-const SidebarWrapper = styled.div`
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  width: 500px;
-  padding: 100px 30px 30px 30px;
-  background-color: rgba(26, 16, 59, 0.9);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  color: #ffffff;
-`;
-
-
 const Card = styled.div`
   background-color: #ffffff;
   padding: 15px;
@@ -71,7 +62,6 @@ const Card = styled.div`
 `;
 
 const ScrollableCard = styled(Card)`
-  overflow-y: scroll;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -99,10 +89,16 @@ const SelectableRow = styled.button`
   }
 `;
 
-const HeaderRow = styled.div`
+const Row = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
+  width: 100%;
+`;
+
+const FlexRow = styled.div`
+  display: flex;
   align-items: center;
 `;
 
@@ -225,6 +221,29 @@ const Icon = styled.span`
   }
 `;
 
+const ReportDefinitionRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  color: #807F85;
+
+  div {
+    width: 49%;
+    line-height: 100%;
+  }
+
+  span {
+    font-size: 12px;
+  }
+
+  button {
+    width: 100%;
+    padding: 8px;
+  }
+`;
+
 class SelectedVehicleSidebar extends React.Component<Props, State> {
 
   getSelectedVehicle = () => {
@@ -252,13 +271,13 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     const numReads = selectedEntityKeyIds.size;
 
     return (
-      <HeaderRow>
+      <Row>
         <VehicleTitle>
           <h1>{vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '')}</h1>
           <span>{`${numReads} read${numReads === 1 ? '' : 's'}`}</span>
         </VehicleTitle>
         <ToggleReportButton isInReport={isInReport} onToggleReport={toggleReport} />
-      </HeaderRow>
+      </Row>
     );
   }
 
@@ -370,6 +389,14 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     );
   }
 
+  openGoogleMaps = (entityKeyId) => {
+    const { entitiesById } = this.props;
+
+    const [longitude, latitude] = getCoordinates(entitiesById.get(entityKeyId, Map()));
+    const path = `http://www.google.com/maps/place/${latitude},${longitude}`;
+    window.open(path, '_blank');
+  }
+
   renderReadList = () => {
     const {
       actions,
@@ -381,25 +408,66 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     const idAndTimestamp = selectedEntityKeyIds.map((entityKeyId) => {
       const timestamp = moment(entitiesById.getIn([entityKeyId, PROPERTY_TYPES.TIMESTAMP, 0], ''));
       return [entityKeyId, timestamp];
-    }).sort(([id1, t1], [id2, t2]) => t1.isBefore(t2) ? -1 : 1);
+    }).sort(([id1, t1], [id2, t2]) => (t1.isBefore(t2) ? -1 : 1));
+
+    return idAndTimestamp.map(([entityKeyId, timestamp]) => (
+      <PaddedSection key={entityKeyId} borderBottom>
+        <Row>
+          <FlexRow>
+            <Checkbox checked={false} onChange={console.log} />
+            <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
+          </FlexRow>
+          <RoundButton onClick={() => this.openGoogleMaps(entityKeyId)}>
+            <FontAwesomeIcon icon={faMap} />
+          </RoundButton>
+        </Row>
+      </PaddedSection>
+    ));
+  }
+
+  renderHeader = () => {
+    const { actions, selectedEntityKeyIds, entitiesById } = this.props;
+
+    const vehicle = this.getSelectedVehicle();
+
+    const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
+    const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'CA');
+
+    const isHit = !!selectedEntityKeyIds.find(entityKeyId => !!entitiesById
+      .getIn([entityKeyId, PROPERTY_TYPES.HIT_TYPE, 0]));
 
     return (
-      <ScrollableCard>
-        <h1>All reads for vehicle:</h1>
-        <DetailsBody>
-          {idAndTimestamp.map(([entityKeyId, timestamp]) => (
-            <section key={entityKeyId}>
-              <Icon selected={entityKeyId === selectedReadId}><span><span /></span></Icon>
-              <SelectableRow
-                  key={entityKeyId}
-                  isUnselected={entityKeyId !== selectedReadId}
-                  onClick={() => actions.selectEntity(entityKeyId)}>
-                {timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}
-              </SelectableRow>
-            </section>
-          ))}
-        </DetailsBody>
-      </ScrollableCard>
+      <SidebarHeader
+          backButtonText="Back to search results"
+          backButtonOnClick={() => actions.selectEntity()}
+          mainContent={<VehicleHeader state={state} plate={plate} isHit={isHit} />}
+          noPadBottom
+          light />
+    );
+  }
+
+  renderReportSection = (vehicle) => {
+    const { actions, reportVehicles } = this.props;
+
+    const entityKeyId = getEntityKeyId(vehicle);
+    const isInReport = reportVehicles.has(entityKeyId);
+
+    const onCheckTemp = isInReport ? actions.removeVehicleFromReport : actions.addVehicleToReport;
+
+    return (
+      <PaddedSection borderBottom>
+        <ReportDefinitionRow>
+          <div>
+            <span>Select vehicle reads to include in the report</span>
+          </div>
+          <div>
+            <BasicButton>Add to report</BasicButton>
+          </div>
+        </ReportDefinitionRow>
+        <ReportDefinitionRow>
+          <Checkbox checked={isInReport} onChange={() => onCheckTemp(entityKeyId)} />
+        </ReportDefinitionRow>
+      </PaddedSection>
     );
   }
 
@@ -411,12 +479,12 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     }
 
     return (
-      <SidebarWrapper>
+      <ScrollableSidebar>
+        {this.renderHeader()}
+        {this.renderReportSection(vehicle)}
         {this.renderHitType()}
-        {this.renderVehicleDetails(vehicle)}
-        {this.renderReadDetails()}
         {this.renderReadList()}
-      </SidebarWrapper>
+      </ScrollableSidebar>
     );
   }
 }

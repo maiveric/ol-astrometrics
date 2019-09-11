@@ -125,6 +125,29 @@ const AddToReportButton = styled(SubtleButton)`
   }
 `;
 
+export const VehicleHeader = ({
+  state,
+  plate,
+  isHit,
+  addButton
+}) => (
+  <HeaderRow>
+    <div>
+      <span>{state}</span>
+      <div>{plate}</div>
+      {
+        isHit ? (
+          <HitType>
+            <FontAwesomeIcon icon={faExclamationTriangle} />
+          </HitType>
+        ) : null
+      }
+    </div>
+
+    {addButton}
+  </HeaderRow>
+);
+
 const VehicleCard = ({
   vehicle,
   records,
@@ -174,26 +197,16 @@ const VehicleCard = ({
 
   const moreReads = records.size - 1;
 
+  const addButton = (
+    <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
+      <FontAwesomeIcon icon={faPlus} />
+    </AddToReportButton>
+  );
+
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
 
-      <HeaderRow>
-        <div>
-          <span>{state}</span>
-          <div>{plate}</div>
-          {
-            hitTypes.size ? (
-              <HitType>
-                <FontAwesomeIcon icon={faExclamationTriangle} />
-              </HitType>
-            ) : null
-          }
-        </div>
-
-        <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
-          <FontAwesomeIcon icon={faPlus} />
-        </AddToReportButton>
-      </HeaderRow>
+      <VehicleHeader state={state} plate={plate} isHit={!!hitTypes.size} addButton={addButton} />
 
       <Section>
 
