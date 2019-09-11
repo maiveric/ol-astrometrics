@@ -2,7 +2,7 @@
  * @flow
  */
 
-import React from 'react';
+import React, { Fragment } from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map, Set } from 'immutable';
@@ -177,13 +177,13 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
         <VehicleImageRow vehicleSrc={vehicleSrc} plateSrc={plateSrc} />
 
-        {Object.entries(details).map(([label, value]) => {
+        {Object.entries(details).map(([label, value], index) => {
           if (!value) {
             return null;
           }
 
           return (
-            <ReadDetail key={label}>
+            <ReadDetail key={`${label}-${index}`}>
               <span>{label}</span>
               <div>{value}</div>
             </ReadDetail>
@@ -208,14 +208,14 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     }).sort(([id1, t1], [id2, t2]) => (t1.isBefore(t2) ? -1 : 1));
 
     return idAndTimestamp.map(([entityKeyId, timestamp]) => (
-      <>
-        <PaddedSection key={entityKeyId} borderBottom clickable onClick={() => actions.selectEntity(entityKeyId)}>
+      <Fragment key={entityKeyId}>
+        <PaddedSection borderBottom clickable onClick={() => actions.selectEntity(entityKeyId)}>
           <Row>
             <FlexRow>
               <Checkbox checked={false} onChange={console.log} />
               <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
             </FlexRow>
-            <RoundButton onClick={(e) => this.openGoogleMaps(e, entityKeyId)}>
+            <RoundButton onClick={e => this.openGoogleMaps(e, entityKeyId)}>
               <FontAwesomeIcon icon={faMap} />
             </RoundButton>
           </Row>
@@ -223,7 +223,7 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
         {
           entityKeyId === selectedReadId ? this.renderSelectedReadDetails() : null
         }
-      </>
+      </Fragment>
     ));
   }
 
