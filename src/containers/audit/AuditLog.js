@@ -65,11 +65,11 @@ const cellStyle = css`
   padding: 8px;
 
   &:nth-child(1) {
-    width: 300px;
+    width: 130px;
   }
 
   &:nth-child(2) {
-    width: 130px;
+    width: 300px;
   }
 
   &:nth-child(3) {
@@ -226,10 +226,10 @@ class AuditLog extends React.Component<Props, State> {
 
   renderRow = auditEvent => (
     <tr key={auditEvent.get(AUDIT_EVENT.ID, '')}>
-      <Cell>{auditEvent.get(AUDIT_EVENT.PERSON_ID, '')}</Cell>
-      <Cell>{auditEvent.get(AUDIT_EVENT.CASE_NUMBER, '')}</Cell>
       <Cell>{auditEvent.get(AUDIT_EVENT.DATE_TIME, '').format('YYYY-MM-DD HH:mm')}</Cell>
+      <Cell>{auditEvent.get(AUDIT_EVENT.PERSON_ID, '')}</Cell>
       <Cell>{auditEvent.get(AUDIT_EVENT.REASON, '')}</Cell>
+      <Cell>{auditEvent.get(AUDIT_EVENT.CASE_NUMBER, '')}</Cell>
       <Cell>{auditEvent.get(AUDIT_EVENT.PLATE, '')}</Cell>
     </tr>
   )
@@ -241,8 +241,8 @@ class AuditLog extends React.Component<Props, State> {
       <AuditTable>
         <tbody>
           <tr>
-            <HeaderCell>Email</HeaderCell>
             <HeaderCell>Timestamp</HeaderCell>
+            <HeaderCell>Email</HeaderCell>
             <HeaderCell>Search purpose</HeaderCell>
             <HeaderCell>Case number</HeaderCell>
             <HeaderCell>License plate</HeaderCell>
