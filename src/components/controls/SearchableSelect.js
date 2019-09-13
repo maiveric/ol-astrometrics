@@ -371,7 +371,7 @@ class SearchableSelect extends React.Component<Props, State> {
             selectOnly ? (
               <SearchButton
                   onKeyUp={this.clearOnDelete}
-                  innerRef={(ref) => {
+                  ref={(ref) => {
                     this.buttonRef = ref;
                   }}
                   disabled={disabled}

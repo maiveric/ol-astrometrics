@@ -111,7 +111,6 @@ class EulaContainer extends React.Component {
       }
     });
 
-
   }
 
   renderRows = () => Object.entries(EULA_CONTENT).map(([header, dataRows]) => (
