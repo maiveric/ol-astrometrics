@@ -115,7 +115,7 @@ class EulaContainer extends React.Component {
   }
 
   renderRows = () => Object.entries(EULA_CONTENT).map(([header, dataRows]) => (
-    <Row id={header}>
+    <Row key={header} id={header}>
       <article>{header}</article>
       <article>{this.renderData(dataRows)}</article>
     </Row>
