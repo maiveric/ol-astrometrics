@@ -12,17 +12,21 @@ import {
   takeEvery,
   select
 } from '@redux-saga/core/effects';
-import { Map, List } from 'immutable';
+import { Map, List, fromJS } from 'immutable';
+import { DataApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
+import { getOrCreateUserId } from '../submit/SubmitSagas';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import {
   EXPORT_REPORT,
-  exportReport
+  LOAD_REPORTS,
+  exportReport,
+  loadReports
 } from './ReportActionFactory';
 
 declare var __MAPBOX_TOKEN__;
@@ -451,4 +455,51 @@ function* exportReportWorker(action :SequenceAction) :Generator<*, *, *> {
 
 export function* exportReportWatcher() :Generator<*, *, *> {
   yield takeEvery(EXPORT_REPORT, exportReportWorker);
+}
+
+
+function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
+
+  try {
+    yield put(loadReports.request(action.id));
+
+    const app = yield select(getAppFromState);
+    const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
+    const reportsEntitySetId = getEntitySetId(app, APP_TYPES.REPORTS);
+
+    const userEntityKeyId = yield call(getOrCreateUserId);
+
+    const reportNeighbors = yield call(
+      SearchApi.searchEntityNeighborsWithFilter,
+      userEntitySetId,
+      {
+        entityKeyIds: [userEntityKeyId],
+        sourceEntitySetIds: [reportsEntitySetId],
+        destinationEntitySetIds: []
+      }
+    );
+
+    const reportsForUser = reportNeighbors[userEntityKeyId];
+    let reports = Map();
+
+    fromJS(reportsForUser).forEach((neighborObj) => {
+      const neighborDetails = neighborObj.get('neighborDetails');
+      const entityKeyId = getEntityKeyId(neighborDetails);
+      reports = reports.set(entityKeyId, neighborDetails);
+    });
+
+    yield put(loadReports.success(action.id));
+  }
+  catch (error) {
+    console.error(error);
+    yield put(loadReports.failure(action.id, error));
+  }
+  finally {
+    yield put(loadReports.finally(action.id));
+  }
+}
+
+
+export function* loadReportsWatcher() :Generator<*, *, *> {
+  yield takeEvery(LOAD_REPORTS, loadReportsWorker);
 }

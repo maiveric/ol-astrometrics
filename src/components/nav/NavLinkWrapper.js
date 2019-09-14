@@ -4,9 +4,9 @@ import { NavLink } from 'react-router-dom';
 const NAV_LINK_ACTIVE_CLASSNAME = 'nav-link-active';
 
 
-export default styled(NavLink).attrs({
+export default styled(NavLink).attrs(_ => ({
   activeClassName: NAV_LINK_ACTIVE_CLASSNAME
-})`
+}))`
   align-items: center;
   border-bottom: 3px solid transparent;
   color: #807F85;

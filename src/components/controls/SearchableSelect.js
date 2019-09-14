@@ -71,9 +71,9 @@ const inputStyle = `
   }
 `;
 
-const SearchInput = styled.input.attrs({
+const SearchInput = styled.input.attrs(_ => ({
   type: 'text'
-})`
+}))`
   ${inputStyle}
   background-color: ${(props) => {
     if (props.disabled) {

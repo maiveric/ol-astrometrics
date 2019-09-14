@@ -89,7 +89,17 @@ export const SEARCH_PARAMETERS = {
 };
 
 export const REPORT = {
-  VEHICLE_ENTITY_KEY_IDS: 'vehicleEntityKeyIds'
+
+  VEHICLE_ENTITY_KEY_IDS: 'vehicleEntityKeyIds',
+
+  IS_LOADING_REPORTS: 'isLoadingReports',
+  REPORTS: 'reports',
+  REPORT_NEIGHBORS: 'reportNeighbors',
+  SELECTED_REPORT: 'selectedReport',
+
+  REPORT_MODAL_OPEN: 'reportModalOpen',
+  NEW_REPORT_NAME: 'newReportName',
+  NEW_REPORT_CASE: 'newReportCase'
 };
 
 export const PARAMETERS = {

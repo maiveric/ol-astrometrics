@@ -54,9 +54,9 @@ const Wrapper = styled.div`
   height: 100%;
 `;
 
-const AuditTable = styled.table.attrs({
+const AuditTable = styled.table.attrs(_ => ({
   cellspacing: 0
-})`
+}))`
 
 `;
 

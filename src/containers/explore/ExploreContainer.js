@@ -26,6 +26,8 @@ import ExploreNavigationContainer from './ExploreNavigationContainer';
 import SavedMapNavBar from '../map/SavedMapNavBar';
 import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
 import NewAlertModal from '../alerts/NewAlertModal';
+import NewReportModal from '../report/NewReportModal';
+import AllReportsContainer from '../report/AllReportsContainer';
 import {
   STATE,
   ALERTS,
@@ -33,6 +35,7 @@ import {
   EDM,
   EXPLORE,
   PARAMETERS,
+  REPORT,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -44,11 +47,13 @@ import * as DrawActionFactory from '../map/DrawActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
+import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
   edmLoaded :boolean;
   alertModalOpen :boolean;
   newMapModalOpen :boolean;
+  reportModalOpen :boolean;
   drawMode :boolean;
   displayFullSearchOptions :boolean;
   results :List<*>;
@@ -60,6 +65,7 @@ type Props = {
   edm :Map<*, *>;
   actions :{
     loadAlerts :(edm :Map) => void;
+    loadReports :() => void;
     loadDataModel :() => void;
     loadDepartmentsAndDevices :() => void;
     loadSavedMaps :() => void;
@@ -102,17 +108,29 @@ class ExploreContainer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    const { actions } = this.props;
+    const { actions, edmLoaded } = this.props;
     actions.loadDataModel();
     actions.loadAlerts();
+
+    if (edmLoaded) {
+      this.loadDataDependingOnEDM(this.props);
+    }
   }
 
   componentDidUpdate(prevProps) {
-    const { actions, edmLoaded } = this.props;
+    const { edmLoaded } = this.props;
+
     if (!prevProps.edmLoaded && edmLoaded) {
-      actions.loadDepartmentsAndDevices();
-      actions.loadSavedMaps();
+      this.loadDataDependingOnEDM(this.props);
     }
+  }
+
+  loadDataDependingOnEDM = (props) => {
+    const { actions } = props;
+
+    actions.loadDepartmentsAndDevices();
+    actions.loadSavedMaps();
+    actions.loadReports();
   }
 
   setSearchZones = (searchZones) => {
@@ -134,6 +152,7 @@ class ExploreContainer extends React.Component<Props, State> {
       actions,
       alertModalOpen,
       newMapModalOpen,
+      reportModalOpen,
       drawMode,
       displayFullSearchOptions,
       filter,
@@ -157,6 +176,15 @@ class ExploreContainer extends React.Component<Props, State> {
       };
 
       content = <NewMapModalBody />;
+    }
+
+    else if (reportModalOpen) {
+      modalProps = {
+        isOpen: true,
+        onClose: () => actions.toggleReportModal(false)
+      };
+
+      content = <NewReportModal />
     }
 
     else if (alertModalOpen) {
@@ -255,7 +283,7 @@ class ExploreContainer extends React.Component<Props, State> {
           <Switch>
             <Route path={Routes.MAP_ROUTE} render={this.renderMap} />
             <Route path={Routes.ALERTS_ROUTE} component={ManageAlertsContainer} />
-            <Route path={Routes.REPORTS_ROUTE} render={this.renderReports} />
+            <Route path={Routes.REPORTS_ROUTE} component={AllReportsContainer} />
             <Redirect to={Routes.MAP_ROUTE} />
           </Switch>
 
@@ -273,6 +301,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const params = state.get(STATE.PARAMETERS);
   const alerts = state.get(STATE.ALERTS);
+  const reports = state.get(STATE.REPORT);
 
   return {
     edm,
@@ -289,6 +318,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
 
     alertModalOpen: alerts.get(ALERTS.ALERT_MODAL_OPEN),
+    reportModalOpen: reports.get(REPORT.REPORT_MODAL_OPEN),
     newMapModalOpen: draw.get(DRAW.IS_CREATING_MAP)
   };
 }
@@ -314,6 +344,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ParametersActionFactory).forEach((action :string) => {
     actions[action] = ParametersActionFactory[action];
+  });
+
+  Object.keys(ReportActionFactory).forEach((action :string) => {
+    actions[action] = ReportActionFactory[action];
   });
 
   return {

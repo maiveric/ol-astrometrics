@@ -76,18 +76,18 @@ export const PaddedSection = styled.div`
   }
 `;
 
-export const HeaderSection = styled(PaddedSection).attrs({
+export const HeaderSection = styled(PaddedSection).attrs(_ => ({
   borderBottom: true
-})`
+}))`
   background-color: ${props => getScheme(props, FIELDS.BACKGROUND)};
   ${props => (props.noPadBottom ? css`
     padding-bottom: 0;
   ` : '')}
 `;
 
-const BackButton = styled(SubtleButton).attrs({
+const BackButton = styled(SubtleButton).attrs(_ => ({
   noHover: true
-})`
+}))`
   color: ${props => getScheme(props, FIELDS.SECONDARY_TEXT)};
   display: flex;
   align-items: center;

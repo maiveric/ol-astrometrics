@@ -144,9 +144,9 @@ const StyledInputWrapper = styled.div`
   position: relative;
 `;
 
-const StyledInput = styled.input.attrs({
+const StyledInput = styled.input.attrs(_ => ({
   type: 'text'
-})`
+}))`
   width: 100%;
   background: #4F4E54;
 

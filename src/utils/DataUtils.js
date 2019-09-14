@@ -107,3 +107,8 @@ export const formatNameIdForDisplay = (entity) => {
 };
 
 export const countWithLabel = (count, label) => `${count} ${label}${count && count > 1 ? 's' : ''}`;
+
+export const getValue = (entity, fqn, defaultValue) => {
+  const def = defaultValue === undefined ? '' : defaultValue;
+  return entity.getIn([fqn, 0], def);
+};

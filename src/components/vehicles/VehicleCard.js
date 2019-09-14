@@ -96,9 +96,9 @@ const Photos = styled(BasicRow)`
   align-items: flex-start;
 `;
 
-const Img = styled.img.attrs({
+const Img = styled.img.attrs(_ => ({
   alt: ''
-})`
+}))`
   max-height: 100%;
   max-width: 48%;
   top: 0;

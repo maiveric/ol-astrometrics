@@ -111,10 +111,14 @@ const getEntityIdObject = (entitySetId, idOrIndex, isId) => ({
   isId
 });
 
+const getAuth0Id = () => {
+  const { id } = AuthUtils.getUserInfo();
+  return id;
+}
+
 export function* getOrCreateUserId() {
   try {
-    const userInfo = AuthUtils.getUserInfo();
-    const userId = userInfo.id;
+    const userId = getAuth0Id();
 
     const app = yield select(getAppFromState);
     const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
@@ -165,6 +169,7 @@ function* submitWorkerNew(action) {
     if (includeUserId) {
       const userId = yield call(getOrCreateUserId);
       values[ID_FIELDS.USER_ID] = userId;
+      values[ID_FIELDS.USER_AUTH_ID] = getAuth0Id();
     }
 
     const allEntitySetIds = config.entitySets.map(({ name }) => getEntitySetId(app, name));

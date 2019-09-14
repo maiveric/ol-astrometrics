@@ -23,9 +23,9 @@ const Control = styled.label`
   }
 `;
 
-const CheckboxInput = styled.input.attrs({
+const CheckboxInput = styled.input.attrs(_ => ({
   type: 'checkbox'
-})`
+}))`
   position: absolute;
   z-index: -1;
   opacity: 0;

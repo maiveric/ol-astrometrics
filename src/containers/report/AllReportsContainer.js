@@ -12,7 +12,6 @@ import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 
-import AlertRow from './AlertRow';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
@@ -21,6 +20,8 @@ import SecondaryButton from '../../components/buttons/SecondaryButton';
 import {
   STATE,
   ALERTS,
+  REPORT,
+  EDM,
   PARAMETERS,
   SEARCH_PARAMETERS,
   SUBMIT
@@ -30,16 +31,20 @@ import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
-import * as AlertActionFactory from './AlertActionFactory';
+import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
-  alerts :List,
-  isLoadingAlerts :boolean,
+  reports :List,
+  isLoadingReports :boolean,
   isSubmitting :boolean,
   parameters :Map,
+  edm :Map,
+
   actions :{
-    setAlertValue :({ field :string, value :string }) => void,
+    loadReports :(edm :Map) => void,
+    toggleReportModal :(isOpen :boolean) => void,
+    setReportValue :({ field :string, value :string }) => void,
     submit :(
       values :Object,
       config :Object,
@@ -89,6 +94,10 @@ const SubHeader = styled(ModalHeader)`
   margin-bottom: 16px;
 `;
 
+const DateTimePickerWrapper = styled.div`
+  width: 100%;
+`;
+
 const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -118,27 +127,20 @@ const EvenlySpacedRow = styled(Row)`
   margin-bottom: 20px;
 `;
 
-const NoAlerts = styled.div`
+const NoReports = styled.div`
   width: 100%;
   font-size: 14px;
   color: #98979D;
 `;
 
-class ManageAlertsContainer extends React.Component<Props, State> {
+class AllReportsContainer extends React.Component<Props, State> {
 
   componentDidMount() {
     const { actions, parameters } = this.props;
-    actions.setAlertValue({
-      field: ALERTS.CASE_NUMBER,
+
+    actions.setReportValue({
+      field: REPORT.NEW_REPORT_CASE,
       value: parameters.get(PARAMETERS.CASE_NUMBER, '')
-    });
-    actions.setAlertValue({
-      field: ALERTS.SEARCH_REASON,
-      value: parameters.get(PARAMETERS.REASON, '')
-    });
-    actions.setAlertValue({
-      field: ALERTS.EXPIRATION,
-      value: moment().add(1, 'month').toISOString()
     });
   }
 
@@ -150,67 +152,30 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     return options;
   }
 
-  renderEmailSubtitle = (adjustTop) => {
-    const { email } = AuthUtils.getUserInfo();
-    return <ModalSubtitle adjustTop={adjustTop}>{`Alerts will be sent to ${email}`}</ModalSubtitle>;
-  }
-
   getExpiration = alert => moment(alert.get('expiration', ''));
 
-  sortAlerts = (a1, a2) => {
+  sortReports = (a1, a2) => {
     const dt1 = this.getExpiration(a1);
     const dt2 = this.getExpiration(a2);
     return dt1.isValid() && dt1.isAfter(dt2) ? -1 : 1;
   }
 
-  renderAlerts = (sortedAlerts, expired) => {
+  renderReportList = () => {
+    const { actions, reports } = this.props;
 
-    if (!sortedAlerts.size) {
-      return <NoAlerts>{`You have no ${expired ? 'expired' : 'active'} alerts.`}</NoAlerts>;
-    }
+    let content = <NoReports>You have no reports.</NoReports>;
 
-    return sortedAlerts.map(alert => <AlertRow key={alert.get('id')} alert={alert} expired={expired} />);
-  }
+    if (reports.size) {
+      content = reports.sort(this.sortReports)
+        .map(report => <ReportRow key={report.get('id')} report={report} />);
 
-  renderAlertList = () => {
-    const { actions, alerts } = this.props;
-
-    let content = <NoAlerts>You have not set any alerts.</NoAlerts>;
-
-    if (alerts.size) {
-      const now = moment();
-
-      let active = List();
-      let inactive = List();
-
-      alerts.forEach((alert) => {
-        const dateTime = this.getExpiration(alert);
-        if (dateTime.isValid() && dateTime.isAfter(now)) {
-          active = active.push(alert);
-        }
-        else {
-          inactive = inactive.push(alert);
-        }
-      });
-
-      active = active.sort(this.sortAlerts);
-      inactive = inactive.sort(this.sortAlerts);
-
-      content = (
-        <>
-          <SubHeader>Active alerts</SubHeader>
-          {this.renderAlerts(active, false)}
-          <SubHeader>Expired alerts</SubHeader>
-          {this.renderAlerts(inactive, true)}
-        </>
-      );
     }
 
     return (
       <FormContainer>
         <EvenlySpacedRow>
-          <ModalHeader>Alerts</ModalHeader>
-          <InfoButton onClick={() => actions.toggleAlertModal(true)}>Create new alert</InfoButton>
+          <ModalHeader>Reports</ModalHeader>
+          <InfoButton onClick={() => actions.toggleReportModal(true)}>New report</InfoButton>
         </EvenlySpacedRow>
         {content}
       </FormContainer>
@@ -218,15 +183,15 @@ class ManageAlertsContainer extends React.Component<Props, State> {
   }
 
   render() {
-    const { isLoadingAlerts, isSubmitting } = this.props;
+    const { isLoadingReports, isSubmitting } = this.props;
 
-    if (isLoadingAlerts || isSubmitting) {
+    if (isLoadingReports || isSubmitting) {
       return <SpinnerWrapper><Spinner /></SpinnerWrapper>;
     }
 
     return (
       <Wrapper>
-        {this.renderAlertList()}
+        {this.renderReportList()}
       </Wrapper>
     );
   }
@@ -235,23 +200,25 @@ class ManageAlertsContainer extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const alerts = state.get(STATE.ALERTS);
+  const reports = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
+  const edm = state.get(STATE.EDM);
   const submit = state.get(STATE.SUBMIT);
 
   return {
-    alerts: alerts.get(ALERTS.ALERT_LIST),
-    isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
+    reports: reports.get(REPORT.REPORTS),
+    isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
-    isSubmitting: submit.get(SUBMIT.SUBMITTING)
+    isSubmitting: submit.get(SUBMIT.SUBMITTING),
+    edm
   };
 }
 
 function mapDispatchToProps(dispatch :Function) :Object {
   const actions :{ [string] :Function } = {};
 
-  Object.keys(AlertActionFactory).forEach((action :string) => {
-    actions[action] = AlertActionFactory[action];
+  Object.keys(ReportActionFactory).forEach((action :string) => {
+    actions[action] = ReportActionFactory[action];
   });
 
   Object.keys(SubmitActionFactory).forEach((action :string) => {
@@ -266,4 +233,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ManageAlertsContainer));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AllReportsContainer));

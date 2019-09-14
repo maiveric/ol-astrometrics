@@ -16,9 +16,9 @@ const Label = styled.span`
   margin-bottom: 0 !important;
 `;
 
-const Input = styled.input.attrs({
+const Input = styled.input.attrs(_ => ({
   type: 'range'
-})`
+}))`
   -webkit-appearance: none;
   width: 100%;
   height: 2px;

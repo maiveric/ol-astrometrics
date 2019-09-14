@@ -60,6 +60,7 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* ReportSagas */
     fork(ReportSagas.exportReportWatcher),
+    fork(ReportSagas.loadReportsWatcher),
 
     /* RoutingSagas */
     fork(RoutingSagas.goToPathWatcher),

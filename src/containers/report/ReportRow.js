@@ -12,7 +12,7 @@ import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
+import { faChevronRight } from '@fortawesome/pro-regular-svg-icons';
 
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
@@ -32,15 +32,14 @@ import {
 import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
+import { getEntityKeyId, getValue } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
-import * as AlertActionFactory from './AlertActionFactory';
+import * as ReportActionFactory from './ReportActionFactory';
 
 type Props = {
-  alert :Map,
-  expired :boolean,
+  report :Map,
   actions :{
-    expireAlert :Function
+    selectReport :Function
   }
 }
 
@@ -48,7 +47,7 @@ type State = {
   expanded :boolean
 };
 
-const Alert = styled.div`
+const Report = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -63,7 +62,7 @@ const Alert = styled.div`
   }
 `;
 
-const AlertHeaderRow = styled.div`
+const ReportHeaderRow = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -103,7 +102,7 @@ const AlertHeaderRow = styled.div`
 `;
 
 const Icon = styled(FontAwesomeIcon).attrs(props => ({
-  icon: props.expanded ? faChevronUp : faChevronDown
+  icon: faChevronRight
 }))`
   color: #CAC9CE;
 `;
@@ -139,7 +138,7 @@ const InfoGroup = styled.div`
 `;
 
 
-class AlertRow extends React.Component<Props, State> {
+class ReportRow extends React.Component<Props, State> {
 
   constructor(props) {
     super(props);
@@ -148,77 +147,37 @@ class AlertRow extends React.Component<Props, State> {
     };
   }
 
-  renderExpandedContent = () => {
-    const { alert, expired } = this.props;
-    const { expanded } = this.state;
+  onRename = () => {
+    console.log('rename');
+  }
 
-    if (!expanded) {
-      return null;
-    }
-
-    const { email } = AuthUtils.getUserInfo();
-
-    const alertMetadata = alert.get('alertMetadata', Map());
-    let expiration = moment(alert.get('expiration', ''));
-    let createDate = moment(alertMetadata.get('createDate', ''));
-
-    expiration = expiration.isValid() ? expiration.format('MM/DD/YYYY') : 'Invalid expiration date';
-    createDate = createDate.isValid() ? createDate.format('MM/DD/YYYY') : 'Unknown';
-
-
-    return (
-      <>
-        <InfoRow>
-          <InfoGroup width={25}>
-            <span>Created on</span>
-            <div>{createDate}</div>
-          </InfoGroup>
-          <InfoGroup width={25}>
-            <span>{`Expire${expired ? 'd' : 's'} on`}</span>
-            <div>{expiration}</div>
-          </InfoGroup>
-          <InfoGroup width={50}>
-            <span>Search reason</span>
-            <div>{alertMetadata.get('searchReason')}</div>
-          </InfoGroup>
-        </InfoRow>
-
-        <InfoRow>
-          <InfoGroup>
-            <span>Email alert</span>
-            <div>{email}</div>
-          </InfoGroup>
-        </InfoRow>
-      </>
-    );
-
+  onDelete = () => {
+    console.log('delete');
   }
 
   render() {
-    const { actions, alert, expired } = this.props;
-    const { expanded } = this.state;
+    const { actions, report, expired } = this.props;
 
-    const alertMetadata = alert.get('alertMetadata', Map());
+    const entityKeyId = getEntityKeyId(report);
 
     return (
-      <Alert expired={expired}>
-        <AlertHeaderRow>
+      <Report expired={expired}>
+        <ReportHeaderRow>
           <div>
-            <div>{alertMetadata.get('licensePlate')}</div>
-            <span>{alertMetadata.get('caseNum')}</span>
+            <div>{getValue(report, PROPERTY_TYPES.NAME)}</div>
+            <span>{getValue(report, PROPERTY_TYPES.CASE_NUMBER)}</span>
           </div>
 
           <div>
-            {expired ? null : <SubtleButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire</SubtleButton>}
-            <SubtleButton noHover onClick={() => this.setState({ expanded: !expanded })}>
-              <Icon expanded={`${expanded}`} />
+            <SubtleButton onClick={this.onRename}>Rename</SubtleButton>
+            <SubtleButton onClick={this.onDelete}>Delete</SubtleButton>
+            <SubtleButton noHover onClick={() => actions.selectReport(entityKeyId)}>
+              <Icon />
             </SubtleButton>
           </div>
-        </AlertHeaderRow>
+        </ReportHeaderRow>
 
-        {this.renderExpandedContent()}
-
-      </Alert>
+      </Report>
     );
   }
 
@@ -251,8 +210,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
 function mapDispatchToProps(dispatch :Function) :Object {
   const actions :{ [string] :Function } = {};
 
-  Object.keys(AlertActionFactory).forEach((action :string) => {
-    actions[action] = AlertActionFactory[action];
+  Object.keys(ReportActionFactory).forEach((action :string) => {
+    actions[action] = ReportActionFactory[action];
   });
 
   return {
@@ -263,4 +222,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AlertRow));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ReportRow));

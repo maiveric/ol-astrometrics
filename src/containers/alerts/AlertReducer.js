@@ -41,7 +41,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
 
     case createAlert.case(action.type): {
-      return loadAlerts.reducer(state, action, {
+      return createAlert.reducer(state, action, {
         FINALLY: () => state.set(ALERT_MODAL_OPEN, false)
       });
     }
