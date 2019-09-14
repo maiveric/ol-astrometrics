@@ -81,24 +81,6 @@ const ModalHeader = styled.div`
   font-size: 24px;
 `;
 
-const ModalSubtitle = styled.div`
-  color: #8e929b;
-  font-style: italic;
-  font-size: 14px;
-  margin: ${props => (props.adjustTop ? '-20px 0 20px 0' : '-10px 0 10px 0')};
-`;
-
-const SubHeader = styled(ModalHeader)`
-  font-weight: 500;
-  font-size: 16px;
-  margin-top: 40px;
-  margin-bottom: 16px;
-`;
-
-const DateTimePickerWrapper = styled.div`
-  width: 100%;
-`;
-
 const FormContainer = styled.div`
   display: flex;
   flex-direction: column;

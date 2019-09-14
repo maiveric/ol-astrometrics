@@ -4,37 +4,26 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import moment from 'moment';
-import { List, Map, OrderedMap } from 'immutable';
+import { Map } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/pro-regular-svg-icons';
 
-import Spinner from '../../components/spinner/Spinner';
-import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import SubtleButton from '../../components/buttons/SubtleButton';
-import BasicButton from '../../components/buttons/BasicButton';
-import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
 import {
   STATE,
   ALERTS,
   EDM,
-  PARAMETERS,
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as ReportActionFactory from './ReportActionFactory';
+import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
   report :Map,
@@ -117,17 +106,23 @@ class ReportRow extends React.Component<Props, State> {
     };
   }
 
-  onDelete = () => {
-    console.log('delete');
-  }
-
   render() {
-    const { actions, report, expired } = this.props;
+    const { actions, report, entitySetId } = this.props;
 
     const entityKeyId = getEntityKeyId(report);
 
+    const onDelete = () => {
+
+      actions.deleteEntity({
+        entitySetId,
+        entityKeyId,
+        callback: () => actions.loadReports()
+      });
+    }
+
+
     return (
-      <Report expired={expired}>
+      <Report>
         <ReportHeaderRow>
           <div>
             <div>{getValue(report, PROPERTY_TYPES.NAME)}</div>
@@ -136,7 +131,7 @@ class ReportRow extends React.Component<Props, State> {
 
           <div>
             <SubtleButton onClick={() => actions.toggleRenameReportModal(entityKeyId)}>Rename</SubtleButton>
-            <SubtleButton onClick={this.onDelete}>Delete</SubtleButton>
+            <SubtleButton onClick={onDelete}>Delete</SubtleButton>
             <SubtleButton noHover onClick={() => actions.selectReport(entityKeyId)}>
               <Icon />
             </SubtleButton>
@@ -158,6 +153,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const submit = state.get(STATE.SUBMIT);
 
   return {
+    entitySetId: getEntitySetId(app, APP_TYPES.REPORTS),
+
     alertsEntitySetId: getEntitySetId(app, APP_TYPES.ALERTS),
     readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     alerts: alerts.get(ALERTS.ALERT_LIST),
@@ -178,6 +175,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ReportActionFactory).forEach((action :string) => {
     actions[action] = ReportActionFactory[action];
+  });
+
+  Object.keys(SubmitActionFactory).forEach((action :string) => {
+    actions[action] = SubmitActionFactory[action];
   });
 
   return {

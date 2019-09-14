@@ -7,6 +7,7 @@ import Immutable from 'immutable';
 import { SUBMIT } from '../../utils/constants/StateConstants';
 import {
   CLEAR_SUBMIT,
+  deleteEntity,
   partialReplaceEntity,
   replaceEntity,
   submit
@@ -22,6 +23,19 @@ const INITIAL_STATE :Immutable.Map<*, *> = Immutable.Map().withMutations((map :I
 
 function submitReducer(state :Immutable.Map<*, *> = INITIAL_STATE, action :Object) {
   switch (action.type) {
+
+    case deleteEntity.case(action.type): {
+      return deleteEntity.reducer(state, action, {
+        REQUEST: () => state
+          .set(SUBMIT.SUBMITTING, true)
+          .set(SUBMIT.SUBMITTED, false)
+          .set(SUBMIT.SUCCESS, false)
+          .set(SUBMIT.ERROR, ''),
+        SUCCESS: () => state.set(SUBMIT.SUCCESS, true).set(SUBMIT.ERROR, ''),
+        FAILURE: () => state.set(SUBMIT.SUCCESS, false).set(SUBMIT.ERROR, action.value),
+        FINALLY: () => state.set(SUBMIT.SUBMITTING, false).set(SUBMIT.SUBMITTED, true)
+      });
+    }
 
     case replaceEntity.case(action.type): {
       return replaceEntity.reducer(state, action, {
