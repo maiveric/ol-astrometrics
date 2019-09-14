@@ -4,32 +4,23 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import moment from 'moment';
-import { List, Map, OrderedMap } from 'immutable';
+import { Map, OrderedMap } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
 
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
-import NewReportConfig from '../../config/formconfig/NewReportConfig';
-import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 import {
   STATE,
   EDM,
-  PARAMETERS,
   REPORT,
-  SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getSearchTerm } from '../../utils/DataUtils';
+import { getValue } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
@@ -37,19 +28,16 @@ import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 type Props = {
   isLoadingReports :boolean,
   isSubmitting :boolean,
-  caseNum :string,
+  entityKeyId :string,
+  entitySetId :string,
   name :string,
-  parameters :Map,
+  namePropertyTypeId :string,
+  reports :Map,
   actions :{
-    toggleReportModal :(isOpen :boolean) => void,
+    toggleRenameReportModal :(isOpen :boolean) => void,
+    loadReports :() => void,
     setReportValue :({ field :string, value :string }) => void,
-    submit :(
-      values :Object,
-      config :Object,
-      includeUserId :boolean,
-      callback :Function
-    ) => void,
-    replaceEntity :(
+    partialReplaceEntity :(
       entityKeyId :string,
       entitySetId :string,
       values :Object,
@@ -70,10 +58,6 @@ const FormContainer = styled.div`
   align-items: flex-start;
   padding: 10px 0;
   width: 100%;
-`;
-
-const Accent = styled.span`
-  color: #e53b36 !important;
 `;
 
 const Section = styled.div`
@@ -114,11 +98,6 @@ const Row = styled.div`
   }
 `;
 
-const SpaceBetweenRow = styled(Row)`
-  justify-content: space-between;
-  align-items: center;
-`;
-
 const CenteredRow = styled(Row)`
   justify-content: center;
   margin-top: 20px;
@@ -137,17 +116,16 @@ const EvenlySpacedRow = styled(Row)`
 class NewReportModal extends React.Component<Props, State> {
 
   componentDidMount() {
-    const { actions, parameters } = this.props;
+    const { actions, reports, entityKeyId } = this.props;
 
-    actions.setReportValue({
-      field: REPORT.NEW_REPORT_CASE,
-      value: parameters.get(PARAMETERS.CASE_NUMBER, '')
-    });
+    if (entityKeyId) {
+      const value = getValue(reports.get(entityKeyId), PROPERTY_TYPES.NAME);
 
-    actions.setReportValue({
-      field: REPORT.NEW_REPORT_NAME,
-      value: ''
-    });
+      actions.setReportValue({
+        field: REPORT.NEW_REPORT_NAME,
+        value
+      });
+    }
   }
 
   getOnChange = (field, noEventObj, filterWildcards) => {
@@ -169,23 +147,23 @@ class NewReportModal extends React.Component<Props, State> {
     return options;
   }
 
-  createReport = () => {
+  rename = () => {
     const {
       actions,
-      caseNum,
+      namePropertyTypeId,
+      entityKeyId,
+      entitySetId,
       name
     } = this.props;
 
-    actions.submit({
-      config: NewReportConfig,
-      includeUserId: true,
+    actions.partialReplaceEntity({
+      entityKeyId,
+      entitySetId,
       values: {
-        [REPORT.NEW_REPORT_NAME]: name,
-        [REPORT.NEW_REPORT_CASE]: caseNum,
-        [PROPERTY_TYPES.REPORT_CREATED_DATE_TIME]: moment().toISOString(true)
+        [namePropertyTypeId]: [name]
       },
       callback: () => {
-        actions.toggleReportModal(false);
+        actions.toggleRenameReportModal(false);
         actions.loadReports();
       }
     });
@@ -194,24 +172,28 @@ class NewReportModal extends React.Component<Props, State> {
   render() {
     const {
       actions,
-      caseNum,
       name,
       isLoadingReports,
-      isSubmitting
+      isSubmitting,
+      entityKeyId
     } = this.props;
+
+    if (!entityKeyId) {
+      return null;
+    }
 
     if (isLoadingReports || isSubmitting) {
       return <SpinnerWrapper><Spinner /></SpinnerWrapper>;
     }
 
-    const canSubmit = caseNum && name;
+    const canSubmit = !!name;
 
     return (
       <FormContainer>
         <Section>
           <SectionRow>
             <EvenlySpacedRow>
-              <ModalHeader>New report</ModalHeader>
+              <ModalHeader>Rename report</ModalHeader>
             </EvenlySpacedRow>
           </SectionRow>
         </Section>
@@ -219,27 +201,17 @@ class NewReportModal extends React.Component<Props, State> {
         <Section>
 
           <SectionRow>
-            <InputHeader>Case number</InputHeader>
-            <Accent>*</Accent>
-            <StyledInput value={caseNum} onChange={this.getOnChange(REPORT.NEW_REPORT_CASE)} />
+            <InputHeader>Name of the report</InputHeader>
+            <StyledInput value={name} onChange={this.getOnChange(REPORT.NEW_REPORT_NAME)} />
           </SectionRow>
 
-          <SpaceBetweenRow>
-
-            <SectionRow>
-              <InputHeader>Name of the report</InputHeader>
-              <Accent>*</Accent>
-              <StyledInput value={name} onChange={this.getOnChange(REPORT.NEW_REPORT_NAME)} />
-            </SectionRow>
-
-          </SpaceBetweenRow>
         </Section>
 
         <Section>
           <SectionRow>
             <CenteredRow>
-              <SubtleButton onClick={() => actions.toggleReportModal(false)}>Cancel</SubtleButton>
-              <InfoButton disabled={!canSubmit} onClick={this.createReport}>Create</InfoButton>
+              <SubtleButton onClick={() => actions.toggleRenameReportModal(false)}>Cancel</SubtleButton>
+              <InfoButton disabled={!canSubmit} onClick={this.rename}>Update</InfoButton>
             </CenteredRow>
           </SectionRow>
         </Section>
@@ -251,16 +223,19 @@ class NewReportModal extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const app = state.get(STATE.APP);
+  const edm = state.get(STATE.EDM);
   const reports = state.get(STATE.REPORT);
-  const parameters = state.get(STATE.PARAMETERS);
   const submit = state.get(STATE.SUBMIT);
 
   return {
     isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),
-    caseNum: reports.get(REPORT.NEW_REPORT_CASE),
+    isSubmitting: submit.get(SUBMIT.SUBMITTING),
+    reports: reports.get(REPORT.REPORTS),
     name: reports.get(REPORT.NEW_REPORT_NAME),
-    parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
-    isSubmitting: submit.get(SUBMIT.SUBMITTING)
+    entityKeyId: reports.get(REPORT.RENAME_REPORT_MODAL_OPEN),
+    namePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.NAME, 'id']),
+    entitySetId: getEntitySetId(app, APP_TYPES.REPORTS)
   };
 }
 

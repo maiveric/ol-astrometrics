@@ -488,7 +488,7 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
       reports = reports.set(entityKeyId, neighborDetails);
     });
 
-    yield put(loadReports.success(action.id));
+    yield put(loadReports.success(action.id, reports));
   }
   catch (error) {
     console.error(error);

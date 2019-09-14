@@ -67,6 +67,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(RoutingSagas.goToRootWatcher),
 
     /* SubmitSagas */
+    fork(SubmitSagas.partialReplaceEntityWatcher),
     fork(SubmitSagas.replaceEntityWatcher),
     fork(SubmitSagas.submitWatcher)
   ]);

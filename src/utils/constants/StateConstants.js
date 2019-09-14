@@ -98,6 +98,7 @@ export const REPORT = {
   SELECTED_REPORT: 'selectedReport',
 
   REPORT_MODAL_OPEN: 'reportModalOpen',
+  RENAME_REPORT_MODAL_OPEN: 'renameReportModalOpen',
   NEW_REPORT_NAME: 'newReportName',
   NEW_REPORT_CASE: 'newReportCase'
 };

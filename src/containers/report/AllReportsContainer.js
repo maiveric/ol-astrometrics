@@ -12,6 +12,7 @@ import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 
+import ReportRow from './ReportRow';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
@@ -165,9 +166,10 @@ class AllReportsContainer extends React.Component<Props, State> {
 
     let content = <NoReports>You have no reports.</NoReports>;
 
+
     if (reports.size) {
-      content = reports.sort(this.sortReports)
-        .map(report => <ReportRow key={report.get('id')} report={report} />);
+      content = reports.valueSeq().sort(this.sortReports)
+        .map(report => <ReportRow key={getEntityKeyId(report)} report={report} />);
 
     }
 

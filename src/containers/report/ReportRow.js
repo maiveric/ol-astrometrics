@@ -107,36 +107,6 @@ const Icon = styled(FontAwesomeIcon).attrs(props => ({
   color: #CAC9CE;
 `;
 
-const InfoRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  justify-content: flex-start;
-  align-items: center;
-  padding-top: 20px;
-`;
-
-const InfoGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: ${props => props.width || 100}%;
-  max-width: ${props => props.width || 100}%;
-
-  span {
-    font-size: 11px;
-    color: #807F85;
-  }
-
-  div {
-    font-size: 14px;
-    color: #B1B0B6;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-`;
-
 
 class ReportRow extends React.Component<Props, State> {
 
@@ -145,10 +115,6 @@ class ReportRow extends React.Component<Props, State> {
     this.state = {
       expanded: false
     };
-  }
-
-  onRename = () => {
-    console.log('rename');
   }
 
   onDelete = () => {
@@ -165,11 +131,11 @@ class ReportRow extends React.Component<Props, State> {
         <ReportHeaderRow>
           <div>
             <div>{getValue(report, PROPERTY_TYPES.NAME)}</div>
-            <span>{getValue(report, PROPERTY_TYPES.CASE_NUMBER)}</span>
+            <span>{getValue(report, PROPERTY_TYPES.TYPE)}</span>
           </div>
 
           <div>
-            <SubtleButton onClick={this.onRename}>Rename</SubtleButton>
+            <SubtleButton onClick={() => actions.toggleRenameReportModal(entityKeyId)}>Rename</SubtleButton>
             <SubtleButton onClick={this.onDelete}>Delete</SubtleButton>
             <SubtleButton noHover onClick={() => actions.selectReport(entityKeyId)}>
               <Icon />

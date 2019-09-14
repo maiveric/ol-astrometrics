@@ -20,8 +20,10 @@ import { ID_FIELDS } from '../../utils/constants/DataConstants';
 import { APP } from '../../utils/constants/StateConstants';
 import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
 import {
+  PARTIAL_REPLACE_ENTITY,
   REPLACE_ENTITY,
   SUBMIT,
+  partialReplaceEntity,
   replaceEntity,
   submit
 } from './SubmitActionFactory';
@@ -103,6 +105,39 @@ function* replaceEntityWorker(action) {
 
 function* replaceEntityWatcher() {
   yield takeEvery(REPLACE_ENTITY, replaceEntityWorker);
+}
+
+function* partialReplaceEntityWorker(action) {
+  try {
+    yield put(partialReplaceEntity.request(action.id));
+    const {
+      entityKeyId,
+      entitySetId,
+      values,
+      callback
+    } = action.value;
+
+    const entities = {
+      [entityKeyId]: values
+    };
+
+    yield call(DataApi.updateEntityData, entitySetId, entities, 'PartialReplace');
+
+    yield put(partialReplaceEntity.success(action.id));
+    if (callback) {
+      callback();
+    }
+  }
+  catch (error) {
+    yield put(partialReplaceEntity.failure(action.id, error));
+  }
+  finally {
+    yield put(partialReplaceEntity.finally(action.id));
+  }
+}
+
+function* partialReplaceEntityWatcher() {
+  yield takeEvery(PARTIAL_REPLACE_ENTITY, partialReplaceEntityWorker);
 }
 
 const getEntityIdObject = (entitySetId, idOrIndex, isId) => ({
@@ -303,6 +338,7 @@ function* submitWatcher() {
 }
 
 export {
+  partialReplaceEntityWatcher,
   replaceEntityWatcher,
   submitWatcher
 };

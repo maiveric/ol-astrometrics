@@ -27,6 +27,9 @@ export const createReport :RequestSequence = newRequestSequence(CREATE_REPORT);
 export const TOGGLE_REPORT_MODAL :string = 'TOGGLE_REPORT_MODAL';
 export const toggleReportModal :RequestSequence = newRequestSequence(TOGGLE_REPORT_MODAL);
 
+export const TOGGLE_RENAME_REPORT_MODAL :string = 'TOGGLE_RENAME_REPORT_MODAL';
+export const toggleRenameReportModal :RequestSequence = newRequestSequence(TOGGLE_RENAME_REPORT_MODAL);
+
 export const SELECT_REPORT :string = 'SELECT_REPORT';
 export const selectReport :RequestSequence = newRequestSequence(SELECT_REPORT);
 
