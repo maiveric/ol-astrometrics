@@ -10,18 +10,14 @@ const InfoButton = styled.button`
   padding: 10px 70px;
   width: ${props => (props.fullSize ? '100%' : 'fit-content')};
 
-  &:hover {
-    background-color: #8471F1;
+  &:hover:enabled {
+    background-color: #FF6B5E;
     cursor: pointer;
   }
 
-  &:active {
-    background-color: #8471F1;
-  }
-
   &:disabled {
-    background-color: #48416E;
-    color: #5F5887;
+    background-color: #A4453D;
+    color: #C27771;
     border: none;
 
     &:hover {
