@@ -40,7 +40,7 @@ const Report = styled.div`
   }
 `;
 
-const ReportHeaderRow = styled.div`
+export const ReportHeaderRow = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;

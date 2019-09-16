@@ -55,7 +55,7 @@ const BasicRow = styled.div`
 `;
 
 const HeaderRow = styled(BasicRow)`
-  padding: 16px;
+  padding: ${props => (props.noPadding ? 0 : 16)}px;
   border-bottom: 1px solid #1F1E24;
 
   div:first-child {
@@ -130,9 +130,10 @@ export const VehicleHeader = ({
   state,
   plate,
   isHit,
-  addButton
+  addButton,
+  noPadding
 }) => (
-  <HeaderRow>
+  <HeaderRow noPadding={noPadding}>
     <div>
       <span>{state}</span>
       <div>{plate}</div>
