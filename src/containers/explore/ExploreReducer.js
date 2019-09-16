@@ -16,6 +16,8 @@ import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
   SELECT_ENTITY,
+  SELECT_READS_FOR_REPORT,
+  DESELECT_READS_FOR_REPORT,
   SET_FILTER,
   UNMOUNT_EXPLORE,
   executeSearch,
@@ -30,6 +32,7 @@ const {
   FILTER,
   IS_LOADING_ENTITY_NEIGHBORS,
   IS_SEARCHING_DATA,
+  READ_IDS_TO_ADD_TO_REPORT,
   SEARCH_DATE_TIME,
   SELECTED_ENTITY_KEY_IDS,
   SELECTED_READ_ID,
@@ -43,6 +46,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [FILTER]: '',
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
   [IS_SEARCHING_DATA]: false,
+  [READ_IDS_TO_ADD_TO_REPORT]: Set(),
   [SEARCH_RESULTS]: List(),
   [SELECTED_ENTITY_KEY_IDS]: Set(),
   [SELECTED_READ_ID]: undefined,
@@ -159,10 +163,22 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         }
       }
 
-      return state
+      let newState = state
         .set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds)
         .set(SELECTED_READ_ID, selectedReadId);
+
+      if (!selectedReadId) {
+        newState = newState.set(READ_IDS_TO_ADD_TO_REPORT, Set());
+      }
+
+      return newState;
     }
+
+    case SELECT_READS_FOR_REPORT:
+      return state.set(READ_IDS_TO_ADD_TO_REPORT, state.get(READ_IDS_TO_ADD_TO_REPORT).union(action.value));
+
+    case DESELECT_READS_FOR_REPORT:
+      return state.set(READ_IDS_TO_ADD_TO_REPORT, state.get(READ_IDS_TO_ADD_TO_REPORT).subtract(action.value));
 
     case SET_FILTER:
       return state.set(FILTER, action.value);

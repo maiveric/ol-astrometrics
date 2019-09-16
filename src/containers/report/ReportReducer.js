@@ -13,6 +13,7 @@ import { CLEAR_EXPLORE_SEARCH_RESULTS, UNMOUNT_EXPLORE } from '../explore/Explor
 import {
   ADD_VEHICLE_TO_REPORT,
   REMOVE_VEHICLE_FROM_REPORT,
+  TOGGLE_ADD_READS_TO_REPORT_MODAL,
   TOGGLE_REPORT_MODAL,
   TOGGLE_RENAME_REPORT_MODAL,
   TOGGLE_DELETE_REPORT_MODAL,
@@ -30,6 +31,7 @@ const {
   REPORT_NEIGHBORS,
   SELECTED_REPORT,
 
+  ADD_READS_TO_REPORT_MODAL_OPEN,
   REPORT_MODAL_OPEN,
   RENAME_REPORT_MODAL_OPEN,
   NEW_REPORT_NAME,
@@ -77,6 +79,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case SELECT_REPORT:
       return state.set(SELECTED_REPORT, action.value);
+
+    case TOGGLE_ADD_READS_TO_REPORT_MODAL:
+      return state.set(ADD_READS_TO_REPORT_MODAL_OPEN, !!action.value);
 
     case TOGGLE_REPORT_MODAL:
       return state.set(REPORT_MODAL_OPEN, !!action.value);

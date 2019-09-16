@@ -29,6 +29,7 @@ import NewAlertModal from '../alerts/NewAlertModal';
 import NewReportModal from '../report/NewReportModal';
 import RenameReportModal from '../report/RenameReportModal';
 import DeleteReportModal from '../report/DeleteReportModal';
+import AddReadsToReportModal from '../report/AddReadsToReportModal';
 import AllReportsContainer from '../report/AllReportsContainer';
 import {
   STATE,
@@ -55,6 +56,7 @@ type Props = {
   edmLoaded :boolean;
   alertModalOpen :boolean;
   newMapModalOpen :boolean;
+  addReadsToReportModalOpen :boolean;
   reportModalOpen :boolean;
   renameReportModalOpen :boolean;
   deleteReportModalOpen :boolean;
@@ -156,6 +158,7 @@ class ExploreContainer extends React.Component<Props, State> {
       actions,
       alertModalOpen,
       newMapModalOpen,
+      addReadsToReportModalOpen,
       reportModalOpen,
       renameReportModalOpen,
       deleteReportModalOpen
@@ -183,7 +186,7 @@ class ExploreContainer extends React.Component<Props, State> {
         onClose: () => actions.toggleReportModal(false)
       };
 
-      content = <NewReportModal />
+      content = <NewReportModal />;
     }
 
     else if (renameReportModalOpen) {
@@ -192,7 +195,7 @@ class ExploreContainer extends React.Component<Props, State> {
         onClose: () => actions.toggleRenameReportModal(false)
       };
 
-      content = <RenameReportModal />
+      content = <RenameReportModal />;
     }
 
     else if (deleteReportModalOpen) {
@@ -201,7 +204,16 @@ class ExploreContainer extends React.Component<Props, State> {
         onClose: () => actions.toggleDeleteReportModal(false)
       };
 
-      content = <DeleteReportModal />
+      content = <DeleteReportModal />;
+    }
+
+    else if (addReadsToReportModalOpen) {
+      modalProps = {
+        isOpen: true,
+        onClose: () => actions.toggleAddReadsToReportModal(false)
+      };
+
+      content = <AddReadsToReportModal />;
     }
 
     else if (alertModalOpen) {
@@ -335,6 +347,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
 
     alertModalOpen: alerts.get(ALERTS.ALERT_MODAL_OPEN),
+    addReadsToReportModalOpen: !!reports.get(REPORT.ADD_READS_TO_REPORT_MODAL_OPEN),
     reportModalOpen: reports.get(REPORT.REPORT_MODAL_OPEN),
     renameReportModalOpen: !!reports.get(REPORT.RENAME_REPORT_MODAL_OPEN),
     deleteReportModalOpen: !!reports.get(REPORT.REPORT_TO_DELETE),

@@ -72,7 +72,9 @@ export const EXPLORE = {
   SEARCH_RESULTS: 'searchResults',
   TOTAL_RESULTS: 'numResults',
   SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds',
-  SELECTED_READ_ID: 'selectedReadId'
+  SELECTED_READ_ID: 'selectedReadId',
+
+  READ_IDS_TO_ADD_TO_REPORT: 'readIdsToAddToReport'
 };
 
 export const SEARCH_PARAMETERS = {
@@ -99,6 +101,7 @@ export const REPORT = {
 
   REPORT_MODAL_OPEN: 'reportModalOpen',
   RENAME_REPORT_MODAL_OPEN: 'renameReportModalOpen',
+  ADD_READS_TO_REPORT_MODAL_OPEN: 'addReadsToReportModalOpen',
   NEW_REPORT_NAME: 'newReportName',
   NEW_REPORT_CASE: 'newReportCase',
   REPORT_TO_DELETE: 'reportToDelete',

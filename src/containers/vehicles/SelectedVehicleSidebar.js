@@ -37,6 +37,7 @@ type Props = {
   selectedReadId :string,
   reportVehicles :List<*>,
   departmentOptions :Map,
+  readIdsForReport :Set,
   deviceOptions :Map,
   actions :{
     selectEntity :(entityKeyId :string) => void,
@@ -93,6 +94,8 @@ const ReportDefinitionRow = styled.div`
   align-items: center;
   width: 100%;
   color: #807F85;
+
+  padding-top: ${props => props.paddingTop || 0}px;
 
   div {
     width: 49%;
@@ -200,9 +203,15 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     actions.selectEntity({ data, vehiclesEntitySetId });
   }
 
+  addToReport = () => {
+    const { actions } = this.props;
+    actions.toggleAddReadsToReportModal(true);
+  }
+
   renderReadList = () => {
     const {
       actions,
+      readIdsForReport,
       selectedReadId,
       selectedEntityKeyIds,
       entitiesById
@@ -213,24 +222,31 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
       return [entityKeyId, timestamp];
     }).sort(([id1, t1], [id2, t2]) => (t1.isBefore(t2) ? -1 : 1));
 
-    return idAndTimestamp.map(([entityKeyId, timestamp]) => (
-      <Fragment key={entityKeyId}>
-        <PaddedSection borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
-          <Row>
-            <FlexRow>
-              <Checkbox checked={false} onChange={console.log} />
-              <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
-            </FlexRow>
-            <RoundButton onClick={e => this.openGoogleMaps(e, entityKeyId)}>
-              <FontAwesomeIcon icon={faMap} />
-            </RoundButton>
-          </Row>
-        </PaddedSection>
-        {
-          entityKeyId === selectedReadId ? this.renderSelectedReadDetails() : null
-        }
-      </Fragment>
-    ));
+    return idAndTimestamp.map(([entityKeyId, timestamp]) => {
+
+      const isInReport = readIdsForReport.has(entityKeyId);
+
+      const onCheck = isInReport ? actions.deselectReadsForReport : actions.selectReadsForReport;
+
+      return (
+        <Fragment key={entityKeyId}>
+          <PaddedSection borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
+            <Row>
+              <FlexRow>
+                <Checkbox checked={isInReport} onChange={() => onCheck(Set.of(entityKeyId))} />
+                <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
+              </FlexRow>
+              <RoundButton onClick={e => this.openGoogleMaps(e, entityKeyId)}>
+                <FontAwesomeIcon icon={faMap} />
+              </RoundButton>
+            </Row>
+          </PaddedSection>
+          {
+            entityKeyId === selectedReadId ? this.renderSelectedReadDetails() : null
+          }
+        </Fragment>
+      );
+    });
   }
 
   renderHeader = () => {
@@ -255,12 +271,11 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
   }
 
   renderReportSection = (vehicle) => {
-    const { actions, reportVehicles } = this.props;
+    const { actions, selectedEntityKeyIds, readIdsForReport } = this.props;
 
-    const entityKeyId = getEntityKeyId(vehicle);
-    const isInReport = reportVehicles.has(entityKeyId);
+    const isInReport = selectedEntityKeyIds.subtract(readIdsForReport).isEmpty();
 
-    const onCheckTemp = isInReport ? actions.removeVehicleFromReport : actions.addVehicleToReport;
+    const onCheck = isInReport ? actions.deselectReadsForReport : actions.selectReadsForReport;
 
     return (
       <PaddedSection borderBottom>
@@ -269,11 +284,11 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
             <span>Select vehicle reads to include in the report</span>
           </div>
           <div>
-            <BasicButton>Add to report</BasicButton>
+            <BasicButton disabled={!readIdsForReport.size} onClick={this.addToReport}>Add to report</BasicButton>
           </div>
         </ReportDefinitionRow>
-        <ReportDefinitionRow>
-          <Checkbox checked={isInReport} onChange={() => onCheckTemp(entityKeyId)} />
+        <ReportDefinitionRow paddingTop={20}>
+          <Checkbox checked={isInReport} onChange={() => onCheck(selectedEntityKeyIds)} />
         </ReportDefinitionRow>
       </PaddedSection>
     );
@@ -307,6 +322,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
+    readIdsForReport: explore.get(EXPLORE.READ_IDS_TO_ADD_TO_REPORT),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS),
