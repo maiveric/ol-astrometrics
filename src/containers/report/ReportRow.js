@@ -12,22 +12,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@fortawesome/pro-regular-svg-icons';
 
 import SubtleButton from '../../components/buttons/SubtleButton';
-import {
-  STATE,
-  ALERTS,
-  EDM,
-  SEARCH_PARAMETERS,
-  SUBMIT
-} from '../../utils/constants/StateConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
 import * as ReportActionFactory from './ReportActionFactory';
-import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
   report :Map,
   actions :{
-    selectReport :Function
+    selectReport :Function,
+    toggleRenameReportModal :Function,
+    toggleDeleteReportModal :Function
   }
 }
 
@@ -92,66 +86,36 @@ const Icon = styled(FontAwesomeIcon).attrs(_ => ({
 `;
 
 
-class ReportRow extends React.Component<Props, State> {
+const ReportRow = ({ actions, report } :Props) => {
 
-  render() {
-    const { actions, report } = this.props;
+  const entityKeyId = getEntityKeyId(report);
 
-    const entityKeyId = getEntityKeyId(report);
+  return (
+    <Report>
+      <ReportHeaderRow>
+        <div>
+          <div>{getValue(report, PROPERTY_TYPES.NAME)}</div>
+          <span>{getValue(report, PROPERTY_TYPES.TYPE)}</span>
+        </div>
 
-    return (
-      <Report>
-        <ReportHeaderRow>
-          <div>
-            <div>{getValue(report, PROPERTY_TYPES.NAME)}</div>
-            <span>{getValue(report, PROPERTY_TYPES.TYPE)}</span>
-          </div>
+        <div>
+          <SubtleButton onClick={() => actions.toggleRenameReportModal(entityKeyId)}>Rename</SubtleButton>
+          <SubtleButton onClick={() => actions.toggleDeleteReportModal(entityKeyId)}>Delete</SubtleButton>
+          <SubtleButton noHover onClick={() => actions.selectReport(entityKeyId)}>
+            <Icon />
+          </SubtleButton>
+        </div>
+      </ReportHeaderRow>
 
-          <div>
-            <SubtleButton onClick={() => actions.toggleRenameReportModal(entityKeyId)}>Rename</SubtleButton>
-            <SubtleButton onClick={actions.toggleDeleteReportModal(entityKeyId)}>Delete</SubtleButton>
-            <SubtleButton noHover onClick={() => actions.selectReport(entityKeyId)}>
-              <Icon />
-            </SubtleButton>
-          </div>
-        </ReportHeaderRow>
-
-      </Report>
-    );
-  }
-
-
-}
-
-function mapStateToProps(state :Map<*, *>) :Object {
-  const alerts = state.get(STATE.ALERTS);
-  const parameters = state.get(STATE.PARAMETERS);
-  const edm = state.get(STATE.EDM);
-  const submit = state.get(STATE.SUBMIT);
-
-  return {
-    alerts: alerts.get(ALERTS.ALERT_LIST),
-    isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
-    caseNum: alerts.get(ALERTS.CASE_NUMBER),
-    searchReason: alerts.get(ALERTS.SEARCH_REASON),
-    plate: alerts.get(ALERTS.PLATE),
-    expirationDate: alerts.get(ALERTS.EXPIRATION),
-    parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
-    platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
-    isSubmitting: submit.get(SUBMIT.SUBMITTING),
-    edm
-  };
-}
+    </Report>
+  );
+};
 
 function mapDispatchToProps(dispatch :Function) :Object {
   const actions :{ [string] :Function } = {};
 
   Object.keys(ReportActionFactory).forEach((action :string) => {
     actions[action] = ReportActionFactory[action];
-  });
-
-  Object.keys(SubmitActionFactory).forEach((action :string) => {
-    actions[action] = SubmitActionFactory[action];
   });
 
   return {
@@ -162,4 +126,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ReportRow));
+export default withRouter(connect(null, mapDispatchToProps)(ReportRow));
