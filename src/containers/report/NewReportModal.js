@@ -91,6 +91,8 @@ const SpinnerWrapper = styled.div`
   margin: 30px;
   padding: 30px;
   position: relative;
+  width: 100%;
+  height: 100%;
 `;
 
 const InputHeader = styled.span`

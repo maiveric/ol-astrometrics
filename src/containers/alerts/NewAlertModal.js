@@ -77,12 +77,6 @@ const SubHeader = styled.div`
   line-height: 150%;
 `;
 
-const ModalSubtitle = styled.div`
-  color: #8e929b;
-  font-style: italic;
-  font-size: 14px;
-  margin: ${props => (props.adjustTop ? '-20px 0 20px 0' : '-10px 0 10px 0')};
-`;
 
 const DateTimePickerWrapper = styled.div`
   width: 100%;
@@ -115,6 +109,8 @@ const SpinnerWrapper = styled.div`
   margin: 30px;
   padding: 30px;
   position: relative;
+  width: 100%;
+  height: 100%;
 `;
 
 const InputHeader = styled.span`
@@ -162,7 +158,7 @@ const EvenlySpacedRow = styled(Row)`
   align-items: center;
 `;
 
-class ManageAlertsContainer extends React.Component<Props, State> {
+class NewAlertModal extends React.Component<Props, State> {
 
   componentDidMount() {
     const { actions, parameters } = this.props;
@@ -393,4 +389,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ManageAlertsContainer));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(NewAlertModal));
