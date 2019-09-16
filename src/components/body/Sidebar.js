@@ -76,8 +76,8 @@ export const PaddedSection = styled.div`
   }
 `;
 
-export const HeaderSection = styled(PaddedSection).attrs(_ => ({
-  borderBottom: true
+export const HeaderSection = styled(PaddedSection).attrs(props => ({
+  borderBottom: !props.noBorderBottom
 }))`
   background-color: ${props => getScheme(props, FIELDS.BACKGROUND)};
   ${props => (props.noPadBottom ? css`
@@ -104,9 +104,10 @@ export const SidebarHeader = ({
   backButtonOnClick,
   light,
   noPadBottom,
+  noBorderBottom,
   mainContent
 }) => (
-  <HeaderSection light={light} noPadBottom={noPadBottom}>
+  <HeaderSection light={light} noPadBottom={noPadBottom} noBorderBottom={noBorderBottom}>
     <BackButton onClick={backButtonOnClick} light={light}>
       <FontAwesomeIcon icon={faChevronLeft} />
       <span>{backButtonText}</span>

@@ -13,12 +13,12 @@ import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 
 import ReportRow from './ReportRow';
-import SelectedReportContainer from './SelectedReportContainer';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
+import { SidebarHeader } from '../../components/body/Sidebar';
 import {
   STATE,
   ALERTS,
@@ -31,16 +31,16 @@ import {
 import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
+import { getEntityKeyId, getValue } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
-  reports :List,
+  entityKeyId :string,
+  report :Map,
   isLoadingReports :boolean,
   isSubmitting :boolean,
-  selectedReportId :string,
   parameters :Map,
   edm :Map,
 
@@ -67,14 +67,7 @@ const Wrapper = styled.div`
   position: absolute;
   display: flex;
   flex-direction: column;
-  width: calc(100% - ${SIDEBAR_WIDTH}px);
-  height: calc(100% - ${INNER_NAV_BAR_HEIGHT - 1}px);
-  background-color: #1F1E24;
-  color: #ffffff;
-  bottom: 0;
-  right: 0;
-  padding: 56px 104px;
-  line-height: 150%;
+  width: 100%;
 `;
 
 const ModalHeader = styled.div`
@@ -108,6 +101,21 @@ const Row = styled.div`
   }
 `;
 
+const ReportDetails = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  line-height: 150%;
+  font-weight: 600;
+  font-size: 24px;
+  padding-top: 8px;
+
+  span {
+    color: #807f85;
+    padding-left: 10px;
+  }
+`;
+
 const EvenlySpacedRow = styled(Row)`
   justify-content: space-between;
   align-items: center;
@@ -120,7 +128,7 @@ const NoReports = styled.div`
   color: #98979D;
 `;
 
-class AllReportsContainer extends React.Component<Props, State> {
+class SelectedReportContainer extends React.Component<Props, State> {
 
   componentDidMount() {
     const { actions, parameters } = this.props;
@@ -170,26 +178,42 @@ class AllReportsContainer extends React.Component<Props, State> {
     );
   }
 
-  render() {
-    const { isLoadingReports, isSubmitting, selectedReportId } = this.props;
+  renderHeader = () => {
+    const { actions, report } = this.props;
 
-    let content;
+    const name = getValue(report, PROPERTY_TYPES.NAME);
+    const caseNum = getValue(report, PROPERTY_TYPES.TYPE);
+
+    const reportDetails = (
+      <ReportDetails>
+        <div>{name}</div>
+        <span>{caseNum}</span>
+      </ReportDetails>
+    );
+
+    return (
+      <SidebarHeader
+          noBorderBottom
+          backButtonText="Back to reports"
+          backButtonOnClick={() => actions.selectReport(false)}
+          mainContent={reportDetails} />
+    );
+  }
+
+  render() {
+    const { isLoadingReports, isSubmitting, report } = this.props;
+
+    if (!report) {
+      return null;
+    }
 
     if (isLoadingReports || isSubmitting) {
-      content = <Spinner />;
-    }
-
-    else if (selectedReportId) {
-      content = <SelectedReportContainer />
-    }
-
-    else {
-      content = this.renderReportList();
+      return <SpinnerWrapper><Spinner /></SpinnerWrapper>;
     }
 
     return (
       <Wrapper>
-        {content}
+        {this.renderHeader()}
       </Wrapper>
     );
   }
@@ -203,9 +227,11 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const edm = state.get(STATE.EDM);
   const submit = state.get(STATE.SUBMIT);
 
+  const entityKeyId = reports.get(REPORT.SELECTED_REPORT);
+
   return {
-    reports: reports.get(REPORT.REPORTS),
-    selectedReportId: reports.get(REPORT.SELECTED_REPORT),
+    entityKeyId,
+    report: reports.getIn([REPORT.REPORTS, entityKeyId]),
     isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     isSubmitting: submit.get(SUBMIT.SUBMITTING),
@@ -232,4 +258,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AllReportsContainer));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SelectedReportContainer));
