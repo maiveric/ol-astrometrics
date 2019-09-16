@@ -30,6 +30,9 @@ export const toggleReportModal :RequestSequence = newRequestSequence(TOGGLE_REPO
 export const TOGGLE_RENAME_REPORT_MODAL :string = 'TOGGLE_RENAME_REPORT_MODAL';
 export const toggleRenameReportModal :RequestSequence = newRequestSequence(TOGGLE_RENAME_REPORT_MODAL);
 
+export const TOGGLE_DELETE_REPORT_MODAL :string = 'TOGGLE_DELETE_REPORT_MODAL';
+export const toggleDeleteReportModal :RequestSequence = newRequestSequence(TOGGLE_DELETE_REPORT_MODAL);
+
 export const SELECT_REPORT :string = 'SELECT_REPORT';
 export const selectReport :RequestSequence = newRequestSequence(SELECT_REPORT);
 

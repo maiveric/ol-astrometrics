@@ -100,7 +100,10 @@ export const REPORT = {
   REPORT_MODAL_OPEN: 'reportModalOpen',
   RENAME_REPORT_MODAL_OPEN: 'renameReportModalOpen',
   NEW_REPORT_NAME: 'newReportName',
-  NEW_REPORT_CASE: 'newReportCase'
+  NEW_REPORT_CASE: 'newReportCase',
+  REPORT_TO_DELETE: 'reportToDelete',
+  VEHICLE_TO_DELETE: 'vehicleToDelete',
+  READ_TO_DELETE: 'readToDelete'
 };
 
 export const PARAMETERS = {

@@ -19,9 +19,8 @@ import {
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
@@ -31,10 +30,6 @@ type Props = {
     selectReport :Function
   }
 }
-
-type State = {
-  expanded :boolean
-};
 
 const Report = styled.div`
   display: flex;
@@ -90,7 +85,7 @@ const ReportHeaderRow = styled.div`
   }
 `;
 
-const Icon = styled(FontAwesomeIcon).attrs(props => ({
+const Icon = styled(FontAwesomeIcon).attrs(_ => ({
   icon: faChevronRight
 }))`
   color: #CAC9CE;
@@ -99,27 +94,10 @@ const Icon = styled(FontAwesomeIcon).attrs(props => ({
 
 class ReportRow extends React.Component<Props, State> {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      expanded: false
-    };
-  }
-
   render() {
-    const { actions, report, entitySetId } = this.props;
+    const { actions, report } = this.props;
 
     const entityKeyId = getEntityKeyId(report);
-
-    const onDelete = () => {
-
-      actions.deleteEntity({
-        entitySetId,
-        entityKeyId,
-        callback: () => actions.loadReports()
-      });
-    }
-
 
     return (
       <Report>
@@ -131,7 +109,7 @@ class ReportRow extends React.Component<Props, State> {
 
           <div>
             <SubtleButton onClick={() => actions.toggleRenameReportModal(entityKeyId)}>Rename</SubtleButton>
-            <SubtleButton onClick={onDelete}>Delete</SubtleButton>
+            <SubtleButton onClick={actions.toggleDeleteReportModal(entityKeyId)}>Delete</SubtleButton>
             <SubtleButton noHover onClick={() => actions.selectReport(entityKeyId)}>
               <Icon />
             </SubtleButton>
@@ -146,17 +124,12 @@ class ReportRow extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const app = state.get(STATE.APP);
   const alerts = state.get(STATE.ALERTS);
   const parameters = state.get(STATE.PARAMETERS);
   const edm = state.get(STATE.EDM);
   const submit = state.get(STATE.SUBMIT);
 
   return {
-    entitySetId: getEntitySetId(app, APP_TYPES.REPORTS),
-
-    alertsEntitySetId: getEntitySetId(app, APP_TYPES.ALERTS),
-    readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     alerts: alerts.get(ALERTS.ALERT_LIST),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
     caseNum: alerts.get(ALERTS.CASE_NUMBER),

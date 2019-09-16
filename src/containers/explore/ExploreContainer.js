@@ -28,6 +28,7 @@ import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
 import NewAlertModal from '../alerts/NewAlertModal';
 import NewReportModal from '../report/NewReportModal';
 import RenameReportModal from '../report/RenameReportModal';
+import DeleteReportModal from '../report/DeleteReportModal';
 import AllReportsContainer from '../report/AllReportsContainer';
 import {
   STATE,
@@ -56,6 +57,7 @@ type Props = {
   newMapModalOpen :boolean;
   reportModalOpen :boolean;
   renameReportModalOpen :boolean;
+  deleteReportModalOpen :boolean;
   drawMode :boolean;
   displayFullSearchOptions :boolean;
   results :List<*>;
@@ -155,7 +157,8 @@ class ExploreContainer extends React.Component<Props, State> {
       alertModalOpen,
       newMapModalOpen,
       reportModalOpen,
-      renameReportModalOpen
+      renameReportModalOpen,
+      deleteReportModalOpen
     } = this.props;
 
     let modalProps = {
@@ -190,6 +193,15 @@ class ExploreContainer extends React.Component<Props, State> {
       };
 
       content = <RenameReportModal />
+    }
+
+    else if (deleteReportModalOpen) {
+      modalProps = {
+        isOpen: true,
+        onClose: () => actions.toggleDeleteReportModal(false)
+      };
+
+      content = <DeleteReportModal />
     }
 
     else if (alertModalOpen) {
@@ -325,6 +337,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     alertModalOpen: alerts.get(ALERTS.ALERT_MODAL_OPEN),
     reportModalOpen: reports.get(REPORT.REPORT_MODAL_OPEN),
     renameReportModalOpen: !!reports.get(REPORT.RENAME_REPORT_MODAL_OPEN),
+    deleteReportModalOpen: !!reports.get(REPORT.REPORT_TO_DELETE),
     newMapModalOpen: draw.get(DRAW.IS_CREATING_MAP)
   };
 }
