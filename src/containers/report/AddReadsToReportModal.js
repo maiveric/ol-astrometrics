@@ -260,7 +260,9 @@ class AddReadsToReportModal extends React.Component<Props, State> {
 
     const now = moment().toISOString(true);
 
-    const existingReads = isCreating ? Set() : readsByReport.get(reportEntityKeyId, Set()).map(getEntityKeyId);
+    const existingReads = isCreating
+      ? Set()
+      : readsByReport.get(reportEntityKeyId, Set()).map(n => getEntityKeyId(n.get('neighborDetails', Map())));
 
     const readIdValues = readIdsForReport.subtract(existingReads).map(id => ({
       [ID_FIELDS.READ_ID]: id

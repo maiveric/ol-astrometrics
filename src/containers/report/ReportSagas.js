@@ -490,7 +490,7 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
     });
 
 
-    const readNeighbors = yield call(
+    let readsByReport = yield call(
       SearchApi.searchEntityNeighborsWithFilter,
       reportsEntitySetId,
       {
@@ -500,10 +500,7 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
       }
     );
 
-    let readsByReport = Map();
-    fromJS(readNeighbors).entrySeq().forEach(([reportEntityKeyId, neighbors]) => {
-      readsByReport = readsByReport.set(reportEntityKeyId, neighbors.map(n => n.get('neighborDetails')));
-    });
+    readsByReport = fromJS(readsByReport);
 
     yield put(loadReports.success(action.id, { reports, readsByReport }));
   }
