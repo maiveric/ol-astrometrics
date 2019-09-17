@@ -210,7 +210,8 @@ const VehicleCard = ({
     });
 
   const numReadsText = countWithLabel(records.size, 'read');
-  const timestampStr = timestamp ? timestamp.format('MM/DD/YY hh:mm A') : '';
+  const timestampLabel = timestampDesc ? 'Latest' : 'Earliest';
+  const timestampStr = timestamp ? `${timestampLabel} on ${timestamp.format('MM/DD/YY hh:mm A')}` : '';
 
   const hitTypes = getUniqueValues(PROPERTY_TYPES.HIT_TYPE);
 
@@ -233,7 +234,7 @@ const VehicleCard = ({
         <ReadDetails>
           <FontAwesomeIcon icon={faVideo} />
           <span>{numReadsText}</span>
-          <span>{`Latest on ${timestampStr}`}</span>
+          <span>{timestampStr}</span>
         </ReadDetails>
 
       </Section>
