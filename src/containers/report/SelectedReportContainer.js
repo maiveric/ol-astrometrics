@@ -76,6 +76,10 @@ const Wrapper = styled.div`
   width: calc(100% - ${SIDEBAR_WIDTH}px);
 `;
 
+const Header = styled.div`
+  padding-bottom: 40px;
+`;
+
 const ModalHeader = styled.div`
   font-size: 18px;
   font-weight: 600;
@@ -281,11 +285,13 @@ class SelectedReportContainer extends React.Component<Props, State> {
     );
 
     return (
-      <SidebarHeader
-          noBorderBottom
-          backButtonText="Back to reports"
-          backButtonOnClick={() => actions.selectReport(false)}
-          mainContent={reportDetails} />
+      <Header>
+        <SidebarHeader
+            noBorderBottom
+            backButtonText="Back to reports"
+            backButtonOnClick={() => actions.selectReport(false)}
+            mainContent={reportDetails} />
+      </Header>
     );
   }
 
