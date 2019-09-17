@@ -13,7 +13,9 @@ export const SEARCH_REASONS :string[] = [
 
 export const ID_FIELDS = {
   USER_ID: 'userId',
-  USER_AUTH_ID: 'userAuth0Id'
+  USER_AUTH_ID: 'userAuth0Id',
+  READ_ID: 'readId',
+  REPORT_ID: 'reportId'
 };
 
 export const MAKES = [

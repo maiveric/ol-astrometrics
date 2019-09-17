@@ -32,7 +32,7 @@ import {
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
+import { ID_FIELDS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
@@ -247,6 +247,50 @@ class AddReadsToReportModal extends React.Component<Props, State> {
     });
   }
 
+  addReadsToReport = (reportEntityKeyId) => {
+    const { isCreating } = this.state;
+    const {
+      actions,
+      readIdsForReport,
+      caseNum,
+      name
+    } = this.props;
+
+    const now = moment().toISOString(true);
+
+    const readIdValues = readIdsForReport.map(id => ({
+      [ID_FIELDS.READ_ID]: id
+    })).toJS();
+
+    const values = {
+      [EXPLORE.READ_IDS_TO_ADD_TO_REPORT]: readIdValues,
+      [PROPERTY_TYPES.COMPLETED_DATE_TIME]: now
+    };
+
+    if (isCreating) {
+      Object.assign(values, {
+        [REPORT.NEW_REPORT_CASE]: caseNum,
+        [REPORT.NEW_REPORT_NAME]: name,
+        [PROPERTY_TYPES.REPORT_CREATED_DATE_TIME]: now
+      });
+    }
+    else {
+      Object.assign(values, {
+        [ID_FIELDS.REPORT_ID]: reportEntityKeyId
+      });
+    }
+
+    actions.submit({
+      values,
+      config: NewReportConfig,
+      includeUserId: !!isCreating,
+      callback: () => {
+        actions.toggleAddReadsToReportModal(false);
+        actions.loadReports();
+      }
+    });
+  }
+
   renderVehicleHeader = () => {
     const { entitiesById, readIdsForReport } = this.props;
 
@@ -260,8 +304,6 @@ class AddReadsToReportModal extends React.Component<Props, State> {
 
   renderNewReportInfo = () => {
     const { caseNum, name } = this.props;
-
-    const canSubmit = caseNum && name;
 
     return (
       <>
@@ -288,7 +330,7 @@ class AddReadsToReportModal extends React.Component<Props, State> {
   renderReportRow = ([entityKeyId, report]) => {
 
     return (
-      <StyledReportHeaderRow key={entityKeyId}>
+      <StyledReportHeaderRow key={entityKeyId} onClick={() => this.addReadsToReport(entityKeyId)}>
         <div>
           <div>{getValue(report, PROPERTY_TYPES.NAME)}</div>
           <span>{getValue(report, PROPERTY_TYPES.TYPE)}</span>
@@ -320,10 +362,6 @@ class AddReadsToReportModal extends React.Component<Props, State> {
     )
   }
 
-  onCreateAndAdd = () => {
-    console.log('create and add')
-  }
-
   render() {
     const {
       actions,
@@ -345,6 +383,10 @@ class AddReadsToReportModal extends React.Component<Props, State> {
     }
 
     const canSubmit = caseNum && name;
+
+    const cancelFn = () => (isCreating
+      ? this.setState({ isCreating: false })
+      : actions.toggleAddReadsToReportModal(false));
 
     return (
       <FormContainer>
@@ -368,10 +410,10 @@ class AddReadsToReportModal extends React.Component<Props, State> {
 
         <Section>
           <SpaceBetweenRow>
-            <SubtleButton onClick={() => actions.toggleAddReadsToReportModal(false)}>Cancel</SubtleButton>
+            <SubtleButton onClick={cancelFn}>Cancel</SubtleButton>
             {
               isCreating
-                ? <InfoButton disabled={!canSubmit} onClick={this.onCreateAndAdd}>Create & add</InfoButton>
+                ? <InfoButton disabled={!canSubmit} onClick={this.addReadsToReport}>Create & add</InfoButton>
                 : null
             }
           </SpaceBetweenRow>

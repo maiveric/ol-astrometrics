@@ -1,6 +1,6 @@
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { ID_FIELDS } from '../../utils/constants/DataConstants';
-import { REPORT } from '../../utils/constants/StateConstants';
+import { REPORT, EXPLORE } from '../../utils/constants/StateConstants';
 
 const config = {
   entitySets: [
@@ -13,7 +13,13 @@ const config = {
       }
     },
     {
-      alias: 'report',
+      alias: 'existingReport',
+      name: APP_TYPES.REPORTS,
+      id: ID_FIELDS.REPORT_ID,
+      fields: {}
+    },
+    {
+      alias: 'newReport',
       name: APP_TYPES.REPORTS,
       fields: {
         [REPORT.NEW_REPORT_NAME]: PROPERTY_TYPES.NAME,
@@ -23,19 +29,43 @@ const config = {
       }
     },
     {
+      alias: 'read',
+      name: APP_TYPES.RECORDS,
+      multipleValuesField: EXPLORE.READ_IDS_TO_ADD_TO_REPORT,
+      id: ID_FIELDS.READ_ID,
+      fields: {}
+    },
+    {
       alias: 'recordedBy',
       name: APP_TYPES.RECORDED_BY,
       fields: {
         [PROPERTY_TYPES.REPORT_CREATED_DATE_TIME]: PROPERTY_TYPES.TIMESTAMP
       }
+    },
+    {
+      alias: 'registeredFor',
+      name: APP_TYPES.REGISTERED_FOR,
+      fields: {
+        [PROPERTY_TYPES.COMPLETED_DATE_TIME]: PROPERTY_TYPES.COMPLETED_DATE_TIME
+      }
     }
   ],
   associations: [
     {
-      src: 'report',
+      src: 'newReport',
       dst: 'user',
       association: 'recordedBy'
-    }
+    },
+    {
+      src: 'read',
+      dst: 'newReport',
+      association: 'registeredFor'
+    },
+    {
+      src: 'read',
+      dst: 'existingReport',
+      association: 'registeredFor'
+    },
   ]
 };
 
