@@ -52,6 +52,8 @@ type Props = {
   isSubmitting :boolean,
   parameters :Map,
   reportReads :Map,
+  departmentOptions :Map,
+  deviceOptions :Map,
 
   actions :{
     loadReports :(edm :Map) => void,
@@ -265,6 +267,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
 
   renderRead = (readObj) => {
     const { expanded } = this.state;
+    const { departmentOptions, deviceOptions } = this.props;
 
     const read = readObj.get('neighborDetails');
     if (!read) {
@@ -295,7 +298,10 @@ class SelectedReportContainer extends React.Component<Props, State> {
             </SubtleButton>
           </InnerRow>
         </InnerRow>
-        { isExpanded ? <ReportVehicleInfo read={read} /> : null}
+        { isExpanded
+          ? <ReportVehicleInfo read={read} departmentOptions={departmentOptions} deviceOptions={deviceOptions} />
+          : null
+        }
       </ReadRow>
     );
   }
@@ -383,6 +389,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     reportReads: reports.getIn([REPORT.READS_BY_REPORT, entityKeyId], Set()),
     isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
+    departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
+    deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
     isSubmitting: submit.get(SUBMIT.SUBMITTING),
     edm
   };

@@ -4,183 +4,143 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import moment from 'moment';
-import { List, Map } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-light-svg-icons';
-import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
+import { Map } from 'immutable';
 
-import SubtleButton from '../buttons/SubtleButton';
-import { countWithLabel } from '../../utils/DataUtils';
+import { getCoordinates, getValue, getDisplayNameForId } from '../../utils/DataUtils';
+import { getMapImgUrlAtSize } from '../../utils/MapUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 type Props = {
-  vehicle :Map<*, *>,
-  records :List<*>,
-  isUnselected :boolean,
-  onClick :() => void,
-  timestampDesc? :boolean,
-  isInReport :boolean,
-  toggleReport :() => void,
+  read :Map<*, *>,
   departmentOptions :Map,
   deviceOptions :Map
 };
 
 const Card = styled.div`
-  background-color: #36353B;
-  border-radius: 3px;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 100%;
-  opacity: ${props => (props.isUnselected ? 0.75 : 1)};
-  margin-bottom: 16px;
-
-  &:hover {
-    cursor: pointer;
-  }
-`;
-
-const Section = styled.div`
-  padding: 16px;
-`;
-
-const BasicRow = styled.div`
-  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
+  width: 100%;
+  height: 130px;
+
+  article {
+    width: 49%;
+    max-width: 280px;
+    height: 100%;
+  }
 `;
 
-const HeaderRow = styled(BasicRow)`
-  padding: ${props => (props.noPadding ? 0 : 16)}px;
-  border-bottom: 1px solid #1F1E24;
+const Photos = styled.article`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 
-  div:first-child {
-    width: fit-content;
+  article:first-child {
+    width: 65%;
+    height: 100%;
+
+    img {
+      max-height: 100%;
+      max-width: 100%;
+    }
+  }
+
+  article:last-child {
+    width: 33%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    img {
+      max-height: 49%;
+      max-width: 100%;
+    }
+  }
+`;
+
+const Details = styled.article`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  article {
+    width: 100%;
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
+    font-size: 14px;
+    line-height: 150%;
+    font-weight: 500;
+    color: #ffffff;
 
     span {
-      padding: 2px 5px;
-      background-color: #98979D;
-      border-radius: 5px;
-      color: #070709;
-      font-size: 11px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      max-height: 21px;
+      color: #807F85;
     }
-
-    div {
-      padding-left: 8px;
-      font-weight: 600;
-      font-size: 16px;
-      color: #ffffff;
-    }
-
-  }
-
-  button {
-    width: fit-content;
-    padding: 0;
   }
 `;
-
-const Photos = styled(BasicRow)`
-  padding-bottom: 16px;
-  align-items: flex-start;
-`;
-
-const Img = styled.img.attrs(_ => ({
-  alt: ''
-}))`
-  max-height: 100%;
-  max-width: 48%;
-  top: 0;
-`;
-
-const ReadDetails = styled(BasicRow)`
-  color: #CAC9CE;
-  font-size: 12px;
-`;
-
-const HitType = styled.div`
-  padding-left: 8px;
-  color: #EE5345 !important;
-`;
-
-const AddToReportButton = styled(SubtleButton)`
-  background-color: ${props => (props.isInReport ? '#CAC9CE' : 'transparent')};
-  color: ${props => (props.isInReport ? '#36353B' : '#ffffff')};
-  border-radius: 50%;
-  height: 24px !important;
-  width: 24px !important;
-
-  &:hover {
-    background-color: ${props => (props.isInReport ? '#CAC9CE' : '#4F4E54')} !important;
-  }
-`;
-
-export const VehicleImageRow = ({
-  plateSrc,
-  vehicleSrc
-}) => (
-  <Photos>
-    { plateSrc ? <Img src={plateSrc} /> : null }
-    { plateSrc ? <Img src={vehicleSrc} /> : null }
-  </Photos>
-);
 
 const ReportVehicleInfo = ({
-  vehicle,
   read,
-  onClick,
-  isUnselected,
-  isInReport,
-  timestampDesc,
-  toggleReport
+  departmentOptions,
+  deviceOptions
 } :Props) => {
 
-  const plate = read.getIn([PROPERTY_TYPES.PLATE, 0], '');
-  const state = read.getIn([PROPERTY_TYPES.STATE, 0], 'CA');
+  const vehicleSrc = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
+  const plateSrc = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
 
-  const vehicleImages = read.get(PROPERTY_TYPES.VEHICLE_IMAGE, List());
-  const plateImages = read.get(PROPERTY_TYPES.LICENSE_PLATE_IMAGE, List());
+  let makeModel = getValue(read, PROPERTY_TYPES.MAKE);
+  const model = getValue(read, PROPERTY_TYPES.MODEL);
+  if (model) {
+    if (makeModel) {
+      makeModel = `${makeModel} ${model}`;
+    }
+    else {
+      makeModel = model;
+    }
+  }
+  const color = getValue(read, PROPERTY_TYPES.COLOR);
 
-  const onToggleReport = (e) => {
-    e.stopPropagation();
-    toggleReport();
-  };
+  const department = getDisplayNameForId(departmentOptions, getValue(read, PROPERTY_TYPES.AGENCY_NAME));
+  const device = getDisplayNameForId(deviceOptions, getValue(read, PROPERTY_TYPES.CAMERA_ID));
 
-  const timestamp = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], List()));
-  const timestampStr = timestamp ? timestamp.format('MM/DD/YY hh:mm A') : '';
-
-  const hitTypes = read.get(PROPERTY_TYPES.HIT_TYPE, List());
+  const [long, lat] = getCoordinates(read);
 
   return (
-    <Card onClick={onClick} isUnselected={isUnselected}>
+    <Card>
 
+      <Photos>
+        <article>
+          <img src={getMapImgUrlAtSize(lat, long, 200, 150)} />
+        </article>
+        <article>
+          <img src={plateSrc} />
+          <img src={vehicleSrc} />
+        </article>
+      </Photos>
 
-      <Section>
+      <Details>
+        <article>
+          <span>Make/model</span>
+          <div>{makeModel}</div>
+        </article>
+        <article>
+          <span>Color</span>
+          <div>{color}</div>
+        </article>
+        <article>
+          <span>Department</span>
+          <div>{department}</div>
+        </article>
+        <article>
+          <span>Device</span>
+          <div>{device}</div>
+        </article>
+      </Details>
 
-        <VehicleImageRow plateSrc={plateImages.get(0)} vehicleSrc={vehicleImages.get(0)} />
-
-        <ReadDetails>
-          {timestampStr}
-        </ReadDetails>
-
-      </Section>
     </Card>
   );
-};
-
-ReportVehicleInfo.defaultProps = {
-  timestampDesc: false
 };
 
 export default ReportVehicleInfo;
