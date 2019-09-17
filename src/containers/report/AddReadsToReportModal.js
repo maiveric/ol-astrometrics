@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import { List, Map, OrderedMap } from 'immutable';
+import { Set, Map, OrderedMap } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -46,6 +46,7 @@ type Props = {
   name :string,
   parameters :Map,
   entitiesById :Map,
+  readsByReport :Map,
   readIdsForReport :Set,
   actions :{
     toggleReportModal :(isOpen :boolean) => void,
@@ -252,13 +253,16 @@ class AddReadsToReportModal extends React.Component<Props, State> {
     const {
       actions,
       readIdsForReport,
+      readsByReport,
       caseNum,
       name
     } = this.props;
 
     const now = moment().toISOString(true);
 
-    const readIdValues = readIdsForReport.map(id => ({
+    const existingReads = isCreating ? Set() : readsByReport.get(reportEntityKeyId, Set()).map(getEntityKeyId);
+
+    const readIdValues = readIdsForReport.subtract(existingReads).map(id => ({
       [ID_FIELDS.READ_ID]: id
     })).toJS();
 
@@ -434,6 +438,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   return {
     isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),
     reports: reports.get(REPORT.REPORTS),
+    readsByReport: reports.get(REPORT.READS_BY_REPORT),
     caseNum: reports.get(REPORT.NEW_REPORT_CASE),
     name: reports.get(REPORT.NEW_REPORT_NAME),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
