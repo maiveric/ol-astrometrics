@@ -25,8 +25,9 @@ import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
 import SubtleButton from '../../components/buttons/SubtleButton';
-import { SidebarHeader } from '../../components/body/Sidebar';
+import ReportVehicleInfo from '../../components/vehicles/ReportVehicleInfo';
 import { VehicleHeader } from '../../components/vehicles/VehicleCard';
+import { SidebarHeader } from '../../components/body/Sidebar';
 import {
   STATE,
   ALERTS,
@@ -135,9 +136,7 @@ const ReadsWrapper = styled.div`
 
 const ReadRow = styled.div`
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   border-top: 1px solid #36353B;
   padding: 16px;
   color: #CAC9CE;
@@ -175,6 +174,7 @@ const InnerRow = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
 `;
 
 class SelectedReportContainer extends React.Component<Props, State> {
@@ -280,15 +280,22 @@ class SelectedReportContainer extends React.Component<Props, State> {
     const dateTime = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
     const dateTimeStr = dateTime.isValid() ? dateTime.format('MM/DD/YYYY hh:mm a') : 'Date unknown';
 
+    const onExpand = () => isExpanded
+      ? this.setState({ expanded: expanded.delete(entityKeyId) })
+      : this.setState({ expanded: expanded.add(entityKeyId) })
+
     return (
       <ReadRow key={entityKeyId}>
-        <span>{dateTimeStr}</span>
         <InnerRow>
-          <SubtleButton onClick={() => this.removeReads([associationEntityKeyId])} noHover>Remove</SubtleButton>
-          <SubtleButton onClick={() => this.setState({ expanded: expanded.add(entityKeyId) })} noHover>
-            <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
-          </SubtleButton>
+          <span>{dateTimeStr}</span>
+          <InnerRow>
+            <SubtleButton onClick={() => this.removeReads([associationEntityKeyId])} noHover>Remove</SubtleButton>
+            <SubtleButton onClick={onExpand} noHover>
+              <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
+            </SubtleButton>
+          </InnerRow>
         </InnerRow>
+        { isExpanded ? <ReportVehicleInfo read={read} /> : null}
       </ReadRow>
     );
   }
