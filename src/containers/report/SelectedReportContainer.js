@@ -73,7 +73,7 @@ const Wrapper = styled.div`
   position: absolute;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: calc(100% - ${SIDEBAR_WIDTH}px);
 `;
 
 const ModalHeader = styled.div`
