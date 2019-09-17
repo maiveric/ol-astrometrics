@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import { List, Map, OrderedMap } from 'immutable';
+import { Set, Map, OrderedMap } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -201,7 +201,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
   }
 
   render() {
-    const { isLoadingReports, isSubmitting, report } = this.props;
+    const { isLoadingReports, isSubmitting, report, reportReads } = this.props;
 
     if (!report) {
       return null;
@@ -232,6 +232,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   return {
     entityKeyId,
     report: reports.getIn([REPORT.REPORTS, entityKeyId]),
+    reportReads: reports.getIn([REPORT.READS_BY_REPORT, entityKeyId], Set()),
     isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     isSubmitting: submit.get(SUBMIT.SUBMITTING),

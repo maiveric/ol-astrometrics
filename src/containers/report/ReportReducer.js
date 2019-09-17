@@ -28,7 +28,7 @@ const {
 
   IS_LOADING_REPORTS,
   REPORTS,
-  REPORT_NEIGHBORS,
+  READS_BY_REPORT,
   SELECTED_REPORT,
 
   ADD_READS_TO_REPORT_MODAL_OPEN,
@@ -44,7 +44,7 @@ const INITIAL_STATE :Map<> = fromJS({
 
   [IS_LOADING_REPORTS]: false,
   [REPORTS]: Map(),
-  [REPORT_NEIGHBORS]: Map(),
+  [READS_BY_REPORT]: Map(),
   [SELECTED_REPORT]: undefined,
 
   [REPORT_MODAL_OPEN]: false,
@@ -66,7 +66,10 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case loadReports.case(action.type): {
       return loadReports.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_REPORTS, true),
-        SUCCESS: () => state.set(REPORTS, action.value),
+        SUCCESS: () => {
+          const { reports, readsByReport } = action.value;
+          return state.set(REPORTS, reports).set(READS_BY_REPORT, readsByReport);
+        },
         FAILURE: () => state.set(REPORTS, Map()),
         FINALLY: () => state.set(IS_LOADING_REPORTS, false)
       });

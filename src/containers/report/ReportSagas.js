@@ -466,6 +466,7 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
     const app = yield select(getAppFromState);
     const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
     const reportsEntitySetId = getEntitySetId(app, APP_TYPES.REPORTS);
+    const readsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
 
     const userEntityKeyId = yield call(getOrCreateUserId);
 
@@ -488,7 +489,23 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
       reports = reports.set(entityKeyId, neighborDetails);
     });
 
-    yield put(loadReports.success(action.id, reports));
+
+    const readNeighbors = yield call(
+      SearchApi.searchEntityNeighborsWithFilter,
+      reportsEntitySetId,
+      {
+        entityKeyIds: reports.keySeq().toJS(),
+        sourceEntityKeyIds: [readsEntitySetId],
+        destinationEntitySetIds: []
+      }
+    );
+
+    let readsByReport = Map();
+    fromJS(readNeighbors).entrySeq().forEach(([reportEntityKeyId, neighbors]) => {
+      readsByReport = readsByReport.set(reportEntityKeyId, neighbors.map(n => n.get('neighborDetails')));
+    });
+
+    yield put(loadReports.success(action.id, { reports, readsByReport }));
   }
   catch (error) {
     console.error(error);

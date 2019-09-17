@@ -96,6 +96,7 @@ export const REPORT = {
 
   IS_LOADING_REPORTS: 'isLoadingReports',
   REPORTS: 'reports',
+  READS_BY_REPORT: 'readsByReport',
   REPORT_NEIGHBORS: 'reportNeighbors',
   SELECTED_REPORT: 'selectedReport',
 
