@@ -9,6 +9,7 @@ import { List, Map } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-light-svg-icons';
 import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
+import { faVideo } from '@fortawesome/pro-solid-svg-icons';
 
 import SubtleButton from '../buttons/SubtleButton';
 import { countWithLabel } from '../../utils/DataUtils';
@@ -107,6 +108,11 @@ const Img = styled.img.attrs(_ => ({
 const ReadDetails = styled(BasicRow)`
   color: #CAC9CE;
   font-size: 12px;
+  justify-content: flex-start;
+
+  span {
+    padding-left: 10px;
+  }
 `;
 
 const HitType = styled.div`
@@ -203,15 +209,11 @@ const VehicleCard = ({
       }
     });
 
+  const numReadsText = countWithLabel(records.size, 'read');
   const timestampStr = timestamp ? timestamp.format('MM/DD/YY hh:mm A') : '';
 
   const hitTypes = getUniqueValues(PROPERTY_TYPES.HIT_TYPE);
 
-  const moreReads = records.size - 1;
-  let maybeMoreReadsText = '';
-  if (moreReads) {
-    maybeMoreReadsText = ` + ${countWithLabel(moreReads, ' more read')}`;
-  }
 
   const addButton = (
     <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
@@ -229,7 +231,9 @@ const VehicleCard = ({
         <VehicleImageRow plateSrc={plateImages.get(0)} vehicleSrc={vehicleImages.get(0)} />
 
         <ReadDetails>
-          {`${timestampStr}${maybeMoreReadsText}`}
+          <FontAwesomeIcon icon={faVideo} />
+          <span>{numReadsText}</span>
+          <span>{`Latest on ${timestampStr}`}</span>
         </ReadDetails>
 
       </Section>

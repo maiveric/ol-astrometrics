@@ -307,7 +307,7 @@ class Sidebar extends React.Component<Props, State> {
             toggleReport={toggleReport}
             records={recordsByVehicleId.get(entityKeyId, List())}
             count={recordsByVehicleId.get(entityKeyId).size}
-            timestampDesc={sort === SORT_TYPE.NEWEST} />
+            timestampDesc={sort !== SORT_TYPE.OLDEST} />
       );
     });
   }
