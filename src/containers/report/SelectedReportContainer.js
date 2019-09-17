@@ -5,7 +5,12 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import { Set, Map, OrderedMap } from 'immutable';
+import {
+  Set,
+  Map,
+  OrderedSet,
+  OrderedMap
+} from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -19,6 +24,7 @@ import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import { SidebarHeader } from '../../components/body/Sidebar';
+import { VehicleHeader } from '../../components/vehicles/VehicleCard';
 import {
   STATE,
   ALERTS,
@@ -42,7 +48,7 @@ type Props = {
   isLoadingReports :boolean,
   isSubmitting :boolean,
   parameters :Map,
-  edm :Map,
+  reportReads :Map,
 
   actions :{
     loadReports :(edm :Map) => void,
@@ -101,6 +107,33 @@ const Row = styled.div`
   }
 `;
 
+const VehicleSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #36353B;
+
+  &:last-child {
+    border-bottom: 1px solid #36353B;
+  }
+`;
+
+const ReadsWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding-left: 50px;
+`;
+
+const ReadRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #36353B;
+  padding: 16px;
+  color: #CAC9CE;
+  font-size: 14px;
+`;
+
 const ReportDetails = styled.div`
   display: flex;
   flex-direction: row;
@@ -137,6 +170,25 @@ class SelectedReportContainer extends React.Component<Props, State> {
       field: REPORT.NEW_REPORT_CASE,
       value: parameters.get(PARAMETERS.CASE_NUMBER, '')
     });
+  }
+
+  groupReadsByVehicle = () => {
+    const { reportReads } = this.props;
+
+    let readsByVehicle = OrderedMap();
+
+    reportReads.forEach((read) => {
+      const plate = read.getIn(['neighborDetails', PROPERTY_TYPES.PLATE, 0]);
+      readsByVehicle = readsByVehicle.set(plate, readsByVehicle.get(plate, OrderedSet()).add(read));
+    });
+
+    readsByVehicle = readsByVehicle.mapEntries(([plate, reads]) => [plate, reads.sort((r1, r2) => {
+      const m1 = moment(r1.getIn(['neighborDetails', PROPERTY_TYPES.TIMESTAMP, 0], ''));
+      const m2 = r2.getIn(['neighborDetails', PROPERTY_TYPES.TIMESTAMP, 0], '');
+      return m1.isAfter(m2) ? -1 : 1;
+    })]).sortBy((_, plate) => plate);
+
+    return readsByVehicle;
   }
 
   getAsMap = (valueList) => {
@@ -178,6 +230,43 @@ class SelectedReportContainer extends React.Component<Props, State> {
     );
   }
 
+  renderRead = (readObj) => {
+    const read = readObj.get('neighborDetails');
+    if (!read) {
+      return null;
+    }
+
+    const entityKeyId = getEntityKeyId(read);
+
+    const dateTime = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
+    const dateTimeStr = dateTime.isValid() ? dateTime.format('MM/DD/YYYY hh:mm a') : 'Date unknown';
+
+    return (
+      <ReadRow key={entityKeyId}>
+        <span>{dateTimeStr}</span>
+      </ReadRow>
+    );
+  }
+
+  renderVehicleGroup = (plate, reads) => {
+
+    const state = reads.first().getIn(['neighborDetails', PROPERTY_TYPES.STATE, 0], 'CA');
+
+    return (
+      <VehicleSection key={plate}>
+        <VehicleHeader plate={plate} state={state} />
+        <ReadsWrapper>
+          {reads.map(this.renderRead)}
+        </ReadsWrapper>
+      </VehicleSection>
+    );
+  }
+
+  renderVehiclesAndReads = () => {
+    const readsByVehicle = this.groupReadsByVehicle();
+    return readsByVehicle.entrySeq().map(([plate, reads]) => this.renderVehicleGroup(plate, reads));
+  }
+
   renderHeader = () => {
     const { actions, report } = this.props;
 
@@ -201,7 +290,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
   }
 
   render() {
-    const { isLoadingReports, isSubmitting, report, reportReads } = this.props;
+    const { isLoadingReports, isSubmitting, report } = this.props;
 
     if (!report) {
       return null;
@@ -214,6 +303,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
     return (
       <Wrapper>
         {this.renderHeader()}
+        {this.renderVehiclesAndReads()}
       </Wrapper>
     );
   }
