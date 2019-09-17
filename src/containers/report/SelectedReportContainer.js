@@ -16,13 +16,15 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronUp, faChevronDown } from '@fortawesome/pro-light-svg-icons';
 
 import ReportRow from './ReportRow';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
+import SubtleButton from '../../components/buttons/SubtleButton';
 import { SidebarHeader } from '../../components/body/Sidebar';
 import { VehicleHeader } from '../../components/vehicles/VehicleCard';
 import {
@@ -68,6 +70,10 @@ type Props = {
     ) => void
   }
 }
+
+type State = {
+  expanded :Set
+};
 
 const Wrapper = styled.div`
   position: absolute;
@@ -165,7 +171,20 @@ const NoReports = styled.div`
   color: #98979D;
 `;
 
+const InnerRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
 class SelectedReportContainer extends React.Component<Props, State> {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      expanded: Set()
+    };
+  }
 
   componentDidMount() {
     const { actions, parameters } = this.props;
@@ -211,6 +230,16 @@ class SelectedReportContainer extends React.Component<Props, State> {
     return dt1.isValid() && dt1.isAfter(dt2) ? -1 : 1;
   }
 
+  removeReads = (readEntityKeyIds) => {
+    console.log('removing')
+    console.log(readEntityKeyIds);
+  }
+
+  viewReadDetails = (read) => {
+    console.log('viewing')
+    console.log(read.toJS());
+  }
+
   renderReportList = () => {
     const { actions, reports } = this.props;
 
@@ -235,12 +264,18 @@ class SelectedReportContainer extends React.Component<Props, State> {
   }
 
   renderRead = (readObj) => {
+    const { expanded } = this.state;
+
     const read = readObj.get('neighborDetails');
     if (!read) {
       return null;
     }
 
+
     const entityKeyId = getEntityKeyId(read);
+    const associationEntityKeyId = getEntityKeyId(readObj.get('associationDetails'));
+
+    const isExpanded = expanded.has(entityKeyId);
 
     const dateTime = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
     const dateTimeStr = dateTime.isValid() ? dateTime.format('MM/DD/YYYY hh:mm a') : 'Date unknown';
@@ -248,6 +283,12 @@ class SelectedReportContainer extends React.Component<Props, State> {
     return (
       <ReadRow key={entityKeyId}>
         <span>{dateTimeStr}</span>
+        <InnerRow>
+          <SubtleButton onClick={() => this.removeReads([associationEntityKeyId])} noHover>Remove</SubtleButton>
+          <SubtleButton onClick={() => this.setState({ expanded: expanded.add(entityKeyId) })} noHover>
+            <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
+          </SubtleButton>
+        </InnerRow>
       </ReadRow>
     );
   }
@@ -256,9 +297,13 @@ class SelectedReportContainer extends React.Component<Props, State> {
 
     const state = reads.first().getIn(['neighborDetails', PROPERTY_TYPES.STATE, 0], 'CA');
 
+    const readIds = reads.map(read => getEntityKeyId(read.get('associationDetails', Map()))).toJS();
+
+    const removeButton = <SubtleButton onClick={() => this.removeReads(readIds)} noHover>Remove</SubtleButton>;
+
     return (
       <VehicleSection key={plate}>
-        <VehicleHeader plate={plate} state={state} />
+        <VehicleHeader plate={plate} state={state} addButton={removeButton} />
         <ReadsWrapper>
           {reads.map(this.renderRead)}
         </ReadsWrapper>
