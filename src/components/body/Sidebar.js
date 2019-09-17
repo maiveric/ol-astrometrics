@@ -30,7 +30,8 @@ const getScheme = (props, field) => (props.light ? LIGHT : DEFAULT)[field];
 const Sidebar = styled.div`
   width: ${SIDEBAR_WIDTH}px;
   height: 100%;
-  position: fixed;
+  bottom: 0;
+  position: absolute;
   z-index: 2;
   background-color: ${DEFAULT.BACKGROUND};
   display: flex;
@@ -46,9 +47,8 @@ export const ScrollableSidebar = styled(Sidebar)`
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  top: ${HEADER_HEIGHT}px;
   bottom: 0;
-  height: calc(100% - ${HEADER_HEIGHT}px);
+  height: 100%;
   color: #ffffff;
 
   overflow-y: scroll;

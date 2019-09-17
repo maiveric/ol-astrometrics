@@ -15,6 +15,7 @@ import { faMap } from '@fortawesome/pro-light-svg-icons';
 import { ScrollableSidebar, SidebarHeader, PaddedSection } from '../../components/body/Sidebar';
 import BasicButton from '../../components/buttons/BasicButton';
 import RoundButton from '../../components/buttons/RoundButton';
+import ReadReportTooltip from '../../components/reports/ReadReportTooltip';
 import Checkbox from '../../components/controls/StyledCheckbox';
 import { VehicleHeader, VehicleImageRow } from '../../components/vehicles/VehicleCard';
 import {
@@ -31,6 +32,7 @@ import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
   vehiclesEntitySetId :string,
+  reportEntitySetId :string,
   selectedEntityKeyIds :Set<*>,
   neighborsById :Map<*, *>,
   entitiesById :Map<*, *>,
@@ -38,6 +40,7 @@ type Props = {
   reportVehicles :List<*>,
   departmentOptions :Map,
   readIdsForReport :Set,
+  reportEntityKeyIds :Set,
   deviceOptions :Map,
   actions :{
     selectEntity :(entityKeyId :string) => void,
@@ -208,6 +211,22 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     actions.toggleAddReadsToReportModal(true);
   }
 
+  getReportsForRead = (readEntityKeyId) => {
+    const { neighborsById, reportEntityKeyIds, reportEntitySetId } = this.props;
+
+    const reports = neighborsById
+      .get(readEntityKeyId, List())
+      .filter(neighbor => neighbor.getIn(['neighborEntitySet', 'id']) === reportEntitySetId)
+      .map(neighbor => neighbor.get('neighborDetails', Map()))
+      .filter(nd => reportEntityKeyIds.has(getEntityKeyId(nd)));
+
+    if (!reports.size) {
+      return null;
+    }
+
+    return <ReadReportTooltip reports={reports} />
+  }
+
   renderReadList = () => {
     const {
       actions,
@@ -226,6 +245,8 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
       const isInReport = readIdsForReport.has(entityKeyId);
 
+      const reportTooltip = this.getReportsForRead(entityKeyId)
+
       const onCheck = isInReport ? actions.deselectReadsForReport : actions.selectReadsForReport;
 
       return (
@@ -235,6 +256,7 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
               <FlexRow>
                 <Checkbox checked={isInReport} onChange={() => onCheck(Set.of(entityKeyId))} />
                 <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
+                {reportTooltip}
               </FlexRow>
               <RoundButton onClick={e => this.openGoogleMaps(e, entityKeyId)}>
                 <FontAwesomeIcon icon={faMap} />
@@ -317,8 +339,12 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const report = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
+
+  const reportEntityKeyIds = report.get(REPORT.REPORTS).keySeq().toSet();
+
   return {
     vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
+    reportEntitySetId: getEntitySetId(app, APP_TYPES.REPORTS),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
@@ -326,6 +352,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS),
+    reportEntityKeyIds,
     departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
   };
