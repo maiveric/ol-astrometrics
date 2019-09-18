@@ -4,7 +4,12 @@
 
 /* eslint-disable no-use-before-define */
 
-import { call, put, takeEvery } from '@redux-saga/core/effects';
+import {
+  call,
+  put,
+  select,
+  takeEvery
+} from '@redux-saga/core/effects';
 import { AuthActions, AccountUtils, AuthUtils } from 'lattice-auth';
 import { Map, fromJS } from 'immutable';
 import type { SequenceAction } from 'redux-reqseq';
@@ -21,13 +26,16 @@ import {
 
 import Logger from '../../utils/Logger';
 import { clearCookies } from '../../utils/CookieUtils';
+import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
 import { getFqnObj, getSearchTerm } from '../../utils/DataUtils';
 import { ERR_ACTION_VALUE_NOT_DEFINED } from '../../utils/Errors';
 import { APP_NAME, APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { APP } from '../../utils/constants/StateConstants';
 import {
+  GET_OR_CREATE_USER_ID,
   LOAD_APP,
   SWITCH_ORGANIZATION,
+  getOrCreateUserId,
   loadApp,
   switchOrganization
 } from './AppActions';
@@ -46,7 +54,7 @@ export const getAuth0Id = () => {
   return id;
 }
 
-function* getOrCreateUserId(userEntitySetId) {
+function* getOrCreateUserIdForEntitySet(userEntitySetId) {
   try {
     const userId = getAuth0Id();
 
@@ -78,6 +86,28 @@ function* getOrCreateUserId(userEntitySetId) {
     console.error(error);
     return undefined;
   }
+}
+
+function* getOrCreateUserIdWorker(action :SequenceAction) :Generator<*, *, *> {
+  try {
+    yield put(getOrCreateUserId.request(action.id));
+
+    const app = yield select(getAppFromState);
+    const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
+    const userId = yield call(getOrCreateUserIdForEntitySet, userEntitySetId);
+
+    yield put(getOrCreateUserId.success(action.id, userId));
+  }
+  catch (error) {
+    yield put(getOrCreateUserId.failure(action.id, error));
+  }
+  finally {
+    yield put(getOrCreateUserId.finally(action.id));
+  }
+}
+
+export function* getOrCreateUserIdWatcher() :Generator<*, *, *> {
+  yield takeEvery(GET_OR_CREATE_USER_ID, getOrCreateUserIdWorker)
 }
 
 /*
@@ -160,7 +190,7 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
     }
 
     const usersEntitySetId = configByOrgId.getIn([selectedOrg, APP_TYPES.USERS]);
-    const entityKeyId = yield call(getOrCreateUserId, usersEntitySetId);
+    const entityKeyId = yield call(getOrCreateUserIdForEntitySet, usersEntitySetId);
 
     yield put(loadApp.success(action.id, {
       configByOrgId,
@@ -180,9 +210,14 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 }
 
 function* switchOrganizationWorker(action :Object) :Generator<*, *, *> {
-  yield put(switchOrganization.request(action.id));
+  yield put(switchOrganization.request(action.id, action.value));
   AccountUtils.storeOrganizationId(action.value);
-  yield put(switchOrganization.success(action.id));
+
+  const app = yield select(getAppFromState);
+  const userEntitySetId = app.getIn([APP.CONFIG_BY_ORG_ID, action.value, APP_TYPES.USERS]);
+  const userId = yield call(getOrCreateUserIdForEntitySet, userEntitySetId);
+
+  yield put(switchOrganization.success(action.id, userId));
 }
 
 function* switchOrganizationWatcher() :Generator<*, *, *> {

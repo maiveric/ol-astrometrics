@@ -7,7 +7,7 @@ import isNumber from 'lodash/isNumber';
 import type { SequenceAction } from 'redux-reqseq';
 import { AccountUtils } from 'lattice-auth';
 
-import { loadApp, SWITCH_ORGANIZATION } from './AppActions';
+import { loadApp, switchOrganization, SWITCH_ORGANIZATION } from './AppActions';
 
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import { APP } from '../../utils/constants/StateConstants';
@@ -59,8 +59,6 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
             fqnMap
           } = value;
 
-          console.log(value);
-
           return state.merge(fqnMap)
             .set(APP.CONFIG_BY_ORG_ID, configByOrgId)
             .set(APP.ORGS_BY_ID, orgsById)
@@ -95,8 +93,12 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
       });
     }
 
-    case SWITCH_ORGANIZATION:
-      return state.set(APP.SELECTED_ORG_ID, action.value);
+    case switchOrganization.case(action.type): {
+      return switchOrganization.reducer(state, action, {
+        REQUEST: () => state.set(APP.SELECTED_ORG_ID, action.value),
+        SUCCESS: () => state.set(APP.SELF_ENTITY_KEY_ID, action.value)
+      });
+    }
 
     default:
       return state;
