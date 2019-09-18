@@ -22,9 +22,11 @@ import {
   getPropertyTypeId
 } from '../../utils/AppUtils';
 import {
+  APPLY_FILTERS,
   LOAD_AUDIT_DATA,
   UPDATE_AUDIT_END,
   UPDATE_AUDIT_START,
+  applyFilters,
   loadAuditData,
   updateAuditEnd,
   updateAuditStart
@@ -91,7 +93,7 @@ function* getAuditData({ start, end }) {
     fuzzy: false,
     searchTerm: getDateSearchTerm(dateTimePTId, startDate, endDate)
   });
-  let searches = fromJS(hits);
+  const searches = fromJS(hits);
 
   const entityKeyIds = searches.map(getEntityKeyId).toJS();
   const neighbors = yield call(SearchApi.searchEntityNeighborsWithFilter, searchesEntitySetId, {
@@ -167,44 +169,23 @@ export function* loadAuditDataWatcher() :Generator<*, *, *> {
   yield takeEvery(LOAD_AUDIT_DATA, loadAuditDataWorker);
 }
 
-function* updateAuditEndWorker(action :SequenceAction) {
+function* applyFiltersWorker(action :SequenceAction) {
   try {
-    yield put(updateAuditEnd.request(action.id, action.value));
+    yield put(applyFilters.request(action.id, action.value));
 
-    const searches = yield call(getAuditData, { end: action.value });
+    const searches = yield call(getAuditData, {});
 
-    yield put(updateAuditEnd.success(action.id, searches));
+    yield put(applyFilters.success(action.id, searches));
   }
   catch (error) {
     console.error(error)
-    yield put(updateAuditEnd.failure(action.id, error));
+    yield put(applyFilters.failure(action.id, error));
   }
   finally {
-    yield put(updateAuditEnd.finally(action.id));
+    yield put(applyFilters.finally(action.id));
   }
 }
 
-export function* updateAuditEndWatcher() :Generator<*, *, *> {
-  yield takeEvery(UPDATE_AUDIT_END, updateAuditEndWorker);
-}
-
-function* updateAuditStartWorker(action :SequenceAction) {
-  try {
-    yield put(updateAuditStart.request(action.id, action.value));
-
-    const searches = yield call(getAuditData, { start: action.value });
-
-    yield put(updateAuditStart.success(action.id, searches));
-  }
-  catch (error) {
-    console.error(error)
-    yield put(updateAuditStart.failure(action.id, error));
-  }
-  finally {
-    yield put(updateAuditStart.finally(action.id));
-  }
-}
-
-export function* updateAuditStartWatcher() :Generator<*, *, *> {
-  yield takeEvery(UPDATE_AUDIT_START, updateAuditStartWorker);
+export function* applyFiltersWatcher() :Generator<*, *, *> {
+  yield takeEvery(APPLY_FILTERS, applyFiltersWorker);
 }

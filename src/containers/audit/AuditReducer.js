@@ -8,6 +8,10 @@ import { List, Map, fromJS } from 'immutable';
 import { AUDIT, AUDIT_EVENT } from '../../utils/constants/StateConstants';
 import {
   UPDATE_AUDIT_FILTER,
+  UPDATE_AUDIT_END,
+  UPDATE_AUDIT_START,
+  RESET_FILTERS,
+  applyFilters,
   loadAuditData,
   updateAuditEnd,
   updateAuditStart
@@ -26,14 +30,16 @@ const INITIAL_FILTERS = fromJS({
   [AUDIT_EVENT.PERSON_ID]: '',
   [AUDIT_EVENT.CASE_NUMBER]: '',
   [AUDIT_EVENT.REASON]: '',
-  [AUDIT_EVENT.PLATE]: ''
+  [AUDIT_EVENT.PLATE]: '',
 });
+
+const getStartDate = () => moment().subtract(2, 'weeks').startOf('day');
 
 const INITIAL_STATE :Map<> = fromJS({
   [IS_LOADING_RESULTS]: false,
   [RESULTS]: List(),
   [FILTERED_RESULTS]: List(),
-  [START_DATE]: moment().subtract(2, 'weeks'),
+  [START_DATE]: getStartDate(),
   [END_DATE]: moment(),
   [FILTER]: INITIAL_FILTERS
 });
@@ -63,9 +69,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case updateAuditStart.case(action.type): {
-      return updateAuditStart.reducer(state, action, {
-        REQUEST: () => state.set(IS_LOADING_RESULTS, true).set(START_DATE, moment(action.value)),
+    case applyFilters.case(action.type): {
+      return applyFilters.reducer(state, action, {
+        REQUEST: () => state.set(IS_LOADING_RESULTS, true),
         SUCCESS: () => state
           .set(RESULTS, action.value)
           .set(FILTERED_RESULTS, applyFilter(action.value, state.get(FILTER))),
@@ -73,21 +79,22 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case updateAuditEnd.case(action.type): {
-      return updateAuditEnd.reducer(state, action, {
-        REQUEST: () => state.set(IS_LOADING_RESULTS, true).set(END_DATE, moment(action.value)),
-        SUCCESS: () => state
-          .set(RESULTS, action.value)
-          .set(FILTERED_RESULTS, applyFilter(action.value, state.get(FILTER))),
-        FINALLY: () => state.set(IS_LOADING_RESULTS, false)
-      });
-    }
+    case UPDATE_AUDIT_START:
+      return state.set(START_DATE, moment(action.value));
+
+    case UPDATE_AUDIT_END:
+      return state.set(END_DATE, moment(action.value));
+
     case UPDATE_AUDIT_FILTER: {
       const newFilters = state.get(FILTER).set(action.value.field, action.value.value);
-      return state
-        .set(FILTER, newFilters)
-        .set(FILTERED_RESULTS, applyFilter(state.get(RESULTS), newFilters));
+      return state.set(FILTER, newFilters);
     }
+
+    case RESET_FILTERS:
+      return state
+        .set(FILTER, INITIAL_FILTERS)
+        .set(START_DATE, getStartDate())
+        .set(END_DATE, moment());
 
     default:
       return state;

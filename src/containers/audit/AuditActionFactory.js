@@ -16,3 +16,9 @@ export const updateAuditStart :RequestSequence = newRequestSequence(UPDATE_AUDIT
 
 export const UPDATE_AUDIT_END :string = 'UPDATE_AUDIT_END';
 export const updateAuditEnd :RequestSequence = newRequestSequence(UPDATE_AUDIT_END);
+
+export const RESET_FILTERS :string = 'RESET_FILTERS';
+export const resetFilters :RequestSequence = newRequestSequence(RESET_FILTERS);
+
+export const APPLY_FILTERS :string = 'APPLY_FILTERS';
+export const applyFilters :RequestSequence = newRequestSequence(APPLY_FILTERS);

@@ -14,6 +14,8 @@ import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import StyledInput from '../../components/controls/StyledInput';
+import BasicButton from '../../components/buttons/BasicButton';
+import InfoButton from '../../components/buttons/InfoButton';
 import Spinner from '../../components/spinner/Spinner';
 import {
   STATE,
@@ -41,6 +43,8 @@ type Props = {
     updateAuditEnd :(value :string) => void;
     updateAuditStart :(value :string) => void;
     updateAuditFilter :(value :string) => void;
+    resetFilters :() => void;
+    applyFilters :() => void;
   }
 };
 
@@ -107,10 +111,12 @@ const FilterRow = styled.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  padding-bottom: 20px;
 
   article {
     width: 32%;
   }
+
 `;
 
 const InputGroup = styled.div`
@@ -124,6 +130,7 @@ const InputGroup = styled.div`
     font-size: 12px;
     margin: 0;
     padding-bottom: 5px;
+    min-height: 29px;
   }
 `;
 
@@ -135,6 +142,10 @@ const DoubleInputSection = styled.div`
   width: 100%;
 
   article {
+    width: 48%;
+  }
+
+  button {
     width: 48%;
   }
 `;
@@ -243,6 +254,14 @@ class AuditLog extends React.Component<Props, State> {
           <article>
             <InputGroup>
               <p />
+              <DoubleInputSection>
+                <BasicButton onClick={actions.resetFilters}>
+                  Clear
+                </BasicButton>
+                <InfoButton onClick={actions.applyFilters}>
+                  Filter
+                </InfoButton>
+              </DoubleInputSection>
             </InputGroup>
           </article>
 
