@@ -218,9 +218,7 @@ class SimpleMap extends React.Component<Props, State> {
             key={`polygon-${index}`}
             fillPaint={{
               'fill-opacity': entities.size ? 0.1 : 0.3,
-              'fill-color': color,
-              'fill-stroke-color': color,
-              'fill-stroke-width': 1,
+              'fill-color': color
             }}
             data={{
               type: 'Feature',

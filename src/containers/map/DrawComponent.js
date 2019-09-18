@@ -26,6 +26,7 @@ type Props = {
   draw :Object,
   selectedMap :Map<*, *>,
   actions :{
+    updateSearchParameters :Function,
     setSearchZones :Function,
     setDrawZones :Function,
     setDrawMode :Function
@@ -53,41 +54,24 @@ class DrawComponent extends React.Component<Props, State> {
     }
   }
 
-  renderSearchZones = () => {
-    const { searchParameters } = this.props;
-
-    return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
-      const color = SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length];
-
-      return (
-        <>
-          <GeoJSONLayer
-              key={`polygon-${index}`}
-              fillPaint={{
-                'fill-opacity': 0.3,
-                'fill-color': color,
-                'fill-stroke-color': color,
-                'fill-stroke-width': 1,
-              }}
-              data={{
-                type: 'Feature',
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [zone]
-                }
-              }} />
-        </>
-      );
-    });
-  }
-
   handleUpdate = () => {
     const { actions } = this.props;
-    const { setDrawZones } = actions;
+    const { setDrawZones, updateSearchParameters } = actions;
 
     const searchZones = this.drawControl.draw.getAll();
     if (searchZones && searchZones.features) {
+
+      const coordinates = [];
+
+      searchZones.features.forEach(({ geometry }) => {
+        coordinates.push(...geometry.coordinates);
+      });
+
       setDrawZones(searchZones.features);
+      updateSearchParameters({
+        field: PARAMETERS.SEARCH_ZONES,
+        value: coordinates
+      });
     }
   }
 

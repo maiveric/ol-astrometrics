@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import moment from 'moment';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { OrderedMap } from 'immutable';
+import { Map, OrderedMap } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faTrash } from '@fortawesome/pro-light-svg-icons';
 
@@ -11,10 +11,17 @@ import SearchableSelect from '../../components/controls/SearchableSelect';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import InnerNavBar from '../../components/nav/InnerNavBar';
 import { getEntityKeyId } from '../../utils/DataUtils';
+import { getDrawCoordsFromFeatures } from '../../utils/MapUtils';
 import { NEW_MAP } from '../../utils/constants/ExploreConstants';
-import { STATE, DRAW, SAVED_MAP } from '../../utils/constants/StateConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import {
+  STATE,
+  DRAW,
+  SAVED_MAP,
+  PARAMETERS
+} from '../../utils/constants/StateConstants';
 import * as DrawActionFactory from './DrawActionFactory';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 
 const NavBar = styled(InnerNavBar)`
   justify-content: space-between;
@@ -79,8 +86,17 @@ class SavedMapNavBar extends React.Component {
   }
 
   onSelect = (entityKeyId) => {
-    const { actions } = this.props;
+    const { actions, savedMaps } = this.props;
     actions.selectMap(entityKeyId);
+
+    const coordinates = getDrawCoordsFromFeatures(
+      JSON.parse(savedMaps.get(entityKeyId, Map()).getIn([PROPERTY_TYPES.TEXT, 0], '{}'))
+    );
+
+    actions.updateSearchParameters({
+      field: PARAMETERS.SEARCH_ZONES,
+      value: coordinates
+    });
   }
 
   render() {
@@ -128,6 +144,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(DrawActionFactory).forEach((action :string) => {
     actions[action] = DrawActionFactory[action];
+  });
+
+  Object.keys(ParametersActionFactory).forEach((action :string) => {
+    actions[action] = ParametersActionFactory[action];
   });
 
   return {
