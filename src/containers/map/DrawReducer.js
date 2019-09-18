@@ -23,6 +23,8 @@ import {
   loadSavedMaps
 } from './DrawActionFactory';
 
+import { EXECUTE_SEARCH } from '../explore/ExploreActionFactory';
+
 const {
   DRAW_CONTROL,
   DRAW_ZONES,
@@ -52,6 +54,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case SET_DRAW_CONTROL:
       return state.set(DRAW_CONTROL, action.value);
 
+    case EXECUTE_SEARCH:
     case DISCARD_DRAW_ZONES: {
       const drawControl = state.get(DRAW_CONTROL);
       if (drawControl) {
