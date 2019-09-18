@@ -65,14 +65,13 @@ const StyledBarChart = ({
     .entrySeq()
     .sort(([date1], [date2]) => (date1 > date2 ? 1 : -1))
     .map(([date, count]) => ({ date, count }));
-
   return (
     <BarChartWrapper>
       <BarChart width={1100} height={400} data={data.toJS()}>
         <CartesianGrid vertical={false} stroke="#4F4E54" />
         <YAxis type="number" tickLine={false} tick={{ fill: '#ffffff' }} tickMargin={16} />
         <XAxis type="category" tickLine={false} dataKey="date" domain={['dataMin', 'dataMax']} allowDecimals={false} tick={{ fill: '#ffffff' }} tickMargin={16} />
-        <Tooltip content={payloadData => renderBarChartTooltip(resourceType, payloadData)} />
+        <Tooltip cursor={{ fill: 'transparent' }} content={payloadData => renderBarChartTooltip(resourceType, payloadData)} />
         <Bar dataKey="count" fill={color} />
       </BarChart>
     </BarChartWrapper>

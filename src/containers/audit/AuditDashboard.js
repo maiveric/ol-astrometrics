@@ -59,6 +59,14 @@ const Wrapper = styled.div`
   height: 100%;
 `;
 
+const HeaderLabel = styled.div`
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 150%;
+  padding-bottom: 24px;
+  color: #ffffff;
+`;
+
 const RANGES = {
   WEEK: 'week',
   MONTH: 'month',
@@ -144,6 +152,7 @@ class AuditDashboard extends React.Component<Props, State> {
     return (
       <Wrapper>
 
+        <HeaderLabel>Searches over time</HeaderLabel>
         {this.renderSearchesOverTime()}
 
       </Wrapper>
