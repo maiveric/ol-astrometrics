@@ -5,7 +5,7 @@ import { SIDEBAR_WIDTH, HEADER_HEIGHT, INNER_NAV_BAR_HEIGHT } from '../../core/s
 export default styled.div`
   position: fixed;
   right: 0;
-  z-index: 10;
+  z-index: 9;
   width: 100%;
   height: ${INNER_NAV_BAR_HEIGHT}px;
   background-color: #1F1E24;
