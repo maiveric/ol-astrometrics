@@ -124,14 +124,18 @@ function* loadSavedMapsWorker(action :SequenceAction) {
       }
     );
 
-    const savedMapsForUser = savedMapNeighbors[userEntityKeyId];
     let savedMaps = Map();
+    const savedMapsForUser = savedMapNeighbors[userEntityKeyId];
 
-    fromJS(savedMapsForUser).forEach((neighborObj) => {
-      const neighborDetails = neighborObj.get('neighborDetails');
-      const entityKeyId = getEntityKeyId(neighborDetails);
-      savedMaps = savedMaps.set(entityKeyId, neighborDetails);
-    });
+    if (savedMapsForUser) {
+
+      fromJS(savedMapsForUser).forEach((neighborObj) => {
+        const neighborDetails = neighborObj.get('neighborDetails');
+        const entityKeyId = getEntityKeyId(neighborDetails);
+        savedMaps = savedMaps.set(entityKeyId, neighborDetails);
+      });
+
+    }
 
     yield put(loadSavedMaps.success(action.id, savedMaps));
   }
