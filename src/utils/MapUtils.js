@@ -15,4 +15,4 @@ export const getDrawCoordsFromFeatures = ({ features }) => {
   });
 
   return coordinateSets;
-}
+};

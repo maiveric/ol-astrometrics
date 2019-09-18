@@ -480,27 +480,32 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
       }
     );
 
-    const reportsForUser = reportNeighbors[userEntityKeyId];
     let reports = Map();
+    let readsByReport = Map();
 
-    fromJS(reportsForUser).forEach((neighborObj) => {
-      const neighborDetails = neighborObj.get('neighborDetails');
-      const entityKeyId = getEntityKeyId(neighborDetails);
-      reports = reports.set(entityKeyId, neighborDetails);
-    });
+    const reportsForUser = reportNeighbors[userEntityKeyId];
+
+    if (reportsForUser) {
+
+      fromJS(reportsForUser).forEach((neighborObj) => {
+        const neighborDetails = neighborObj.get('neighborDetails');
+        const entityKeyId = getEntityKeyId(neighborDetails);
+        reports = reports.set(entityKeyId, neighborDetails);
+      });
 
 
-    let readsByReport = yield call(
-      SearchApi.searchEntityNeighborsWithFilter,
-      reportsEntitySetId,
-      {
-        entityKeyIds: reports.keySeq().toJS(),
-        sourceEntityKeyIds: [readsEntitySetId],
-        destinationEntitySetIds: []
-      }
-    );
+      readsByReport = yield call(
+        SearchApi.searchEntityNeighborsWithFilter,
+        reportsEntitySetId,
+        {
+          entityKeyIds: reports.keySeq().toJS(),
+          sourceEntityKeyIds: [readsEntitySetId],
+          destinationEntitySetIds: []
+        }
+      );
 
-    readsByReport = fromJS(readsByReport);
+      readsByReport = fromJS(readsByReport);
+    }
 
     yield put(loadReports.success(action.id, { reports, readsByReport }));
   }
