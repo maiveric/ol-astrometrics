@@ -15,7 +15,8 @@ export const APP = {
   SELECTED_ORG_ID: 'selectedOrganizationId',
   CONFIG_BY_ORG_ID: 'appConfigsByOrgId',
   SETTINGS_BY_ORG_ID: 'appSettingsByOrgId',
-  ORGS_BY_ID: 'orgsById'
+  ORGS_BY_ID: 'orgsById',
+  SELF_ENTITY_KEY_ID: 'selfEntityKeyId'
 };
 
 export const AUDIT = {

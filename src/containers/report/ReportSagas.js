@@ -18,8 +18,7 @@ import type { SequenceAction } from 'redux-reqseq';
 
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
-import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
-import { getOrCreateUserId } from '../submit/SubmitSagas';
+import { getAppFromState, getEntitySetId, getUserIdFromState } from '../../utils/AppUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import {
@@ -467,8 +466,7 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
     const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
     const reportsEntitySetId = getEntitySetId(app, APP_TYPES.REPORTS);
     const readsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
-
-    const userEntityKeyId = yield call(getOrCreateUserId);
+    const userEntityKeyId = getUserIdFromState(app);
 
     const reportNeighbors = yield call(
       SearchApi.searchEntityNeighborsWithFilter,

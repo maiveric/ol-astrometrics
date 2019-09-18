@@ -27,3 +27,5 @@ export const getPropertyTypeId = (state :Map, fqn :string) => state.getIn([
   fqn,
   'id'
 ]);
+
+export const getUserIdFromState = app => app.get(APP.SELF_ENTITY_KEY_ID);

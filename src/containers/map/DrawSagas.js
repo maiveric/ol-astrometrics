@@ -22,7 +22,8 @@ import {
   getAppFromState,
   getEntitySetId,
   getParamsFromState,
-  getDrawFromState
+  getDrawFromState,
+  getUserIdFromState
 } from '../../utils/AppUtils';
 import {
   LOAD_SAVED_MAPS,
@@ -31,7 +32,6 @@ import {
   saveMap
 } from './DrawActionFactory';
 import { submit } from '../submit/SubmitActionFactory';
-import { getOrCreateUserId } from '../submit/SubmitSagas';
 
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import { DRAW, PARAMETERS, SAVED_MAP } from '../../utils/constants/StateConstants';
@@ -111,8 +111,7 @@ function* loadSavedMapsWorker(action :SequenceAction) {
     const app = yield select(getAppFromState);
     const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
     const savedMapsEntitySetId = getEntitySetId(app, APP_TYPES.SAVED_MAPS);
-
-    const userEntityKeyId = yield call(getOrCreateUserId);
+    const userEntityKeyId = getUserIdFromState(app);
 
     const savedMapNeighbors = yield call(
       SearchApi.searchEntityNeighborsWithFilter,

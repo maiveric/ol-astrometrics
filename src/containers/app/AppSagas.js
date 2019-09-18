@@ -5,17 +5,26 @@
 /* eslint-disable no-use-before-define */
 
 import { call, put, takeEvery } from '@redux-saga/core/effects';
-import { AuthActions, AccountUtils } from 'lattice-auth';
+import { AuthActions, AccountUtils, AuthUtils } from 'lattice-auth';
+import { Map, fromJS } from 'immutable';
 import type { SequenceAction } from 'redux-reqseq';
 import {
   AppApiActions,
   AppApiSagas
 } from 'lattice-sagas';
+import {
+  SearchApi,
+  DataApi,
+  EntityDataModelApi,
+  Constants
+} from 'lattice';
 
 import Logger from '../../utils/Logger';
 import { clearCookies } from '../../utils/CookieUtils';
+import { getFqnObj, getSearchTerm } from '../../utils/DataUtils';
 import { ERR_ACTION_VALUE_NOT_DEFINED } from '../../utils/Errors';
-import { APP_NAME } from '../../utils/constants/DataModelConstants';
+import { APP_NAME, APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP } from '../../utils/constants/StateConstants';
 import {
   LOAD_APP,
   SWITCH_ORGANIZATION,
@@ -23,10 +32,53 @@ import {
   switchOrganization
 } from './AppActions';
 
+const {
+  OPENLATTICE_ID_FQN
+} = Constants;
+
 const { getApp, getAppConfigs } = AppApiActions;
 const { getAppWorker, getAppConfigsWorker } = AppApiSagas;
 
 const LOG = new Logger('AppSagas');
+
+export const getAuth0Id = () => {
+  const { id } = AuthUtils.getUserInfo();
+  return id;
+}
+
+function* getOrCreateUserId(userEntitySetId) {
+  try {
+    const userId = getAuth0Id();
+
+    const personIdPropertyTypeId = yield call(
+      EntityDataModelApi.getPropertyTypeId,
+      getFqnObj(PROPERTY_TYPES.PERSON_ID)
+    );
+
+    const userSearchResults = yield call(SearchApi.searchEntitySetData, userEntitySetId, {
+      searchTerm: getSearchTerm(personIdPropertyTypeId, userId),
+      start: 0,
+      maxHits: 1
+    });
+
+    /* If the user entity already exists, return its id from the search result */
+    if (userSearchResults.hits.length) {
+      return userSearchResults.hits[0][OPENLATTICE_ID_FQN][0];
+    }
+
+    /* Otherwise, create a new entity and return its id */
+    const idList = yield call(DataApi.createOrMergeEntityData, userEntitySetId, [
+      { [personIdPropertyTypeId]: [userId] }
+    ]);
+    return idList[0];
+
+  }
+  catch (error) {
+    console.error('Unable to get or create user id');
+    console.error(error);
+    return undefined;
+  }
+}
 
 /*
  * loadApp()
@@ -66,7 +118,57 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 
     const { data: appConfigs } = response;
 
-    yield put(loadApp.success(action.id, { appConfigs }));
+    let fqnMap = Map();
+
+    let entitySetsByOrgId = Map();
+    let configByOrgId = Map();
+    let orgsById = Map();
+
+    appConfigs.forEach((appConfig :Object) => {
+
+      const { organization } :Object = appConfig;
+      const orgId :string = organization.id;
+
+      if (fromJS(appConfig.config).size) {
+
+        orgsById = orgsById.set(orgId, fromJS(organization));
+
+        Object.values(APP_TYPES).forEach((fqn) => {
+
+          const { entitySetId } = appConfig.config[fqn];
+
+          fqnMap = fqnMap.setIn(
+            [fqn, APP.ENTITY_SETS_BY_ORG, orgId],
+            entitySetId
+          );
+          configByOrgId = configByOrgId.set(
+            orgId,
+            configByOrgId.get(orgId, Map()).set(fqn, entitySetId)
+          );
+          entitySetsByOrgId = entitySetsByOrgId.set(
+            orgId,
+            entitySetsByOrgId.get(orgId, Map()).set(entitySetId, fqn)
+          );
+        });
+      }
+    });
+
+    let selectedOrg = AccountUtils.retrieveOrganizationId();
+
+    if ((!selectedOrg && appConfigs.length > 0) || !orgsById.has(selectedOrg)) {
+      selectedOrg = appConfigs[0].organization.id;
+    }
+
+    const usersEntitySetId = configByOrgId.getIn([selectedOrg, APP_TYPES.USERS]);
+    const entityKeyId = yield call(getOrCreateUserId, usersEntitySetId);
+
+    yield put(loadApp.success(action.id, {
+      configByOrgId,
+      orgsById,
+      selectedOrg,
+      entityKeyId,
+      fqnMap
+    }));
   }
   catch (error) {
     LOG.error('caught exception in loadAppWorker()', error);

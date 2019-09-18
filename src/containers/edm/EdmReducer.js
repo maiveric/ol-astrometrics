@@ -25,7 +25,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case loadDataModel.case(action.type): {
       return loadDataModel.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_DATA_MODEL, true),
-        SUCCESS: () => state.set(PROPERTY_TYPES, action.value.propertyTypes).set(EDM_LOADED, true),
+        SUCCESS: () => state
+          .set(PROPERTY_TYPES, action.value.propertyTypes)
+          .set(EDM_LOADED, true),
         FINALLY: () => state.set(IS_LOADING_DATA_MODEL, false)
       });
     }
