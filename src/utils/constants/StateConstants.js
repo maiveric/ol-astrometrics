@@ -22,6 +22,8 @@ export const APP = {
 export const AUDIT = {
   IS_LOADING_RESULTS: 'isLoadingResults',
   RESULTS: 'results',
+  DASHBOARD_WINDOW: 'dashboardWindow',
+  DASHBOARD_RESULTS: 'dashboardResults',
   FILTERED_RESULTS: 'filteredResults',
   START_DATE: 'startDate',
   END_DATE: 'endDate',
@@ -157,4 +159,9 @@ export const AUDIT_EVENT = {
   DATE_TIME: 'dateTime',
   REASON: 'reason',
   PLATE: 'plate'
+};
+
+export const DASHBOARD_WINDOWS = {
+  WEEK: 'week',
+  MONTH: 'month'
 };

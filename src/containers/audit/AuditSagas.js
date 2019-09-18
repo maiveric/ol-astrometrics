@@ -24,12 +24,12 @@ import {
 import {
   APPLY_FILTERS,
   LOAD_AUDIT_DATA,
-  UPDATE_AUDIT_END,
-  UPDATE_AUDIT_START,
+  LOAD_AUDIT_DASHBOARD_DATA,
+  SET_AUDIT_DASHBOARD_WINDOW,
   applyFilters,
   loadAuditData,
-  updateAuditEnd,
-  updateAuditStart
+  loadAuditDashboardData,
+  setAuditDashboardWindow
 } from './AuditActionFactory';
 
 import { AUDIT, AUDIT_EVENT } from '../../utils/constants/StateConstants';
@@ -188,4 +188,56 @@ function* applyFiltersWorker(action :SequenceAction) {
 
 export function* applyFiltersWatcher() :Generator<*, *, *> {
   yield takeEvery(APPLY_FILTERS, applyFiltersWorker);
+}
+
+function* loadAuditDashboardDataWorker(action :SequenceAction) {
+  try {
+    yield put(loadAuditDashboardData.request(action.id, action.value));
+
+    const audit = yield select(getAuditFromState);
+    const window = audit.get(AUDIT.DASHBOARD_WINDOW);
+
+    const searches = yield call(getAuditData, {
+      start: moment().subtract(1, window).toISOString(true),
+      end: moment().toISOString(true)
+    });
+
+    yield put(loadAuditDashboardData.success(action.id, searches));
+  }
+  catch (error) {
+    console.error(error);
+    yield put(loadAuditDashboardData.failure(action.id, error));
+  }
+  finally {
+    yield put(loadAuditDashboardData.finally(action.id));
+  }
+}
+
+export function* loadAuditDashboardDataWatcher() :Generator<*, *, *> {
+  yield takeEvery(LOAD_AUDIT_DASHBOARD_DATA, loadAuditDashboardDataWorker);
+}
+
+function* setAuditDashboardWindowWorker(action :SequenceAction) {
+  try {
+    const window = action.value;
+    yield put(setAuditDashboardWindow.request(action.id, window));
+
+    const searches = yield call(getAuditData, {
+      start: moment().subtract(1, window).toISOString(true),
+      end: moment().toISOString(true)
+    });
+
+    yield put(setAuditDashboardWindow.success(action.id, searches));
+  }
+  catch (error) {
+    console.error(error)
+    yield put(setAuditDashboardWindow.failure(action.id, error));
+  }
+  finally {
+    yield put(setAuditDashboardWindow.finally(action.id));
+  }
+}
+
+export function* setAuditDashboardWindowWatcher() :Generator<*, *, *> {
+  yield takeEvery(SET_AUDIT_DASHBOARD_WINDOW, setAuditDashboardWindowWorker);
 }

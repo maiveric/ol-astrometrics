@@ -15,6 +15,7 @@ import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import StyledInput from '../../components/controls/StyledInput';
+import DropdownButton from '../../components/buttons/DropdownButton';
 import Spinner from '../../components/spinner/Spinner';
 import BarChart from '../../components/charts/BarChart';
 import { getValue } from '../../utils/DataUtils';
@@ -22,7 +23,8 @@ import {
   STATE,
   AUDIT,
   AUDIT_EVENT,
-  EDM
+  EDM,
+  DASHBOARD_WINDOWS
 } from '../../utils/constants/StateConstants';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -34,17 +36,19 @@ type Props = {
   edmLoaded :boolean;
   isLoadingEdm :boolean;
   isLoadingResults :boolean;
+  dashboardWindow :string;
   results :List<*>;
   startDate :Object,
   endDate :Object,
   filters :Map,
   edm :Map<*, *>;
   actions :{
-    loadAuditData :(startDate :Object, endDate :Object) => void;
+    loadAuditDashboardData :(startDate :Object, endDate :Object) => void;
     loadDataModel :() => void;
     updateAuditEnd :(value :string) => void;
     updateAuditStart :(value :string) => void;
     updateAuditFilter :(value :string) => void;
+    setAuditDashboardWindow :(value :string) => void;
   }
 };
 
@@ -74,10 +78,18 @@ const RANGES = {
 };
 
 const DATE_FORMATS = {
-  [RANGES.WEEK]: 'MM/DD',
-  [RANGES.MONTH]: 'MM/DD',
-  [RANGES.YEAR]: 'MMM'
+  [DASHBOARD_WINDOWS.WEEK]: 'MM/DD',
+  [DASHBOARD_WINDOWS.MONTH]: 'MM/DD',
+  [DASHBOARD_WINDOWS.YEAR]: 'MMM'
 };
+
+const SpaceBetweenRow = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
 
 class AuditDashboard extends React.Component<Props, State> {
 
@@ -89,14 +101,14 @@ class AuditDashboard extends React.Component<Props, State> {
   }
 
   getLastValidMoment = () => {
-    const { range } = this.state;
+    const { dashboardWindow } = this.props;
 
-    return moment().subtract(1, range).add(1, 'day').startOf('day');
+    return moment().subtract(1, dashboardWindow).add(1, 'day').startOf('day');
   }
 
   initializeCountsMap = () => {
-    const { range } = this.state;
-    const formatter = DATE_FORMATS[range];
+    const { dashboardWindow } = this.props;
+    const formatter = DATE_FORMATS[dashboardWindow];
 
     const now = moment();
 
@@ -112,10 +124,9 @@ class AuditDashboard extends React.Component<Props, State> {
   }
 
   renderSearchesOverTime = () => {
-    const { results } = this.props;
-    const { range } = this.state;
+    const { results, dashboardWindow } = this.props;
 
-    const formatter = DATE_FORMATS[range];
+    const formatter = DATE_FORMATS[dashboardWindow];
 
     let counts = this.initializeCountsMap();
 
@@ -138,8 +149,10 @@ class AuditDashboard extends React.Component<Props, State> {
   render() {
 
     const {
+      actions,
       isLoadingEdm,
       isLoadingResults,
+      dashboardWindow,
       edmLoaded,
       results,
       filter
@@ -149,10 +162,18 @@ class AuditDashboard extends React.Component<Props, State> {
       return <Wrapper><Spinner /></Wrapper>;
     }
 
+    const windowOptions = Object.values(DASHBOARD_WINDOWS).map(label => ({
+      label: `Past ${label}`,
+      onClick: () => actions.setAuditDashboardWindow(label)
+    }));
+
     return (
       <Wrapper>
 
-        <HeaderLabel>Searches over time</HeaderLabel>
+        <SpaceBetweenRow>
+          <HeaderLabel>Searches over time</HeaderLabel>
+          <DropdownButton title={`Past ${dashboardWindow}`} options={windowOptions} invisible subtle />
+        </SpaceBetweenRow>
         {this.renderSearchesOverTime()}
 
       </Wrapper>
@@ -169,7 +190,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingEdm: edm.get(EDM.IS_LOADING_DATA_MODEL),
 
     isLoadingResults: audit.get(AUDIT.IS_LOADING_RESULTS),
-    results: audit.get(AUDIT.FILTERED_RESULTS),
+    results: audit.get(AUDIT.DASHBOARD_RESULTS),
+    dashboardWindow: audit.get(AUDIT.DASHBOARD_WINDOW),
     startDate: audit.get(AUDIT.START_DATE),
     endDate: audit.get(AUDIT.END_DATE),
     filters: audit.get(AUDIT.FILTER)

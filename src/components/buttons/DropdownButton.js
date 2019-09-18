@@ -10,6 +10,7 @@ type Props = {
   options :{ label :string, onClick :() => void }[],
   openAbove? :boolean,
   invisible? :boolean,
+  subtle? :boolean,
   Icon? :Object
 }
 
@@ -28,7 +29,6 @@ const DropdownButtonWrapper = styled.div`
     return '';
   }}
   display: flex;
-  flex: 1 0 auto;
   flex-direction: column;
   margin: 0;
   padding: 0;
@@ -47,6 +47,7 @@ const BaseButton = styled(BasicButton)`
   }
 
   span {
+    color ${props => (props.subtle ? '#807F85' : '#ffffff')};
     font-weight: 600 !important;
     width: fit-content !important;
     max-width: 100%;
@@ -124,13 +125,15 @@ const MenuContainer = styled.div`
 
 const StyledIcon = styled(FontAwesomeIcon)`
   margin-left: 10px;
+  color: #CAC9CE;
 `;
 
 export default class DropdownButton extends React.Component<Props, State> {
 
   static defaultProps = {
     openAbove: false,
-    invisible: false
+    invisible: false,
+    subtle: false
   };
 
   constructor(props :Props) {
@@ -159,6 +162,7 @@ export default class DropdownButton extends React.Component<Props, State> {
   render() {
     const {
       invisible,
+      subtle,
       openAbove,
       options,
       title,
@@ -170,7 +174,12 @@ export default class DropdownButton extends React.Component<Props, State> {
 
     return (
       <DropdownButtonWrapper open={open}>
-        <BaseButton open={open} invisible={invisible} onClick={this.toggleDropdown} onBlur={this.toggleDropdown}>
+        <BaseButton
+            open={open}
+            invisible={invisible}
+            subtle={subtle}
+            onClick={this.toggleDropdown}
+            onBlur={this.toggleDropdown}>
           <span>{title}</span>
           {Icon ? <Icon /> : <StyledIcon icon={icon} />}
         </BaseButton>

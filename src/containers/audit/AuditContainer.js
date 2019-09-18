@@ -41,6 +41,7 @@ type Props = {
   edm :Map<*, *>;
   actions :{
     loadAuditData :(startDate :Object, endDate :Object) => void;
+    loadAuditDashboardData :(startDate :Object, endDate :Object) => void;
     loadDataModel :() => void;
     updateAuditEnd :(value :string) => void;
     updateAuditStart :(value :string) => void;
@@ -83,6 +84,7 @@ class AuditContainer extends React.Component<Props, State> {
     }
     else {
       actions.loadAuditData();
+      actions.loadAuditDashboardData();
     }
   }
 
@@ -91,6 +93,7 @@ class AuditContainer extends React.Component<Props, State> {
 
     if (!prevProps.edmLoaded && edmLoaded) {
       actions.loadAuditData();
+      actions.loadAuditDashboardData();
     }
   }
 
