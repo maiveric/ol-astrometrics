@@ -7,6 +7,7 @@ export const STATE = {
   ENTITY_SETS: 'ENTITY_SETS',
   EXPLORE: 'EXPLORE',
   PARAMETERS: 'PARAMETERS',
+  QUALITY: 'QUALITY',
   REPORT: 'REPORT',
   SUBMIT: 'SUBMIT'
 };
@@ -139,6 +140,12 @@ export const PARAMETERS = {
   NOT_READY: 'notReady'
 };
 
+export const QUALITY = {
+  IS_LOADING: 'isLoading',
+  DASHBOARD_DATA: 'dashboardData',
+  DASHBOARD_WINDOW: 'qualityDashboardWindow'
+};
+
 export const SUBMIT = {
   SUBMITTING: 'submitting',
   SUCCESS: 'submitSuccess',
@@ -165,4 +172,10 @@ export const AUDIT_EVENT = {
 export const DASHBOARD_WINDOWS = {
   WEEK: 'week',
   MONTH: 'month'
+};
+
+export const DATE_FORMATS = {
+  [DASHBOARD_WINDOWS.WEEK]: 'MM/DD',
+  [DASHBOARD_WINDOWS.MONTH]: 'MM/DD',
+  [DASHBOARD_WINDOWS.YEAR]: 'MMM'
 };

@@ -10,6 +10,7 @@ import {
 export const getAppFromState = state => state.get(STATE.APP, Map());
 export const getEdmFromState = state => state.get(STATE.EDM, Map());
 export const getAuditFromState = state => state.get(STATE.AUDIT, Map());
+export const getQualityFromState = state => state.get(STATE.QUALITY, Map());
 export const getParamsFromState = state => state.getIn([STATE.PARAMETERS, SEARCH_PARAMETERS.SEARCH_PARAMETERS], Map());
 export const getDrawFromState = state => state.get(STATE.DRAW, Map());
 
