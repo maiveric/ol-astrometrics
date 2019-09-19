@@ -17,6 +17,7 @@ import StyledInput from '../../components/controls/StyledInput';
 import BasicButton from '../../components/buttons/BasicButton';
 import InfoButton from '../../components/buttons/InfoButton';
 import Spinner from '../../components/spinner/Spinner';
+import { Table, Cell, HeaderCell } from '../../components/body/Table';
 import {
   STATE,
   AUDIT,
@@ -58,53 +59,6 @@ const Wrapper = styled.div`
   height: 100%;
 `;
 
-const AuditTable = styled.table.attrs(_ => ({
-  cellspacing: 0
-}))`
-
-`;
-
-const cellStyle = css`
-  font-size: 14px;
-  border-bottom: 1px solid #36353B;
-  padding: 8px;
-
-  &:nth-child(1) {
-    width: 130px;
-  }
-
-  &:nth-child(2) {
-    width: 300px;
-  }
-
-  &:nth-child(3) {
-    width: 130px;
-  }
-
-  &:nth-child(4) {
-    width: 150px;
-  }
-
-  &:nth-child(5) {
-    width: 90px;
-  }
-`;
-
-const Cell = styled.td`
-  ${cellStyle}
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const HeaderCell = styled.th`
-  ${cellStyle}
-
-  color: #807F85;
-  font-weight: normal;
-  text-align: left;
-`;
-
 const FilterRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -133,6 +87,31 @@ const InputGroup = styled.div`
     min-height: 29px;
   }
 `;
+
+const cellStyle = css`
+  &:nth-child(1) {
+    width: 130px;
+  }
+
+  &:nth-child(2) {
+    width: 300px;
+  }
+
+  &:nth-child(3) {
+    width: 130px;
+  }
+
+  &:nth-child(4) {
+    width: 150px;
+  }
+
+  &:nth-child(5) {
+    width: 90px;
+  }
+`;
+
+const StyledCell = styled(Cell)`${cellStyle}`;
+const StyledHeaderCell = styled(HeaderCell)`${cellStyle}`;
 
 const DoubleInputSection = styled.div`
   display: flex;
@@ -273,11 +252,11 @@ class AuditLog extends React.Component<Props, State> {
 
   renderRow = auditEvent => (
     <tr key={auditEvent.get(AUDIT_EVENT.ID, '')}>
-      <Cell>{auditEvent.get(AUDIT_EVENT.DATE_TIME, '').format('YYYY-MM-DD HH:mm')}</Cell>
-      <Cell>{auditEvent.get(AUDIT_EVENT.PERSON_ID, '')}</Cell>
-      <Cell>{auditEvent.get(AUDIT_EVENT.REASON, '')}</Cell>
-      <Cell>{auditEvent.get(AUDIT_EVENT.CASE_NUMBER, '')}</Cell>
-      <Cell>{auditEvent.get(AUDIT_EVENT.PLATE, '')}</Cell>
+      <StyledCell>{auditEvent.get(AUDIT_EVENT.DATE_TIME, '').format('YYYY-MM-DD HH:mm')}</StyledCell>
+      <StyledCell>{auditEvent.get(AUDIT_EVENT.PERSON_ID, '')}</StyledCell>
+      <StyledCell>{auditEvent.get(AUDIT_EVENT.REASON, '')}</StyledCell>
+      <StyledCell>{auditEvent.get(AUDIT_EVENT.CASE_NUMBER, '')}</StyledCell>
+      <StyledCell>{auditEvent.get(AUDIT_EVENT.PLATE, '')}</StyledCell>
     </tr>
   )
 
@@ -285,18 +264,18 @@ class AuditLog extends React.Component<Props, State> {
     const { results } = this.props;
 
     return (
-      <AuditTable>
+      <Table>
         <tbody>
           <tr>
-            <HeaderCell>Timestamp</HeaderCell>
-            <HeaderCell>Email</HeaderCell>
-            <HeaderCell>Search purpose</HeaderCell>
-            <HeaderCell>Case number</HeaderCell>
-            <HeaderCell>License plate</HeaderCell>
+            <StyledHeaderCell>Timestamp</StyledHeaderCell>
+            <StyledHeaderCell>Email</StyledHeaderCell>
+            <StyledHeaderCell>Search purpose</StyledHeaderCell>
+            <StyledHeaderCell>Case number</StyledHeaderCell>
+            <StyledHeaderCell>License plate</StyledHeaderCell>
           </tr>
           {results.map(this.renderRow)}
         </tbody>
-      </AuditTable>
+      </Table>
     );
   }
 

@@ -18,6 +18,12 @@ import StyledInput from '../../components/controls/StyledInput';
 import DropdownButton from '../../components/buttons/DropdownButton';
 import Spinner from '../../components/spinner/Spinner';
 import BarChart from '../../components/charts/BarChart';
+import {
+  Table,
+  Cell,
+  HeaderCell,
+  LightRow
+} from '../../components/body/Table';
 import { getValue } from '../../utils/DataUtils';
 import {
   STATE,
@@ -64,6 +70,7 @@ const Wrapper = styled.div`
 `;
 
 const HeaderLabel = styled.div`
+  padding-top: 56px;
   font-weight: 600;
   font-size: 20px;
   line-height: 150%;
@@ -90,6 +97,34 @@ const SpaceBetweenRow = styled.div`
   align-items: center;
   justify-content: space-between;
 `;
+
+const SearchBreakdowns = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  section {
+    width: 49%;
+    display: flex;
+    flex-direction: column;
+  }
+`;
+
+const cellStyle = css`
+
+  &:nth-child(2) {
+    text-align: right;
+  }
+`;
+
+const StyledCell = styled(Cell).attrs(_ => ({
+  light: true
+}))`${cellStyle}`;
+
+const StyledHeaderCell = styled(HeaderCell).attrs(_ => ({
+  light: true
+}))`${cellStyle}`;
 
 class AuditDashboard extends React.Component<Props, State> {
 
@@ -146,6 +181,53 @@ class AuditDashboard extends React.Component<Props, State> {
 
   }
 
+  renderBreakdown = (header, label, transformMapper) => {
+    const { results } = this.props;
+
+    let counts = OrderedMap();
+
+    results.forEach((result) => {
+      const value = transformMapper(result);
+      counts = counts.set(value, counts.get(value, 0) + 1);
+    });
+
+    console.log(counts.toJS())
+
+    return (
+      <>
+        <HeaderLabel>{header}</HeaderLabel>
+
+          <Table>
+            <tbody>
+              <LightRow>
+                <StyledHeaderCell>{label}</StyledHeaderCell>
+                <StyledHeaderCell>Count</StyledHeaderCell>
+              </LightRow>
+              {counts.sort((v1, v2) => (v1 > v2 ? -1 : 1)).entrySeq().map(([key, value]) => (
+                <LightRow key={key}>
+                  <StyledCell>{key}</StyledCell>
+                  <StyledCell>{value}</StyledCell>
+                </LightRow>
+              ))}
+            </tbody>
+          </Table>
+
+      </>
+    );
+  }
+
+  renderSearchBreakdowns = () => (
+    <SearchBreakdowns>
+      <section>
+        {this.renderBreakdown('User activity', 'Username', e => e.get(AUDIT_EVENT.PERSON_ID))}
+      </section>
+      <section>
+        {this.renderBreakdown('Agency activity', 'Agency', e => e.get(AUDIT_EVENT.PERSON_ID).split('@')[1])}
+        {this.renderBreakdown('Search purposes', 'Search purpose', e => e.get(AUDIT_EVENT.REASON))}
+      </section>
+    </SearchBreakdowns>
+  );
+
   render() {
 
     const {
@@ -174,7 +256,10 @@ class AuditDashboard extends React.Component<Props, State> {
           <HeaderLabel>Searches over time</HeaderLabel>
           <DropdownButton title={`Past ${dashboardWindow}`} options={windowOptions} invisible subtle />
         </SpaceBetweenRow>
+
         {this.renderSearchesOverTime()}
+
+        {this.renderSearchBreakdowns()}
 
       </Wrapper>
     );
