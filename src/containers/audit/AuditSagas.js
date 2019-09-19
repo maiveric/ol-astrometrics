@@ -10,7 +10,7 @@ import {
   select,
   takeEvery
 } from '@redux-saga/core/effects';
-import { Map, fromJS } from 'immutable';
+import { List, Map, fromJS } from 'immutable';
 import { AppApi, PrincipalsApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
@@ -35,7 +35,20 @@ import {
 import { AUDIT, AUDIT_EVENT } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
+const getEmailFromSubjectId = (subjectId, usersById) => {
+  const user = usersById[subjectId];
+
+  if (!user) {
+    return undefined;
+  }
+
+  const { email, user_id: userId } = user;
+
+  return email || userId;
+};
+
 const getEmailFromNeighbors = (neighborsById, entityKeyId, usersById) => {
+
   const neighbors = neighborsById[entityKeyId];
   if (neighbors && neighbors.length) {
 
@@ -46,9 +59,7 @@ const getEmailFromNeighbors = (neighborsById, entityKeyId, usersById) => {
 
       if (personIds && personIds.length) {
 
-        const { email, user_id: userId } = usersById[personIds[0]];
-
-        const id = email || userId;
+        const id = getEmailFromSubjectId(personIds[0], usersById);
 
         if (id) {
           return id;
@@ -59,6 +70,36 @@ const getEmailFromNeighbors = (neighborsById, entityKeyId, usersById) => {
 
   return 'Unknown';
 };
+
+const getPlateFromSearch = (search, platePTId) => {
+  let licensePlate = '';
+  try {
+    const params = JSON.parse(search.getIn([PROPERTY_TYPES.SEARCH_QUERY, 0], '{}'));
+    const { constraints } = params;
+    constraints.forEach(({ constraints: nestedConstraints }) => {
+
+      nestedConstraints.forEach((constraint) => {
+        const { searchFields } = constraint;
+
+        if (searchFields && searchFields.length) {
+          searchFields.forEach(({ property, searchTerm }) => {
+
+            if (property === platePTId) {
+              licensePlate = searchTerm;
+            }
+
+          });
+        }
+
+      });
+    });
+  }
+  catch (error) {
+    console.error(`Unable to parse JSON from search ${search.toJS()}`);
+  }
+
+  return licensePlate;
+}
 
 function* getUsersById() {
   try {
@@ -95,51 +136,48 @@ function* getAuditData({ start, end }) {
   });
   const searches = fromJS(hits);
 
-  const entityKeyIds = searches.map(getEntityKeyId).toJS();
-  const neighbors = yield call(SearchApi.searchEntityNeighborsWithFilter, searchesEntitySetId, {
-    entityKeyIds,
-    sourceEntitySetIds: [],
-    destinationEntitySetIds: [usersEntitySetId]
-  });
+  let formattedSearches = List();
+  let entityKeyIdsWithoutUsers = List();
 
-  return searches.map((search) => {
+  const searchesWithoutUsers = searches.map((search) => {
     const entityKeyId = getEntityKeyId(search);
-    const email = getEmailFromNeighbors(neighbors, entityKeyId, usersById);
+    const email = getEmailFromSubjectId(search.getIn([PROPERTY_TYPES.PERSON_ID, 0]), usersById);
+    const licensePlate = getPlateFromSearch(search, platePTId);
 
-    let licensePlate = '';
-    try {
-      const params = JSON.parse(search.getIn([PROPERTY_TYPES.SEARCH_QUERY, 0], '{}'));
-      const { constraints } = params;
-      constraints.forEach(({ constraints: nestedConstraints }) => {
-
-        nestedConstraints.forEach((constraint) => {
-          const { searchFields } = constraint;
-
-          if (searchFields && searchFields.length) {
-            searchFields.forEach(({ property, searchTerm }) => {
-
-              if (property === platePTId) {
-                licensePlate = searchTerm;
-              }
-
-            });
-          }
-
-        });
-      });
-    }
-    catch (error) {
-      console.error(`Unable to parse JSON from search ${search.toJS()}`);
-    }
-
-    return Map()
+    const formattedSearch = Map()
       .set(AUDIT_EVENT.ID, entityKeyId)
       .set(AUDIT_EVENT.PERSON_ID, email)
       .set(AUDIT_EVENT.CASE_NUMBER, search.getIn([PROPERTY_TYPES.CASE_NUMBER, 0], 'Unknown'))
       .set(AUDIT_EVENT.REASON, search.getIn([PROPERTY_TYPES.SEARCH_REASON, 0], 'Unknown'))
       .set(AUDIT_EVENT.DATE_TIME, moment(search.getIn([PROPERTY_TYPES.LAST_REPORTED_DATE_TIME, 0], '')))
       .set(AUDIT_EVENT.PLATE, licensePlate);
-  }).sort((search1, search2) => {
+
+    if (email) {
+      formattedSearches = formattedSearches.push(formattedSearch);
+      return null;
+    }
+
+    entityKeyIdsWithoutUsers = entityKeyIdsWithoutUsers.push(entityKeyId);
+    return formattedSearch;
+  }).filter(s => s);
+
+  if (entityKeyIdsWithoutUsers.size) {
+
+    const neighbors = yield call(SearchApi.searchEntityNeighborsWithFilter, searchesEntitySetId, {
+      entityKeyIds: entityKeyIdsWithoutUsers.toJS(),
+      sourceEntitySetIds: [usersEntitySetId],
+      destinationEntitySetIds: [usersEntitySetId]
+    });
+
+    searchesWithoutUsers.forEach((search) => {
+      const entityKeyId = search.get(AUDIT_EVENT.ID);
+      const email = getEmailFromNeighbors(neighbors, entityKeyId, usersById);
+
+      formattedSearches = formattedSearches.push(search.set(AUDIT_EVENT.PERSON_ID, email));
+    });
+  }
+
+  return formattedSearches.sort((search1, search2) => {
     const dateTime1 = search1.get(AUDIT_EVENT.DATE_TIME, moment(''));
     const dateTime2 = search2.get(AUDIT_EVENT.DATE_TIME, moment(''));
 
