@@ -33,9 +33,6 @@ const AppNavigationContainer = ({ isAdmin }) => (
           <NavLinkWrapper to={Routes.AUDIT}>
             Audit Log
           </NavLinkWrapper>
-          <NavLinkWrapper to={Routes.QUALITY}>
-            Data Quality
-          </NavLinkWrapper>
         </>
       ) : null
     }
