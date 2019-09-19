@@ -1,6 +1,8 @@
 export const STATE = {
   APP: 'app',
+  AUDIT: 'audit',
   ALERTS: 'ALERTS',
+  DRAW: 'draw',
   EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
   EXPLORE: 'EXPLORE',
@@ -13,7 +15,32 @@ export const APP = {
   SELECTED_ORG_ID: 'selectedOrganizationId',
   CONFIG_BY_ORG_ID: 'appConfigsByOrgId',
   SETTINGS_BY_ORG_ID: 'appSettingsByOrgId',
-  ORGS_BY_ID: 'orgsById'
+  ORGS_BY_ID: 'orgsById',
+  SELF_ENTITY_KEY_ID: 'selfEntityKeyId',
+  IS_ADMIN: 'isAdmin'
+};
+
+export const AUDIT = {
+  IS_LOADING_RESULTS: 'isLoadingResults',
+  RESULTS: 'results',
+  DASHBOARD_WINDOW: 'dashboardWindow',
+  DASHBOARD_RESULTS: 'dashboardResults',
+  FILTERED_RESULTS: 'filteredResults',
+  START_DATE: 'startDate',
+  END_DATE: 'endDate',
+  FILTER: 'filter'
+};
+
+export const DRAW = {
+  DRAW_CONTROL: 'drawControl',
+  DRAW_ZONES: 'drawZones',
+
+  NEW_MAP_NAME: 'newMapName',
+  NEW_MAP_DEFINITION: 'newMapDefinition',
+  IS_CREATING_MAP: 'isCreatingMap',
+  IS_SAVING_MAP: 'isSavingMap',
+  SAVED_MAPS: 'savedMaps',
+  SELECTED_MAP_ID: 'selectedMapId'
 };
 
 export const ALERTS = {
@@ -28,7 +55,8 @@ export const ALERTS = {
 
 export const EDM = {
   PROPERTY_TYPES: 'propertyTypes',
-  IS_LOADING_DATA_MODEL: 'isLoadingDataModel'
+  IS_LOADING_DATA_MODEL: 'isLoadingDataModel',
+  EDM_LOADED: 'edmLoaded'
 };
 
 export const ENTITY_SETS = {
@@ -48,7 +76,9 @@ export const EXPLORE = {
   SEARCH_RESULTS: 'searchResults',
   TOTAL_RESULTS: 'numResults',
   SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds',
-  SELECTED_READ_ID: 'selectedReadId'
+  SELECTED_READ_ID: 'selectedReadId',
+
+  READ_IDS_TO_ADD_TO_REPORT: 'readIdsToAddToReport'
 };
 
 export const SEARCH_PARAMETERS = {
@@ -65,7 +95,23 @@ export const SEARCH_PARAMETERS = {
 };
 
 export const REPORT = {
-  VEHICLE_ENTITY_KEY_IDS: 'vehicleEntityKeyIds'
+
+  VEHICLE_ENTITY_KEY_IDS: 'vehicleEntityKeyIds',
+
+  IS_LOADING_REPORTS: 'isLoadingReports',
+  REPORTS: 'reports',
+  READS_BY_REPORT: 'readsByReport',
+  REPORT_NEIGHBORS: 'reportNeighbors',
+  SELECTED_REPORT: 'selectedReport',
+
+  REPORT_MODAL_OPEN: 'reportModalOpen',
+  RENAME_REPORT_MODAL_OPEN: 'renameReportModalOpen',
+  ADD_READS_TO_REPORT_MODAL_OPEN: 'addReadsToReportModalOpen',
+  NEW_REPORT_NAME: 'newReportName',
+  NEW_REPORT_CASE: 'newReportCase',
+  REPORT_TO_DELETE: 'reportToDelete',
+  VEHICLE_TO_DELETE: 'vehicleToDelete',
+  READ_TO_DELETE: 'readToDelete'
 };
 
 export const PARAMETERS = {
@@ -87,7 +133,10 @@ export const PARAMETERS = {
   COLOR: 'color',
   ACCESSORIES: 'accessories',
   STYLE: 'style',
-  LABEL: 'label'
+  LABEL: 'label',
+
+  // placeholder item to indicate search criteria is not met
+  NOT_READY: 'notReady'
 };
 
 export const SUBMIT = {
@@ -95,4 +144,25 @@ export const SUBMIT = {
   SUCCESS: 'submitSuccess',
   SUBMITTED: 'submitted',
   ERROR: 'error'
+};
+
+export const SAVED_MAP = {
+  NAME: 'name',
+  FEATURES: 'features',
+  DATE_CREATED: 'dateCreated',
+  CREATED_BY: 'createdBy'
+};
+
+export const AUDIT_EVENT = {
+  ID: 'id',
+  PERSON_ID: 'personId',
+  CASE_NUMBER: 'caseNumber',
+  DATE_TIME: 'dateTime',
+  REASON: 'reason',
+  PLATE: 'plate'
+};
+
+export const DASHBOARD_WINDOWS = {
+  WEEK: 'week',
+  MONTH: 'month'
 };

@@ -12,15 +12,18 @@ import { Redirect, Route, Switch } from 'react-router';
 import type { RequestSequence } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
+import AuditContainer from '../audit/AuditContainer';
+import EulaContainer from '../eula/EulaContainer';
 import ExploreContainer from '../explore/ExploreContainer';
 import Spinner from '../../components/spinner/Spinner';
 import * as Routes from '../../core/router/Routes';
 import { loadApp } from './AppActions';
+import { termsAreAccepted } from '../../utils/CookieUtils';
 import { APP_NAME } from '../../utils/constants/Constants';
-import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
+import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
-const APP_CONTENT_BG :string = '#f8f8fb';
+const APP_CONTENT_BG :string = '#1F1E24';
 
 const AppContainerWrapper = styled.div`
   display: flex;
@@ -28,7 +31,7 @@ const AppContainerWrapper = styled.div`
   height: 100%;
   margin: 0;
   min-width: ${APP_CONTAINER_WIDTH}px;
-  padding: 0;
+  padding: ${HEADER_HEIGHT}px 0 0 0;
 `;
 
 const AppContentOuterWrapper = styled.main`
@@ -72,9 +75,14 @@ class AppContainer extends Component<Props> {
       );
     }
 
+    if (!termsAreAccepted()) {
+      return <EulaContainer />;
+    }
+
     return (
       <Switch>
         <Route path={Routes.EXPLORE} component={ExploreContainer} />
+        <Route path={Routes.AUDIT} component={AuditContainer} />
         <Redirect to={Routes.EXPLORE} />
       </Switch>
     );

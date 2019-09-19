@@ -3,21 +3,16 @@ import styled from 'styled-components';
 const BasicButton = styled.button`
   border: none;
   border-radius: 3px;
-  background-color: #f0f0f7;
-  color: #8e929b;
+  background-color: #CAC9CE;
+  color: #070709;
   font-family: 'Open Sans', sans-serif;
   padding: 12px 35px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 
   &:hover:enabled {
-    background-color: #dcdce7;
+    background-color: #E2E1E7;
     cursor: pointer;
-  }
-
-  &:active {
-    background-color: #b6bbc7;
-    color: #ffffff;
   }
 
   &:focus {
@@ -25,7 +20,7 @@ const BasicButton = styled.button`
   }
 
   &:disabled {
-    color: #b6bbc7;
+    color: #98979D;
   }
 `;
 

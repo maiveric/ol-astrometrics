@@ -2,7 +2,7 @@
  * @flow
  */
 
-import React from 'react';
+import React, { Fragment } from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map, Set } from 'immutable';
@@ -10,9 +10,14 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle } from '@fortawesome/pro-light-svg-icons';
+import { faMap } from '@fortawesome/pro-light-svg-icons';
 
-import ToggleReportButton from '../../components/buttons/ToggleReportButton';
+import { ScrollableSidebar, SidebarHeader, PaddedSection } from '../../components/body/Sidebar';
+import BasicButton from '../../components/buttons/BasicButton';
+import RoundButton from '../../components/buttons/RoundButton';
+import ReadReportTooltip from '../../components/reports/ReadReportTooltip';
+import Checkbox from '../../components/controls/StyledCheckbox';
+import { VehicleHeader, VehicleImageRow } from '../../components/vehicles/VehicleCard';
 import {
   STATE,
   EXPLORE,
@@ -20,19 +25,22 @@ import {
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getDisplayNameForId } from '../../utils/DataUtils';
+import { getEntityKeyId, getDisplayNameForId, getCoordinates } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
   vehiclesEntitySetId :string,
+  reportEntitySetId :string,
   selectedEntityKeyIds :Set<*>,
   neighborsById :Map<*, *>,
   entitiesById :Map<*, *>,
   selectedReadId :string,
   reportVehicles :List<*>,
   departmentOptions :Map,
+  readIdsForReport :Set,
+  reportEntityKeyIds :Set,
   deviceOptions :Map,
   actions :{
     selectEntity :(entityKeyId :string) => void,
@@ -45,183 +53,65 @@ type State = {
   sort :string
 };
 
-const SidebarWrapper = styled.div`
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  width: 500px;
-  padding: 100px 30px 30px 30px;
-  background-color: rgba(26, 16, 59, 0.9);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  color: #ffffff;
-`;
-
-
-const Card = styled.div`
-  background-color: #ffffff;
-  padding: 15px;
-  border-radius: 5px;
-  margin: 10px 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 100%;
-`;
-
-const ScrollableCard = styled(Card)`
-  overflow-y: scroll;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  color: black;
-
-  h1 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0 0 20px 0;
-  }
-`;
-
-const SelectableRow = styled.button`
-  background-color: #ffffff;
-  border: none;
-  color: ${props => (props.isUnselected ? 'rgb(145,145,145)' : 'black')};
-  font-weight: ${props => (props.isUnselected ? 300 : 600)};
-
-  &:hover {
-    cursor: pointer;
-  }
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const HeaderRow = styled.div`
+const Row = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 `;
 
-const VehicleTitle = styled.div`
+const FlexRow = styled.div`
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
   align-items: center;
-
-  h1 {
-    font-size: 20px;
-    font-weight: 400;
-    margin: 0 10px 0 0;
-    letter-spacing: 2px;
-  }
-
-  span {
-    background-color: #ffffff;
-    color: rgba(26, 16, 59);
-    padding: 3px 15px;
-    border-radius: 15px;
-  }
+  font-size: 14px;
 `;
 
-const HitType = styled.div`
-  margin-bottom: 15px;
+const SelectedRead = styled(PaddedSection)`
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  color: #ff3c5d;
+  flex-direction: column;
+  background-color: #121117;
+`;
+
+const ReadDetail = styled(Row)`
+  font-size: 14px;
+  line-height: 150%;
 
   span {
-    margin-left: 10px;
-    font-weight: 600;
+    color: #807F85;
+  }
+
+  div {
+    color: #ffffff;
+  }
+
+  &:not(:last-child) {
+    padding-bottom: 4px;
   }
 `;
 
-const ImageRow = styled.div`
-  margin-bottom: 15px;
+const ReportDefinitionRow = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
+  color: #807F85;
 
-  img {
+  padding-top: ${props => props.paddingTop || 0}px;
+
+  div {
     width: 49%;
-    max-height: 150px;
+    line-height: 100%;
   }
-`;
-
-const DetailsBody = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-
-  section {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-
-    span {
-      min-width: 100px;
-      color: rgb(145, 145, 145);
-      font-weight: 300;
-    }
-
-    div {
-      font-weight: 600;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: black;
-
-      i {
-        font-weight: 300;
-      }
-    }
-  }
-
-  section:not(:last-child) {
-    border-bottom: 1px solid rgb(220, 220, 230);
-    padding-bottom: 6px;
-    margin-bottom: 6px;
-  }
-`;
-
-const Icon = styled.span`
-  width: 18px;
-  min-width: 18px !important;
-  height: 18px;
-  border-radius: 50%;
-  background-color: ${props => (props.selected ? '#ff3c5d' : '#ffffff')};
-  position: relative;
-  z-index: 1;
 
   span {
-    width: 12px;
-    min-width: 12px !important;
-    height: 12px;
-    border-radius: 50%;
-    background-color: #ffffff;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    margin: auto;
-    z-index: 2;
+    font-size: 12px;
+  }
 
-    span {
-      width: 6px;
-      min-width: 6px !important;
-      height: 6px;
-      border-radius: 50%;
-      background-color: ${props => (props.selected ? '#ff3c5d' : '#ffffff')};
-      position: absolute;
-      z-index: 3;
-    }
+  button {
+    width: 100%;
+    padding: 8px;
   }
 `;
 
@@ -240,44 +130,19 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     return vehicle;
   }
 
-  renderVehicleDetails = (vehicle) => {
-    const { actions, reportVehicles, selectedEntityKeyIds } = this.props;
+  openGoogleMaps = (e, entityKeyId) => {
+    const { entitiesById } = this.props;
 
-    const vehicleEntityKeyId = getEntityKeyId(vehicle);
-    const isInReport = reportVehicles.has(vehicleEntityKeyId);
-    const toggleReport = isInReport
-      ? () => actions.removeVehicleFromReport(vehicleEntityKeyId)
-      : () => actions.addVehicleToReport(vehicleEntityKeyId);
+    e.stopPropagation();
 
-    const numReads = selectedEntityKeyIds.size;
-
-    return (
-      <HeaderRow>
-        <VehicleTitle>
-          <h1>{vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '')}</h1>
-          <span>{`${numReads} read${numReads === 1 ? '' : 's'}`}</span>
-        </VehicleTitle>
-        <ToggleReportButton isInReport={isInReport} onToggleReport={toggleReport} />
-      </HeaderRow>
-    );
+    const [longitude, latitude] = getCoordinates(entitiesById.get(entityKeyId, Map()));
+    const path = `http://www.google.com/maps/place/${latitude},${longitude}`;
+    window.open(path, '_blank');
   }
 
-  renderHitType = () => {
-    const { entitiesById, selectedReadId } = this.props;
-
-    const read = entitiesById.get(selectedReadId, Map());
-    const hitTypes = read.get(PROPERTY_TYPES.HIT_TYPE, List()).join(', ');
-
-    return hitTypes.length ? (
-      <HitType>
-        <FontAwesomeIcon icon={faExclamationTriangle} />
-        <span>{hitTypes}</span>
-      </HitType>
-    ) : null;
-  }
-
-  renderReadDetails = () => {
+  renderSelectedReadDetails = () => {
     const {
+      actions,
       departmentOptions,
       deviceOptions,
       entitiesById,
@@ -286,93 +151,86 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
     const read = entitiesById.get(selectedReadId, Map());
 
-    const vehicleImage = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
-    const plateImage = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
-    const departments = read
+    const details = {};
+
+    const make = read.get(PROPERTY_TYPES.MAKE, List()).join(', ');
+    const model = read.get(PROPERTY_TYPES.MODEL, List()).join(', ');
+    let makeModelStr = `${make}`;
+    if (model) {
+      makeModelStr = `${makeModelStr}${makeModelStr ? ' ' : ''}${model}`;
+    }
+    details['Make/model'] = makeModelStr;
+    details.Color = read.get(PROPERTY_TYPES.COLOR, List()).join(', ');
+
+    details.Department = read
       .get(PROPERTY_TYPES.AGENCY_NAME, List())
       .map(d => getDisplayNameForId(departmentOptions, d))
       .join(', ');
-    const devices = read
+
+    details.Device = read
       .get(PROPERTY_TYPES.CAMERA_ID, List())
       .map(d => getDisplayNameForId(deviceOptions, d))
       .join(', ');
-    const color = read.get(PROPERTY_TYPES.COLOR, List()).join(', ');
-    const make = read.get(PROPERTY_TYPES.MAKE, List()).join(', ');
-    const model = read.get(PROPERTY_TYPES.MODEL, List()).join(', ');
-    const year = read.get(PROPERTY_TYPES.YEAR, List()).join(', ');
-    const accessories = read.get(PROPERTY_TYPES.ACCESSORIES, List()).join(', ');
-    const timestamp = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
-    const timestampStr = timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm A') : '';
+
+    details.Year = read.get(PROPERTY_TYPES.YEAR, List()).join(', ');
+    details.Accessories = read.get(PROPERTY_TYPES.ACCESSORIES, List()).join(', ');
+
+    const vehicleSrc = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
+    const plateSrc = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
 
     return (
-      <>
-        <Card>
-          <ImageRow>
-            {plateImage ? <img src={plateImage} alt="" /> : null}
-            {vehicleImage ? <img src={vehicleImage} alt="" /> : null}
-          </ImageRow>
-          <DetailsBody>
-            <section>
-              <span>Timestamp</span>
-              <div>{timestampStr}</div>
-            </section>
-            <section>
-              <span>Dept</span>
-              <div>{departments}</div>
-            </section>
-            <section>
-              <span>Device</span>
-              <div>{devices}</div>
-            </section>
-            {
-              color ? (
-                <section>
-                  <span>Color</span>
-                  <div>{color}</div>
-                </section>
-              ) : null
-            }
-            {
-              make ? (
-                <section>
-                  <span>Make</span>
-                  <div>{make}</div>
-                </section>
-              ) : null
-            }
-            {
-              model ? (
-                <section>
-                  <span>Model</span>
-                  <div>{model}</div>
-                </section>
-              ) : null
-            }
-            {
-              year ? (
-                <section>
-                  <span>Year</span>
-                  <div>{year}</div>
-                </section>
-              ) : null
-            }
-            {
-              accessories ? (
-                <section>
-                  <span>Accessories</span>
-                  <div>{accessories}</div>
-                </section>
-              ) : null
-            }
-          </DetailsBody>
-        </Card>
-      </>
+      <SelectedRead>
+
+        <VehicleImageRow vehicleSrc={vehicleSrc} plateSrc={plateSrc} />
+
+        {Object.entries(details).map(([label, value], index) => {
+          if (!value) {
+            return null;
+          }
+
+          return (
+            <ReadDetail key={`${label}-${index}`}>
+              <span>{label}</span>
+              <div>{value}</div>
+            </ReadDetail>
+          );
+        })}
+
+      </SelectedRead>
     );
+  }
+
+  selectEntity = (e, data) => {
+    const { actions, vehiclesEntitySetId } = this.props;
+    e.stopPropagation();
+    actions.selectEntity({ data, vehiclesEntitySetId });
+  }
+
+  addToReport = () => {
+    const { actions } = this.props;
+    actions.toggleAddReadsToReportModal(true);
+  }
+
+  getReportsForRead = (readEntityKeyId) => {
+    const { neighborsById, reportEntityKeyIds, reportEntitySetId } = this.props;
+
+    const reports = neighborsById
+      .get(readEntityKeyId, List())
+      .filter(neighbor => neighbor.getIn(['neighborEntitySet', 'id']) === reportEntitySetId)
+      .map(neighbor => neighbor.get('neighborDetails', Map()))
+      .filter(nd => reportEntityKeyIds.has(getEntityKeyId(nd)));
+
+    if (!reports.size) {
+      return null;
+    }
+
+    return <ReadReportTooltip reports={reports} />
   }
 
   renderReadList = () => {
     const {
       actions,
+      readIdsForReport,
       selectedReadId,
       selectedEntityKeyIds,
       entitiesById
@@ -381,25 +239,80 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     const idAndTimestamp = selectedEntityKeyIds.map((entityKeyId) => {
       const timestamp = moment(entitiesById.getIn([entityKeyId, PROPERTY_TYPES.TIMESTAMP, 0], ''));
       return [entityKeyId, timestamp];
-    }).sort(([id1, t1], [id2, t2]) => t1.isBefore(t2) ? -1 : 1);
+    }).sort(([id1, t1], [id2, t2]) => (t1.isBefore(t2) ? -1 : 1));
+
+    return idAndTimestamp.map(([entityKeyId, timestamp]) => {
+
+      const isInReport = readIdsForReport.has(entityKeyId);
+
+      const reportTooltip = this.getReportsForRead(entityKeyId)
+
+      const onCheck = isInReport ? actions.deselectReadsForReport : actions.selectReadsForReport;
+
+      return (
+        <Fragment key={entityKeyId}>
+          <PaddedSection borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
+            <Row>
+              <FlexRow>
+                <Checkbox checked={isInReport} onChange={() => onCheck(Set.of(entityKeyId))} />
+                <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
+                {reportTooltip}
+              </FlexRow>
+              <RoundButton onClick={e => this.openGoogleMaps(e, entityKeyId)}>
+                <FontAwesomeIcon icon={faMap} />
+              </RoundButton>
+            </Row>
+          </PaddedSection>
+          {
+            entityKeyId === selectedReadId ? this.renderSelectedReadDetails() : null
+          }
+        </Fragment>
+      );
+    });
+  }
+
+  renderHeader = () => {
+    const { actions, selectedEntityKeyIds, entitiesById } = this.props;
+
+    const vehicle = this.getSelectedVehicle();
+
+    const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
+    const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'CA');
+
+    const isHit = !!selectedEntityKeyIds.find(entityKeyId => !!entitiesById
+      .getIn([entityKeyId, PROPERTY_TYPES.HIT_TYPE, 0]));
 
     return (
-      <ScrollableCard>
-        <h1>All reads for vehicle:</h1>
-        <DetailsBody>
-          {idAndTimestamp.map(([entityKeyId, timestamp]) => (
-            <section key={entityKeyId}>
-              <Icon selected={entityKeyId === selectedReadId}><span><span /></span></Icon>
-              <SelectableRow
-                  key={entityKeyId}
-                  isUnselected={entityKeyId !== selectedReadId}
-                  onClick={() => actions.selectEntity(entityKeyId)}>
-                {timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}
-              </SelectableRow>
-            </section>
-          ))}
-        </DetailsBody>
-      </ScrollableCard>
+      <SidebarHeader
+          backButtonText="Back to search results"
+          backButtonOnClick={() => actions.selectEntity()}
+          mainContent={<VehicleHeader state={state} plate={plate} isHit={isHit} />}
+          noPadBottom
+          light />
+    );
+  }
+
+  renderReportSection = (vehicle) => {
+    const { actions, selectedEntityKeyIds, readIdsForReport } = this.props;
+
+    const isInReport = selectedEntityKeyIds.subtract(readIdsForReport).isEmpty();
+
+    const onCheck = isInReport ? actions.deselectReadsForReport : actions.selectReadsForReport;
+
+    return (
+      <PaddedSection borderBottom>
+        <ReportDefinitionRow>
+          <div>
+            <span>Select vehicle reads to include in the report</span>
+          </div>
+          <div>
+            <BasicButton disabled={!readIdsForReport.size} onClick={this.addToReport}>Add to report</BasicButton>
+          </div>
+        </ReportDefinitionRow>
+        <ReportDefinitionRow paddingTop={20}>
+          <Checkbox checked={isInReport} onChange={() => onCheck(selectedEntityKeyIds)} />
+        </ReportDefinitionRow>
+      </PaddedSection>
     );
   }
 
@@ -411,12 +324,11 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     }
 
     return (
-      <SidebarWrapper>
-        {this.renderHitType()}
-        {this.renderVehicleDetails(vehicle)}
-        {this.renderReadDetails()}
+      <ScrollableSidebar>
+        {this.renderHeader()}
+        {this.renderReportSection(vehicle)}
         {this.renderReadList()}
-      </SidebarWrapper>
+      </ScrollableSidebar>
     );
   }
 }
@@ -427,14 +339,20 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const report = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
+
+  const reportEntityKeyIds = report.get(REPORT.REPORTS).keySeq().toSet();
+
   return {
     vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
+    reportEntitySetId: getEntitySetId(app, APP_TYPES.REPORTS),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
+    readIdsForReport: explore.get(EXPLORE.READ_IDS_TO_ADD_TO_REPORT),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS),
+    reportEntityKeyIds,
     departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
   };

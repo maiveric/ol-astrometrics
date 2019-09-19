@@ -64,7 +64,9 @@ export const isPersonType = ({ selectedEntitySet, entityTypesById }) => !!select
 
 export const getCoordinates = (entity) => {
   const coords = entity.getIn([PROPERTY_TYPES.COORDINATE, 0], '').split(',');
-  const [latitude, longitude] = coords;
+  let [latitude, longitude] = coords;
+  latitude = Number.parseFloat(latitude);
+  longitude = Number.parseFloat(longitude);
   if (Number.isNaN(Number.parseFloat(longitude, 0), 10) || Number.isNaN(Number.parseFloat(latitude, 0), 10)) {
     return [0, 0];
   }
@@ -102,4 +104,11 @@ export const formatNameIdForDisplay = (entity) => {
   const name = entity.getIn([PROPERTY_TYPES.NAME, 0], '[unknown]');
 
   return `${name} (${id})`;
+};
+
+export const countWithLabel = (count, label) => `${count} ${label}${count && count > 1 ? 's' : ''}`;
+
+export const getValue = (entity, fqn, defaultValue) => {
+  const def = defaultValue === undefined ? '' : defaultValue;
+  return entity.getIn([fqn, 0], def);
 };

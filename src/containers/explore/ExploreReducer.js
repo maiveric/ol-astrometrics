@@ -16,6 +16,8 @@ import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
   SELECT_ENTITY,
+  SELECT_READS_FOR_REPORT,
+  DESELECT_READS_FOR_REPORT,
   SET_FILTER,
   UNMOUNT_EXPLORE,
   executeSearch,
@@ -30,11 +32,12 @@ const {
   FILTER,
   IS_LOADING_ENTITY_NEIGHBORS,
   IS_SEARCHING_DATA,
+  READ_IDS_TO_ADD_TO_REPORT,
   SEARCH_DATE_TIME,
   SELECTED_ENTITY_KEY_IDS,
   SELECTED_READ_ID,
   SEARCH_RESULTS,
-  TOTAL_RESULTS
+  TOTAL_RESULTS,
 } = EXPLORE;
 
 const INITIAL_STATE :Map<> = fromJS({
@@ -43,6 +46,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [FILTER]: '',
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
   [IS_SEARCHING_DATA]: false,
+  [READ_IDS_TO_ADD_TO_REPORT]: Set(),
   [SEARCH_RESULTS]: List(),
   [SELECTED_ENTITY_KEY_IDS]: Set(),
   [SELECTED_READ_ID]: undefined,
@@ -130,27 +134,25 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case SELECT_ENTITY: {
       let selectedEntityKeyIds = Set();
-      let selectedReadId = action.value;
 
       const { data, vehiclesEntitySetId } = action.value;
+      let selectedReadId = data;
 
       if (data) {
-        let idsToMatch = Set().add(data);
-        if (state.get(ENTITY_NEIGHBORS_BY_ID).has(data)) {
-          selectedEntityKeyIds = selectedEntityKeyIds.add(data);
-          state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
-            if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
-              const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails', Map()));
-              if (entityKeyId) {
-                idsToMatch = idsToMatch.add(entityKeyId);
-              }
+        let idsToMatch = Set.of(data);
+
+        state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
+          if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
+            const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
+            if (entityKeyId) {
+              idsToMatch = idsToMatch.add(entityKeyId);
             }
-          });
-        }
+          }
+        });
 
         state.get(ENTITY_NEIGHBORS_BY_ID).entrySeq().forEach(([entityKeyId, neighborList]) => {
           neighborList.forEach((neighbor) => {
-            if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails', Map())))) {
+            if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails') || Map()))) {
               selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
             }
           });
@@ -161,10 +163,22 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         }
       }
 
-      return state
+      let newState = state
         .set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds)
         .set(SELECTED_READ_ID, selectedReadId);
+
+      if (!selectedReadId) {
+        newState = newState.set(READ_IDS_TO_ADD_TO_REPORT, Set());
+      }
+
+      return newState;
     }
+
+    case SELECT_READS_FOR_REPORT:
+      return state.set(READ_IDS_TO_ADD_TO_REPORT, state.get(READ_IDS_TO_ADD_TO_REPORT).union(action.value));
+
+    case DESELECT_READS_FOR_REPORT:
+      return state.set(READ_IDS_TO_ADD_TO_REPORT, state.get(READ_IDS_TO_ADD_TO_REPORT).subtract(action.value));
 
     case SET_FILTER:
       return state.set(FILTER, action.value);

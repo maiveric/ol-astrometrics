@@ -2,22 +2,27 @@ import styled from 'styled-components';
 
 const SecondaryButton = styled.button`
   border-radius: 3px;
-  background-color: #e4d8ff;
-  color: #6124e2;
+  background-color: #CAC9CE;
+  color: #070709;
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
-  font-weight: 600;
-  padding: 12px;
+  font-weight: 500;
+  line-height: 150%;
+  padding: 7px;
   width: 100%;
   border: none;
 
-  &:hover {
-    background-color: #d0bbff;
+  &:hover:enabled {
+    background-color: #E2E1E7;
     cursor: pointer;
   }
 
-  &:active {
-    background-color: #b898ff;
+  &:disabled {
+    color: #98979D;
+  }
+
+  &:focus {
+    outline: none;
   }
 
   &:focus {

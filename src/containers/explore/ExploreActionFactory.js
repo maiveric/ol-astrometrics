@@ -26,6 +26,12 @@ const setFilter :RequestSequence = newRequestSequence(SET_FILTER);
 const UNMOUNT_EXPLORE :string = 'UNMOUNT_EXPLORE';
 const unmountExplore :RequestSequence = newRequestSequence(UNMOUNT_EXPLORE);
 
+export const SELECT_READS_FOR_REPORT :string = 'SELECT_READS_FOR_REPORT';
+export const selectReadsForReport :RequestSequence = newRequestSequence(SELECT_READS_FOR_REPORT);
+
+export const DESELECT_READS_FOR_REPORT :string = 'DESELECT_READS_FOR_REPORT';
+export const deselectReadsForReport :RequestSequence = newRequestSequence(DESELECT_READS_FOR_REPORT);
+
 export {
   CLEAR_EXPLORE_SEARCH_RESULTS,
   EXECUTE_SEARCH,

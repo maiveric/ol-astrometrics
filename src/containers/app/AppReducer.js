@@ -7,7 +7,7 @@ import isNumber from 'lodash/isNumber';
 import type { SequenceAction } from 'redux-reqseq';
 import { AccountUtils } from 'lattice-auth';
 
-import { loadApp, SWITCH_ORGANIZATION } from './AppActions';
+import { loadApp, switchOrganization, SWITCH_ORGANIZATION } from './AppActions';
 
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import { APP } from '../../utils/constants/StateConstants';
@@ -23,7 +23,9 @@ const INITIAL_STATE :Map<*, *> = fromJS({
   [APP.SELECTED_ORG_ID]: undefined,
   [APP.SETTINGS_BY_ORG_ID]: Map(),
   [APP.CONFIG_BY_ORG_ID]: Map(),
-  [APP.ORGS_BY_ID]: Map()
+  [APP.ORGS_BY_ID]: Map(),
+  [APP.SELF_ENTITY_KEY_ID]: undefined,
+  [APP.IS_ADMIN]: false
 });
 
 export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Object) {
@@ -50,54 +52,21 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
             return state;
           }
 
+          const {
+            configByOrgId,
+            orgsById,
+            selectedOrg,
+            entityKeyId,
+            fqnMap,
+            isAdmin
+          } = value;
 
-          const { appConfigs } = value;
-
-          let newState :Map<*, *> = state;
-
-          let entitySetsByOrgId = Map();
-          let configByOrgId = Map();
-          let orgsById = Map();
-
-          appConfigs.forEach((appConfig :Object) => {
-
-            const { organization } :Object = appConfig;
-            const orgId :string = organization.id;
-
-            if (fromJS(appConfig.config).size) {
-
-              orgsById = orgsById.set(orgId, fromJS(organization));
-
-              Object.values(APP_TYPES).forEach((fqn) => {
-
-                const { entitySetId } = appConfig.config[fqn];
-
-                newState = newState.setIn(
-                  [fqn, APP.ENTITY_SETS_BY_ORG, orgId],
-                  entitySetId
-                );
-                configByOrgId = configByOrgId.set(
-                  orgId,
-                  configByOrgId.get(orgId, Map()).set(fqn, entitySetId)
-                );
-                entitySetsByOrgId = entitySetsByOrgId.set(
-                  orgId,
-                  entitySetsByOrgId.get(orgId, Map()).set(entitySetId, fqn)
-                );
-              });
-            }
-          });
-
-          let selectedOrg = AccountUtils.retrieveOrganizationId();
-
-          if ((!selectedOrg && appConfigs.length > 0) || !orgsById.has(selectedOrg)) {
-            selectedOrg = appConfigs[0].organization.id;
-          }
-
-          return newState
+          return state.merge(fqnMap)
             .set(APP.CONFIG_BY_ORG_ID, configByOrgId)
             .set(APP.ORGS_BY_ID, orgsById)
-            .set(APP.SELECTED_ORG_ID, selectedOrg);
+            .set(APP.SELECTED_ORG_ID, selectedOrg)
+            .set(APP.SELF_ENTITY_KEY_ID, entityKeyId)
+            .set(APP.IS_ADMIN, isAdmin);
         },
         FAILURE: () => {
 
@@ -127,8 +96,14 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
       });
     }
 
-    case SWITCH_ORGANIZATION:
-      return state.set(APP.SELECTED_ORG_ID, action.value);
+    case switchOrganization.case(action.type): {
+      return switchOrganization.reducer(state, action, {
+        REQUEST: () => state.set(APP.SELECTED_ORG_ID, action.value),
+        SUCCESS: () => state
+          .set(APP.SELF_ENTITY_KEY_ID, action.value.entityKeyId)
+          .set(APP.IS_ADMIN, action.value.isAdmin)
+      });
+    }
 
     default:
       return state;

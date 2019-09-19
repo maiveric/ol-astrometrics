@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import Immutable from 'immutable';
+import { Map } from 'immutable';
 import styled, { css } from 'styled-components';
 import { faTimes } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -43,35 +43,43 @@ const SearchInputWrapper = styled.div`
 `;
 
 const inputStyle = `
-  border: 1px solid #dcdce7;
+  width: 100%;
+
+  background-color: #36353B !important;
+  color: #ffffff;
   border-radius: 3px;
-  color: #135;
-  flex: 1 0 auto;
+  border: none;
+  height: 36px;
+  padding: 0 16px;
   font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 24px;
-  outline: none;
-  padding: 0 45px 0 20px;
+
   &:focus {
-    border-color: #6124e2;
+    border: 1px solid #98979D;
+    background: #4F4E54;
+    outline: none;
   }
+
+  &:hover {
+    background: #4F4E54;
+    cursor: pointer;
+  }
+
   &::placeholder {
     font-family: 'Open Sans', sans-serif;
     font-size: 14px;
-    color: #8e929b;
+    color: #807F85;
   }
 `;
 
-const SearchInput = styled.input.attrs({
+const SearchInput = styled.input.attrs(_ => ({
   type: 'text'
-})`
+}))`
   ${inputStyle}
   background-color: ${(props) => {
     if (props.disabled) {
-      return '#dcdce7';
+      return '#36353B';
     }
-    return (props.transparent ? '#f9f9fd' : '#ffffff');
+    return (props.transparent ? '#f9f9fd' : '#36353B');
   }};
 `;
 
@@ -80,14 +88,16 @@ const SearchIcon = styled.div`
   color: #687F96;
   position: absolute;
   margin: 0 20px;
-  right: 0
+  right: 0;
+  height: 100%;
+  display: flex;
 `;
 
 
 const SearchButton = styled.button`
   ${inputStyle}
   text-align: left;
-  background-color: ${props => (props.transparent ? '#f9f9fd' : '#ffffff')};
+  background-color: ${props => (props.transparent ? '#f9f9fd' : '#36353B')};
 `;
 
 const CloseIcon = styled.div`
@@ -102,14 +112,13 @@ const CloseIcon = styled.div`
 `;
 
 const DataTableWrapper = styled.div`
-  background-color: #fefefe;
-  border-radius: 5px;
-  border: 1px solid #e1e1eb;
+  background-color: #36353B;
+  border-radius: 3px;
   position: absolute;
   z-index: 5;
   width: 100%;
   visibility: ${props => (props.isVisible ? 'visible' : 'hidden')}};
-  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
   margin: ${props => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
   bottom: ${props => (props.openAbove ? '45px' : 'auto')};
 `;
@@ -123,22 +132,19 @@ const NoContentWrapper = styled.div`
   font-size: 14px;
   font-weight: 600;
   font-style: italic;
-  color: #2e2e34;
+  color: #CAC9CE;
 `;
 
 const SearchOption = styled.div`
-  padding: 10px 20px;
-  color: #000000;
+  padding: 7px 24px;
+  color: #ffffff;
   font-size: 14px;
+  line-height: 150%;
   font-weight: 400;
 
   &:hover {
-    background-color: #f0f0f7;
+    background-color: #4F4E54;
     cursor: pointer;
-  }
-
-  &:active {
-    background-color: #e6e6f7;
   }
 `;
 
@@ -165,6 +171,7 @@ type Props = {
   onSelect :Function,
   short :?boolean,
   value :?string,
+  inputValue :?string,
   onClear? :?() => void,
   transparent? :boolean,
   openAbove? :boolean,
@@ -185,7 +192,7 @@ type State = {
 class SearchableSelect extends React.Component<Props, State> {
 
   static defaultProps = {
-    options: Immutable.List(),
+    options: Map(),
     className: '',
     maxHeight: -1,
     searchPlaceholder: 'Search...',
@@ -208,7 +215,7 @@ class SearchableSelect extends React.Component<Props, State> {
     super(props);
 
     this.state = {
-      filteredTypes: props.options.keySeq(),
+      filteredTypes: props.options,
       isVisibleDataTable: false,
       searchQuery: ''
     };
@@ -219,7 +226,7 @@ class SearchableSelect extends React.Component<Props, State> {
     const { value, options } = nextProps;
 
     this.setState({
-      filteredTypes: this.filterResultsForOptions(value, options).keySeq(),
+      filteredTypes: this.filterResultsForOptions(value, options),
       searchQuery: ''
     });
   }
@@ -248,10 +255,10 @@ class SearchableSelect extends React.Component<Props, State> {
 
   }
 
-  handleOnSelect = (label :string) => {
-    const { onSelect, options } = this.props;
+  handleOnSelect = (value :string) => {
+    const { onSelect } = this.props;
 
-    onSelect(options.get(label));
+    onSelect(value);
     this.setState({
       searchQuery: ''
     });
@@ -262,20 +269,19 @@ class SearchableSelect extends React.Component<Props, State> {
 
     return inexactMatchesAllowed
       ? options
-      : options.filter((obj, label) => label.toLowerCase().includes(value.toLowerCase()));
+      : options.filter((v, key) => key.toLowerCase().includes(value.toLowerCase()));
   }
 
   filterResults = (value :string) => {
     const { options } = this.props;
-    return this.filterResultsForOptions(value, options)
+    return this.filterResultsForOptions(value, options);
   }
-
 
   handleOnChangeSearchQuery = (event :SyntheticInputEvent<*>) => {
     const { onInputChange } = this.props;
 
     this.setState({
-      filteredTypes: this.filterResults(event.target.value).keySeq(),
+      filteredTypes: this.filterResults(event.target.value),
       searchQuery: event.target.value
     });
 
@@ -284,13 +290,19 @@ class SearchableSelect extends React.Component<Props, State> {
 
   renderTable = () => {
     const { filteredTypes } = this.state;
-    const options = filteredTypes.map(type => (
-      <SearchOption
-          key={type}
-          onMouseDown={() => this.handleOnSelect(type)}>
-        {type}
-      </SearchOption>
-    ));
+
+    const options = [];
+
+    filteredTypes.entrySeq().forEach(([value, label]) => {
+      options.push(
+        <SearchOption
+            key={value}
+            onMouseDown={() => this.handleOnSelect(value)}>
+          {label}
+        </SearchOption>
+      );
+    });
+
     return <SearchOptionContainer>{options}</SearchOptionContainer>;
   }
 
@@ -309,7 +321,7 @@ class SearchableSelect extends React.Component<Props, State> {
       return (
         <DataTableWrapper isVisible openAbove={openAbove}>
           <NoContentWrapper searching>
-            <Spinner />
+            <Spinner light />
           </NoContentWrapper>
         </DataTableWrapper>
       );
@@ -331,6 +343,12 @@ class SearchableSelect extends React.Component<Props, State> {
     return null;
   }
 
+  clearOnDelete = ({ keyCode }) => {
+    if (keyCode === 8) { // backspace
+      this.handleOnSelect('');
+    }
+  }
+
   render() {
     const {
       className,
@@ -340,7 +358,9 @@ class SearchableSelect extends React.Component<Props, State> {
       selectOnly,
       short,
       transparent,
-      value
+      value,
+      inputValue,
+      options
     } = this.props;
     const { isVisibleDataTable, searchQuery } = this.state;
 
@@ -350,7 +370,8 @@ class SearchableSelect extends React.Component<Props, State> {
           {
             selectOnly ? (
               <SearchButton
-                  innerRef={(ref) => {
+                  onKeyUp={this.clearOnDelete}
+                  ref={(ref) => {
                     this.buttonRef = ref;
                   }}
                   disabled={disabled}
@@ -358,14 +379,14 @@ class SearchableSelect extends React.Component<Props, State> {
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable}>
-                {value || searchPlaceholder}
+                {options.get(value, inputValue) || searchPlaceholder}
               </SearchButton>
             ) : (
               <SearchInput
                   disabled={disabled}
                   placeholder={searchPlaceholder}
                   transparent={transparent}
-                  value={value || searchQuery}
+                  value={options.get(value, inputValue) || searchQuery}
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable} />

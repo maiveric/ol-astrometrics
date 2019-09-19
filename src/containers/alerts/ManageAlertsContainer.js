@@ -12,20 +12,20 @@ import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
 import { DateTimePicker } from '@atlaskit/datetime-picker';
 
+import AlertRow from './AlertRow';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SearchableSelect from '../../components/controls/SearchableSelect';
-import BasicButton from '../../components/buttons/BasicButton';
 import InfoButton from '../../components/buttons/InfoButton';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
 import {
   STATE,
   ALERTS,
-  EDM,
   PARAMETERS,
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
+import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
@@ -37,17 +37,8 @@ type Props = {
   alerts :List,
   isLoadingAlerts :boolean,
   isSubmitting :boolean,
-  caseNum :string,
-  searchReason :string,
-  plate :string,
-  expirationDate :string,
-  alertsEntitySetId :string,
-  readsEntitySetId :string,
-  platePropertyTypeId :string,
   parameters :Map,
-  edm :Map,
   actions :{
-    loadAlerts :(edm :Map) => void,
     setAlertValue :({ field :string, value :string }) => void,
     submit :(
       values :Object,
@@ -64,14 +55,24 @@ type Props = {
   }
 }
 
-type State = {
-  isSettingNewAlert :boolean
-};
+const Wrapper = styled.div`
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - ${SIDEBAR_WIDTH}px);
+  height: calc(100% - ${INNER_NAV_BAR_HEIGHT - 1}px);
+  background-color: #1F1E24;
+  color: #ffffff;
+  bottom: 0;
+  right: 0;
+  padding: 56px 104px;
+  line-height: 150%;
+`;
 
 const ModalHeader = styled.div`
-  color: #135;
   font-size: 18px;
   font-weight: 600;
+  font-size: 24px;
 `;
 
 const ModalSubtitle = styled.div`
@@ -82,11 +83,10 @@ const ModalSubtitle = styled.div`
 `;
 
 const SubHeader = styled(ModalHeader)`
-  font-size: 14px;
-`;
-
-const DateTimePickerWrapper = styled.div`
-  width: 100%;
+  font-weight: 500;
+  font-size: 16px;
+  margin-top: 40px;
+  margin-bottom: 16px;
 `;
 
 const FormContainer = styled.div`
@@ -102,16 +102,6 @@ const SpinnerWrapper = styled.div`
   position: relative;
 `;
 
-const InputHeader = styled.span`
-  font-size: 14px;
-  font-weight: 600;
-  margin: 20px 0 5px 0;
-`;
-
-const StyledSearchableSelect = styled(SearchableSelect)`
-  width: 100%;
-`;
-
 const Row = styled.div`
   width: 100%;
   display: flex;
@@ -122,65 +112,19 @@ const Row = styled.div`
   }
 `;
 
-const CenteredRow = styled(Row)`
-  justify-content: center;
-  margin-top: 20px;
-
-  button {
-    margin: 0 10px;
-    width: 50%;
-  }
-`;
-
 const EvenlySpacedRow = styled(Row)`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 `;
 
-const Alert = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  font-size: 14px;
-  color: ${props => (props.expired ? '#b6bbc7' : '#135')};
-
-  span {
-    font-size: 12px;
-    width: 100%;
-    text-align: center;
-  }
-
-  b {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  div {
-    margin-bottom: 4px;
-  }
-
-  padding: 10px 0;
-  margin: 10px 0;
-  border-bottom: 1px solid #dcdce7;
-`;
-
 const NoAlerts = styled.div`
   width: 100%;
-  text-align: center;
-  margin: 20px 0;
   font-size: 14px;
-  color: #8e929b;
+  color: #98979D;
 `;
 
 class ManageAlertsContainer extends React.Component<Props, State> {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      isSettingNewAlert: false
-    };
-  }
 
   componentDidMount() {
     const { actions, parameters } = this.props;
@@ -198,17 +142,6 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     });
   }
 
-  getOnChange = (field, noEventObj, filterWildcards) => {
-    const { actions } = this.props;
-    return (e) => {
-      let value = noEventObj ? e : e.target.value;
-      if (value && filterWildcards) {
-        value = value.replace(/\*/g, '');
-      }
-      actions.setAlertValue({ field, value });
-    };
-  }
-
   getAsMap = (valueList) => {
     let options = OrderedMap();
     valueList.forEach((value) => {
@@ -217,112 +150,9 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     return options;
   }
 
-  createAlert = () => {
-    const {
-      actions,
-      caseNum,
-      searchReason,
-      plate,
-      expirationDate,
-      readsEntitySetId,
-      platePropertyTypeId
-    } = this.props;
-
-    const expirationMoment = moment(expirationDate);
-    if (!expirationMoment.isValid()) {
-      return;
-    }
-
-    const constraints = {
-      entitySetIds: [readsEntitySetId],
-      start: 0,
-      maxHits: 3000,
-      constraints: [
-        {
-          constraints: [{
-            type: 'simple',
-            searchTerm: getSearchTerm(platePropertyTypeId, plate)
-          }]
-        }
-      ]
-    };
-
-    const alert = {
-      expiration: expirationMoment.toISOString(true),
-      type: 'ALPR_ALERT',
-      constraints,
-      alertMetadata: {
-        caseNum,
-        searchReason,
-        licensePlate: plate
-      }
-    };
-
-    actions.createAlert(alert);
-
-    this.setState({ isSettingNewAlert: false });
-  }
-
   renderEmailSubtitle = (adjustTop) => {
     const { email } = AuthUtils.getUserInfo();
     return <ModalSubtitle adjustTop={adjustTop}>{`Alerts will be sent to ${email}`}</ModalSubtitle>;
-  }
-
-  renderForm = () => {
-    const {
-      caseNum,
-      searchReason,
-      plate,
-      expirationDate
-    } = this.props;
-
-    const canSubmit = caseNum
-      && searchReason
-      && expirationDate
-      && moment(expirationDate).isValid()
-      && plate
-      && plate.length > 3;
-
-    return (
-      <FormContainer>
-        <EvenlySpacedRow>
-          <ModalHeader>Create new alert</ModalHeader>
-        </EvenlySpacedRow>
-        {this.renderEmailSubtitle()}
-
-        <InputHeader>Case number</InputHeader>
-        <StyledInput value={caseNum} onChange={this.getOnChange(ALERTS.CASE_NUMBER)} />
-
-        <InputHeader>Search reason</InputHeader>
-        <StyledSearchableSelect
-            value={searchReason}
-            searchPlaceholder="Select"
-            onSelect={this.getOnChange(ALERTS.SEARCH_REASON, true)}
-            options={this.getAsMap(SEARCH_REASONS)}
-            selectOnly
-            transparent
-            short />
-
-        <InputHeader>Full license plate</InputHeader>
-        <StyledInput value={plate} onChange={this.getOnChange(ALERTS.PLATE, false, true)} />
-
-        <InputHeader>Alert expiration date and time</InputHeader>
-        <DateTimePickerWrapper>
-          <DateTimePicker
-              onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
-              value={expirationDate}
-              dateFormat="MM/DD/YYYY"
-              datePickerSelectProps={{
-                placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
-              }} />
-        </DateTimePickerWrapper>
-        <CenteredRow>
-          <SecondaryButton onClick={() => this.setState({ isSettingNewAlert: false })}>Cancel</SecondaryButton>
-          <InfoButton disabled={!canSubmit} onClick={this.createAlert}>Create Alert</InfoButton>
-        </CenteredRow>
-
-      </FormContainer>
-    );
   }
 
   getExpiration = alert => moment(alert.get('expiration', ''));
@@ -333,53 +163,17 @@ class ManageAlertsContainer extends React.Component<Props, State> {
     return dt1.isValid() && dt1.isAfter(dt2) ? -1 : 1;
   }
 
-  expireAlert = (alert) => {
-    const { actions, edm, alertsEntitySetId } = this.props;
-
-    const entityKeyId = getEntityKeyId(alert);
-    const entitySetId = alertsEntitySetId;
-    const values = alert.set(PROPERTY_TYPES.END_DATE_TIME, List.of(moment().toISOString(true))).toJS();
-    actions.replaceEntity({
-      entitySetId,
-      entityKeyId,
-      values,
-      callback: () => actions.loadAlerts({ edm })
-    });
-  }
-
   renderAlerts = (sortedAlerts, expired) => {
-    const { actions } = this.props;
 
     if (!sortedAlerts.size) {
-      return <NoAlerts>{`No ${expired ? 'expired' : 'active'} alerts`}</NoAlerts>;
+      return <NoAlerts>{`You have no ${expired ? 'expired' : 'active'} alerts.`}</NoAlerts>;
     }
 
-    return sortedAlerts.map((alert) => {
-      let expiration = moment(alert.get('expiration', ''));
-      const alertMetadata = alert.get('alertMetadata', Map());
-
-      expiration = expiration.isValid() ? expiration.format('MM/DD/YYYY hh:mm a') : 'Invalid expiration date';
-
-      return (
-        <Alert expired={expired} key={alert.get('id')}>
-          <span>{`Expire${expired ? 'd' : 's'} ${expiration}`}</span>
-          <div>License plate: <b>{alertMetadata.get('licensePlate')}</b></div>
-          <div>Case number: <b>{alertMetadata.get('caseNum')}</b></div>
-          <div>Search Reason: <b>{alertMetadata.get('searchReason')}</b></div>
-          {
-            expired ? null : (
-              <CenteredRow>
-                <BasicButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire alert</BasicButton>
-              </CenteredRow>
-            )
-          }
-        </Alert>
-      );
-    });
+    return sortedAlerts.map(alert => <AlertRow key={alert.get('id')} alert={alert} expired={expired} />);
   }
 
   renderAlertList = () => {
-    const { alerts } = this.props;
+    const { actions, alerts } = this.props;
 
     let content = <NoAlerts>You have not set any alerts.</NoAlerts>;
 
@@ -412,31 +206,12 @@ class ManageAlertsContainer extends React.Component<Props, State> {
       );
     }
 
-    const now = moment();
-
-    let active = List();
-    let inactive = List();
-
-    alerts.forEach((alert) => {
-      const dateTime = this.getExpiration(alert);
-      if (dateTime.isValid() && dateTime.isAfter(now)) {
-        active = active.push(alert);
-      }
-      else {
-        inactive = inactive.push(alert);
-      }
-    });
-
-    active = active.sort(this.sortAlerts);
-    inactive = inactive.sort(this.sortAlerts);
-
     return (
       <FormContainer>
         <EvenlySpacedRow>
-          <ModalHeader>Manage existing alerts</ModalHeader>
-          <SecondaryButton onClick={() => this.setState({ isSettingNewAlert: true })}>Create new alert</SecondaryButton>
+          <ModalHeader>Alerts</ModalHeader>
+          <InfoButton onClick={() => actions.toggleAlertModal(true)}>Create new alert</InfoButton>
         </EvenlySpacedRow>
-        {this.renderEmailSubtitle(true)}
         {content}
       </FormContainer>
     );
@@ -444,16 +219,15 @@ class ManageAlertsContainer extends React.Component<Props, State> {
 
   render() {
     const { isLoadingAlerts, isSubmitting } = this.props;
-    const { isSettingNewAlert } = this.state;
 
     if (isLoadingAlerts || isSubmitting) {
       return <SpinnerWrapper><Spinner /></SpinnerWrapper>;
     }
 
     return (
-      <div>
-        {isSettingNewAlert ? this.renderForm() : this.renderAlertList()}
-      </div>
+      <Wrapper>
+        {this.renderAlertList()}
+      </Wrapper>
     );
   }
 
@@ -461,25 +235,15 @@ class ManageAlertsContainer extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const app = state.get(STATE.APP);
   const alerts = state.get(STATE.ALERTS);
   const parameters = state.get(STATE.PARAMETERS);
-  const edm = state.get(STATE.EDM);
   const submit = state.get(STATE.SUBMIT);
 
   return {
-    alertsEntitySetId: getEntitySetId(app, APP_TYPES.ALERTS),
-    readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     alerts: alerts.get(ALERTS.ALERT_LIST),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
-    caseNum: alerts.get(ALERTS.CASE_NUMBER),
-    searchReason: alerts.get(ALERTS.SEARCH_REASON),
-    plate: alerts.get(ALERTS.PLATE),
-    expirationDate: alerts.get(ALERTS.EXPIRATION),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
-    platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
-    isSubmitting: submit.get(SUBMIT.SUBMITTING),
-    edm
+    isSubmitting: submit.get(SUBMIT.SUBMITTING)
   };
 }
 

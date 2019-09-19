@@ -9,23 +9,18 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { List, Map, OrderedMap } from 'immutable';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faChevronLeft,
-  faMinus,
-  faPlus,
-  faPrint
-} from '@fortawesome/pro-regular-svg-icons';
-
-import {
-  faBell,
-  faPencil
-} from '@fortawesome/pro-solid-svg-icons';
+import { faChevronDown, faChevronUp } from '@fortawesome/pro-light-svg-icons';
+import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
+import { faBell } from '@fortawesome/pro-solid-svg-icons';
 import type { RequestSequence } from 'redux-reqseq';
 
+import Sidebar from '../../components/body/Sidebar';
 import InfoButton from '../../components/buttons/InfoButton';
+import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
+import Slider from '../../components/controls/Slider';
+import DateTimePicker from '../../components/controls/DateTimePicker';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getDisplayNameForId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
@@ -48,6 +43,7 @@ import {
   REPORT,
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import * as AlertActionFactory from '../alerts/AlertActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
@@ -61,6 +57,7 @@ type Props = {
   geocodedAddresses :List<*>;
   isLoadingAddresses :boolean;
   noAddressResults :boolean;
+  isDrawMode :boolean;
   agencyOptions :Map<*>;
   deviceOptions :Map<*>;
   isLoadingResults :boolean;
@@ -83,27 +80,48 @@ type Props = {
 };
 
 const SearchParameterWrapper = styled.div`
-  width: 100%;
+  width: ${SIDEBAR_WIDTH}px;
+  height: 100%;
   position: fixed;
-  padding: 50px 0;
   z-index: 2;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: #1F1E24;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  box-shadow: 0px -5px 10px rgba(0, 0, 0, 0.25);
+`;
+
+const MenuSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 24px 32px;
+  border-bottom: 1px solid #36353B;
 `;
 
 const InnerWrapper = styled.div`
-  width: 1300px;
+  position: absolute;
+  top: 0;
+  width: ${SIDEBAR_WIDTH}px;
+  height: calc(100% - 120px);
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
 
-  h1 {
-    color: #ffffff;
-    font-size: 22px;
-    font-weight: 400;
-    margin-bottom: 50px;
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #CAC9CE;
+    border-radius: 10px;
   }
 `;
 
@@ -113,61 +131,41 @@ type State = {
 
 const Row = styled.div`
   width: ${props => (props.width || '100')}%;
-  margin-top: ${props => (props.marginTop ? 30 : 0)}px;
+  margin: 5px 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
 `;
 
-const SubHeader = styled.div`
-  margin: 30px 0 15px 0;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-`;
-
 const StyledInputWrapper = styled.div`
   width: 100%;
   height: 39px;
   position: relative;
-
-  input {
-    position: absolute;
-    padding-right: 32%;
-  }
-
-  span {
-    height: 100%;
-    width: 30%;
-    margin: 0;
-    right: 0;
-    background-color: #555e6f;
-    z-index: 2;
-    position: absolute;
-    border-radius: 0 3px 3px 0;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
 `;
 
-const StyledInput = styled.input.attrs({
+const StyledInput = styled.input.attrs(_ => ({
   type: 'text'
-})`
+}))`
   width: 100%;
+  background: #4F4E54;
+
+  background: #36353B;
+  color: #ffffff;
   border-radius: 3px;
-  padding: 10px 15px;
   border: none;
-  height: 39px;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
 
   &:focus {
+    border: 1px solid #98979D;
+    background: #4F4E54;
     outline: none;
+  }
+
+  &:hover {
+    background: #4F4E54;
   }
 `;
 
@@ -180,7 +178,7 @@ const InputGroup = styled.div`
   span {
     color: #ffffff;
     font-size: 12px;
-    font-weight: 300;
+    font-weight: 500;
     margin-bottom: 10px;
   }
 `;
@@ -304,21 +302,20 @@ const TopNavLargeButton = styled.button`
 const ButtonWrapper = styled.button`
   background: transparent;
   border: none;
-  width: ${props => (props.fitContent ? 'fit-content' : '100%')};
+  width: 100%;
   margin-top: 20px;
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  color: #649df7;
+  color: #ffffff;
 
   span {
-    margin-left: 10px;
+    margin-right: 10px;
   }
 
   &:hover:not(:disabled) {
     cursor: pointer;
-    color: #7cacf8;
   }
 
   &:focus {
@@ -330,6 +327,34 @@ const ButtonWrapper = styled.button`
     color: gray;
   }
 
+`;
+
+const InlineGroup = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const HelperText = styled.span`
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 150%;
+  color: #807F85 !important;
+
+  padding-left: ${props => (props.offsetLeft ? 8 : 0)}px;
+`;
+
+const Accent = styled.span`
+  color: #e53b36 !important;
+`;
+
+const SearchButtonWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  bottom: 16px;
+  left: 0;
+  width: ${SIDEBAR_WIDTH}px;
 `;
 
 class SearchParameters extends React.Component<Props, State> {
@@ -390,7 +415,7 @@ class SearchParameters extends React.Component<Props, State> {
     const { geocodedAddresses } = this.props;
     let options = OrderedMap();
     geocodedAddresses.forEach((addr) => {
-      options = options.set(addr.get('display_name'), addr);
+      options = options.set(addr, addr.get('display_name'));
     });
 
     return options;
@@ -427,12 +452,22 @@ class SearchParameters extends React.Component<Props, State> {
     });
   }
 
+  exitDrawMode = () => {
+    const { actions } = this.props;
+    actions.setDrawMode(false);
+    actions.updateSearchParameters({
+      field: PARAMETERS.SEARCH_ZONES,
+      value: List()
+    });
+  }
+
   renderFullSearchParameters() {
     const { isExpanded } = this.state;
     const {
       actions,
       searchParameters,
       isLoadingAddresses,
+      isDrawMode,
       noAddressResults,
       agencyOptions,
       deviceOptions
@@ -441,32 +476,55 @@ class SearchParameters extends React.Component<Props, State> {
     return (
       <SearchParameterWrapper>
         <InnerWrapper>
-          <h1>ALPR Vehicle Search</h1>
-          <Row>
-            <Row width={20}>
+
+          <MenuSection>
+
+            <Row>
               <InputGroup>
-                <span>Case Number*</span>
+                <span>
+                  Case number
+                  <Accent>*</Accent>
+                </span>
                 {this.renderInput(PARAMETERS.CASE_NUMBER)}
               </InputGroup>
             </Row>
-            <Row width={53}>
+
+            <Row>
               <InputGroup>
-                <span>Search Reason*</span>
+                <span>
+                  Search reason
+                  <Accent>*</Accent>
+                </span>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.REASON)}
                     searchPlaceholder="Select"
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.REASON, value })}
                     options={this.getAsMap(SEARCH_REASONS)}
                     selectOnly
-                    transparent
                     short />
               </InputGroup>
             </Row>
-            <Row width={20}>
+
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
               <InputGroup>
-                <span>Full or Partial Plate (minimum 3 characters)</span>
+                <HelperText>
+                  At least two of license plate, location, or search date range must be present to search.
+                </HelperText>
+              </InputGroup>
+            </Row>
+
+            <Row>
+              <InputGroup>
+                <InlineGroup>
+                  <span>Full or partial plate </span>
+                  <HelperText offsetLeft> Minimum 3 characters</HelperText>
+                </InlineGroup>
                 <StyledSearchableSelect
-                    value={searchParameters.get(PARAMETERS.PLATE)}
+                    inputValue={searchParameters.get(PARAMETERS.PLATE)}
                     searchPlaceholder=""
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.PLATE, value })}
                     onInputChange={({ target }) => {
@@ -474,126 +532,160 @@ class SearchParameters extends React.Component<Props, State> {
                     }}
                     options={this.getAsMap(getPreviousLicensePlateSearches())}
                     allowFreeEntry
-                    transparent
                     short />
               </InputGroup>
             </Row>
-          </Row>
-          <SubHeader>Location</SubHeader>
-          <Row>
-            <Row width={65.5}>
-              <InputGroup>
-                <span>Street Address</span>
-                <StyledSearchableSelect
-                    value={searchParameters.get(PARAMETERS.ADDRESS)}
-                    searchPlaceholder="Enter address"
-                    onInputChange={this.handleAddressChange}
-                    onSelect={actions.selectAddress}
-                    options={this.getAddressesAsMap()}
-                    isLoadingResults={isLoadingAddresses}
-                    noResults={noAddressResults}
-                    inexactMatchesAllowed
-                    transparent
-                    short />
-              </InputGroup>
+
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
+              <ButtonToolbar
+                  value={isDrawMode}
+                  options={[
+                    {
+                      value: false,
+                      label: 'Address',
+                      onClick: this.exitDrawMode
+                    },
+                    {
+                      value: true,
+                      label: 'Draw',
+                      onClick: this.resetAndGoToDrawMode
+                    }
+                  ]} />
             </Row>
-            <Row width={31}>
-              <Row width={46}>
-                <InputGroup>
-                  <span>Search Radius</span>
-                  <StyledInputWrapper>
-                    {this.renderInput(PARAMETERS.RADIUS)}
-                    <span>miles</span>
-                  </StyledInputWrapper>
-                </InputGroup>
-              </Row>
-              <Row width={46}>
-                <span />
-                <ButtonWrapper onClick={this.resetAndGoToDrawMode}>
-                  <FontAwesomeIcon icon={faPencil} />
-                  <span>Draw on map</span>
-                </ButtonWrapper>
-              </Row>
-            </Row>
-          </Row>
-          <SubHeader>Additional Parameters</SubHeader>
-          <Row>
-            <Row width={31}>
+
+            {
+              isDrawMode ? (
+                <Row>
+                  <HelperText>
+                    {`Start defining multiple search zones by clicking Draw on the top right corner of the map.
+                      Click and release to place a corner of a polygon, and click a placed corner a second time
+                      to complete a polygon. Click then drag any corner to edit.`}
+                  </HelperText>
+                </Row>
+              ) : (
+                <>
+
+                  <Row>
+                    <InputGroup>
+                      <span>Street address</span>
+                      <StyledSearchableSelect
+                          inputValue={searchParameters.get(PARAMETERS.ADDRESS)}
+                          searchPlaceholder="Enter address"
+                          onInputChange={this.handleAddressChange}
+                          onSelect={actions.selectAddress}
+                          options={this.getAddressesAsMap()}
+                          isLoadingResults={isLoadingAddresses}
+                          noResults={noAddressResults}
+                          inexactMatchesAllowed
+                          short />
+                    </InputGroup>
+                  </Row>
+
+                  <Row>
+                    <InputGroup>
+                      <InlineGroup>
+                        <span>Search radius</span>
+                        <HelperText offsetLeft>Maximum 50 miles</HelperText>
+                      </InlineGroup>
+                      <StyledInputWrapper>
+                        <Slider
+                            min={0}
+                            max={50}
+                            value={20}
+                            unitLabel="mi"
+                            onChange={(value) => {
+                              actions.updateSearchParameters({
+                                field: PARAMETERS.RADIUS,
+                                value
+                              });
+                            }} />
+                      </StyledInputWrapper>
+                    </InputGroup>
+                  </Row>
+
+                </>
+              )
+            }
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
               <InputGroup>
-                <span>Time start</span>
+                <span>Search start</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       hideIcon
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.START)}
                       value={searchParameters.get(PARAMETERS.START)}
-                      dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
                         placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
                       }} />
                 </DateTimePickerWrapper>
               </InputGroup>
             </Row>
-            <Row width={31}>
+
+            <Row>
               <InputGroup>
-                <span>Time end</span>
+                <span>Search end</span>
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       hideIcon
                       onChange={value => this.onDateTimeChange(value, PARAMETERS.END)}
                       value={searchParameters.get(PARAMETERS.END)}
-                      dateFormat="MM/DD/YYYY"
                       datePickerSelectProps={{
                         placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
                       }} />
                 </DateTimePickerWrapper>
               </InputGroup>
             </Row>
-            <Row width={31}>
-              <Row width={46}>
-                <InputGroup>
-                  <span>Department (optional)</span>
-                  <StyledSearchableSelect
-                      value={getDisplayNameForId(agencyOptions, searchParameters.get(PARAMETERS.DEPARTMENT))}
-                      onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value })}
-                      onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value: '' })}
-                      options={agencyOptions}
-                      transparent
-                      short />
-                </InputGroup>
-              </Row>
-              <Row width={46}>
-                <InputGroup>
-                  <span>Device (optional)</span>
-                  <StyledSearchableSelect
-                      value={getDisplayNameForId(deviceOptions, searchParameters.get(PARAMETERS.DEVICE))}
-                      onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
-                      onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
-                      options={deviceOptions}
-                      transparent
-                      short />
-                </InputGroup>
-              </Row>
+
+          </MenuSection>
+
+          <MenuSection>
+
+            <Row>
+              <InputGroup>
+                <span>Department (optional)</span>
+                <StyledSearchableSelect
+                    value={getDisplayNameForId(agencyOptions, searchParameters.get(PARAMETERS.DEPARTMENT))}
+                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value })}
+                    onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value: '' })}
+                    options={agencyOptions}
+                    short />
+              </InputGroup>
             </Row>
-          </Row>
-          <Row marginTop>
-            <InputGroup>
-              <span>
-                *Required fields. Additionally, at least two of license plate, location, or time range must be present to perform a search.
-              </span>
-            </InputGroup>
-          </Row>
-          <Row>
-            <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
-              <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
-              <span>Additional Details</span>
-            </ButtonWrapper>
-            { isExpanded ? null : this.renderSearchButton() }
-          </Row>
+            <Row>
+              <InputGroup>
+                <span>Device (optional)</span>
+                <StyledSearchableSelect
+                    value={getDisplayNameForId(deviceOptions, searchParameters.get(PARAMETERS.DEVICE))}
+                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
+                    onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
+                    options={deviceOptions}
+                    short />
+              </InputGroup>
+            </Row>
+
+            <Row>
+              <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
+                <span>Additional details</span>
+                <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
+              </ButtonWrapper>
+            </Row>
+
+          </MenuSection>
+
           {
             isExpanded ? (
               <>
-                <Row marginTop>
-                  <Row width={15}>
+                <MenuSection>
+
+                  <Row>
                     <InputGroup>
                       <span>Make</span>
                       <StyledSearchableSelect
@@ -601,12 +693,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => this.onMakeChange(value)}
                           onClear={() => this.onMakeChange('')}
                           options={this.getAsMap(MAKES)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Model</span>
                       <StyledSearchableSelect
@@ -615,12 +707,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' })}
                           options={this.getAsMap(MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)] || [])}
                           disabled={!MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)]}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Color</span>
                       <StyledSearchableSelect
@@ -628,12 +720,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value })}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value: '' })}
                           options={this.getAsMap(COLORS)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Accessories</span>
                       <StyledSearchableSelect
@@ -644,12 +736,12 @@ class SearchParameters extends React.Component<Props, State> {
                           }}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: '' })}
                           options={this.getAsMap(ACCESSORIES)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Style</span>
                       <StyledSearchableSelect
@@ -657,12 +749,12 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value })}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value: '' })}
                           options={this.getAsMap(STYLES)}
-                          transparent
                           openAbove
                           short />
                     </InputGroup>
                   </Row>
-                  <Row width={15}>
+
+                  <Row>
                     <InputGroup>
                       <span>Label</span>
                       <StyledSearchableSelect
@@ -672,18 +764,18 @@ class SearchParameters extends React.Component<Props, State> {
                           options={this.getAsMap(LABELS)}
                           selectOnly
                           openAbove
-                          transparent
                           short />
                     </InputGroup>
                   </Row>
-                </Row>
-                <Row marginTop>
-                  <Row width={10} />
-                  {this.renderSearchButton()}
-                </Row>
+                </MenuSection>
+
+
               </>
             ) : null
           }
+
+          {this.renderSearchButton()}
+
         </InnerWrapper>
       </SearchParameterWrapper>
     );
@@ -707,9 +799,13 @@ class SearchParameters extends React.Component<Props, State> {
 
   renderSearchButton = () => {
     const { searchParameters } = this.props;
-    const isReadyToSubmit = getSearchFields(searchParameters).length > 0;
+    const isReadyToSubmit = !getSearchFields(searchParameters).includes(PARAMETERS.NOT_READY);
 
-    return <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>;
+    return (
+      <SearchButtonWrapper>
+        <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
+      </SearchButtonWrapper>
+    );
   }
 
   renderTopNav = () => {
@@ -779,7 +875,7 @@ class SearchParameters extends React.Component<Props, State> {
   render() {
     const { isTopNav } = this.props;
 
-    return isTopNav ? this.renderTopNav() : this.renderFullSearchParameters();
+    return isTopNav ? null : this.renderFullSearchParameters();
   }
 }
 
@@ -807,7 +903,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     geocodedAddresses,
     isLoadingAddresses: params.get(SEARCH_PARAMETERS.IS_LOADING_ADDRESSES),
     noAddressResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_ADDRESSES) && !geocodedAddresses.size,
-    isTopNav: params.get(SEARCH_PARAMETERS.DRAW_MODE) || !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
+    isDrawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
+    isTopNav: !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     agencyOptions: params.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: params.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
 

@@ -17,10 +17,15 @@ import { AuthUtils } from 'lattice-auth';
 import { stripIdField, getFqnObj, getSearchTerm } from '../../utils/DataUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { ID_FIELDS } from '../../utils/constants/DataConstants';
-import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
+import { APP } from '../../utils/constants/StateConstants';
+import { getAppFromState, getEntitySetId, getUserIdFromState } from '../../utils/AppUtils';
 import {
+  DELETE_ENTITY,
+  PARTIAL_REPLACE_ENTITY,
   REPLACE_ENTITY,
   SUBMIT,
+  deleteEntity,
+  partialReplaceEntity,
   replaceEntity,
   submit
 } from './SubmitActionFactory';
@@ -104,49 +109,77 @@ function* replaceEntityWatcher() {
   yield takeEvery(REPLACE_ENTITY, replaceEntityWorker);
 }
 
+function* deleteEntityWorker(action) {
+  try {
+    yield put(deleteEntity.request(action.id));
+    const {
+      entityKeyId,
+      entitySetId,
+      callback
+    } = action.value;
+
+    yield call(DataApi.deleteEntity, entitySetId, entityKeyId, 'Soft');
+
+    yield put(deleteEntity.success(action.id));
+    if (callback) {
+      callback();
+    }
+  }
+  catch (error) {
+    yield put(deleteEntity.failure(action.id, error));
+  }
+  finally {
+    yield put(deleteEntity.finally(action.id));
+  }
+}
+
+function* deleteEntityWatcher() {
+  yield takeEvery(DELETE_ENTITY, deleteEntityWorker);
+}
+
+function* partialReplaceEntityWorker(action) {
+  try {
+    yield put(partialReplaceEntity.request(action.id));
+    const {
+      entityKeyId,
+      entitySetId,
+      values,
+      callback
+    } = action.value;
+
+    const entities = {
+      [entityKeyId]: values
+    };
+
+    yield call(DataApi.updateEntityData, entitySetId, entities, 'PartialReplace');
+
+    yield put(partialReplaceEntity.success(action.id));
+    if (callback) {
+      callback();
+    }
+  }
+  catch (error) {
+    yield put(partialReplaceEntity.failure(action.id, error));
+  }
+  finally {
+    yield put(partialReplaceEntity.finally(action.id));
+  }
+}
+
+function* partialReplaceEntityWatcher() {
+  yield takeEvery(PARTIAL_REPLACE_ENTITY, partialReplaceEntityWorker);
+}
+
 const getEntityIdObject = (entitySetId, idOrIndex, isId) => ({
   entitySetId,
   idOrIndex,
   isId
 });
 
-function* getOrCreateUserId() {
-  try {
-    const userInfo = AuthUtils.getUserInfo();
-    const userId = userInfo.id;
-
-    const app = yield select(getAppFromState);
-    const userEntitySetId = getEntitySetId(app, APP_TYPES.USERS);
-
-    const personIdPropertyTypeId = yield call(
-      EntityDataModelApi.getPropertyTypeId,
-      getFqnObj(PROPERTY_TYPES.PERSON_ID)
-    );
-
-    const userSearchResults = yield call(SearchApi.searchEntitySetData, userEntitySetId, {
-      searchTerm: getSearchTerm(personIdPropertyTypeId, userId),
-      start: 0,
-      maxHits: 1
-    });
-
-    /* If the user entity already exists, return its id from the search result */
-    if (userSearchResults.hits.length) {
-      return userSearchResults.hits[0][OPENLATTICE_ID_FQN][0];
-    }
-
-    /* Otherwise, create a new entity and return its id */
-    const idList = yield call(DataApi.createOrMergeEntityData, userEntitySetId, [
-      { [personIdPropertyTypeId]: [userId] }
-    ]);
-    return idList[0];
-
-  }
-  catch (error) {
-    console.error('Unable to get or create user id');
-    console.error(error);
-    return undefined;
-  }
-}
+const getAuth0Id = () => {
+  const { id } = AuthUtils.getUserInfo();
+  return id;
+};
 
 function* submitWorkerNew(action) {
   const {
@@ -162,8 +195,9 @@ function* submitWorkerNew(action) {
     const app = yield select(getAppFromState);
 
     if (includeUserId) {
-      const userId = yield call(getOrCreateUserId);
+      const userId = getUserIdFromState(app);
       values[ID_FIELDS.USER_ID] = userId;
+      values[ID_FIELDS.USER_AUTH_ID] = getAuth0Id();
     }
 
     const allEntitySetIds = config.entitySets.map(({ name }) => getEntitySetId(app, name));
@@ -297,6 +331,8 @@ function* submitWatcher() {
 }
 
 export {
+  deleteEntityWatcher,
+  partialReplaceEntityWatcher,
   replaceEntityWatcher,
   submitWatcher
 };

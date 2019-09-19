@@ -55,7 +55,7 @@ const getDataAsMap = (entities) => {
 
   fromJS(entities).forEach((entity) => {
     const id = entity.getIn([PROPERTY_TYPES.ID, 0]);
-    map = map.set(formatNameIdForDisplay(entity), id);
+    map = map.set(id, formatNameIdForDisplay(entity));
   });
 
   return map;

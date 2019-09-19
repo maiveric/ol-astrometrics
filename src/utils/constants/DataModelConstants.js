@@ -10,8 +10,9 @@ export const APP_TYPES = {
   RECORDED_BY: 'app.recordedby',
   CARS: 'app.vehicle',
   USERS: 'app.staff',
-  ALERTS: 'app.searchalert',
   REGISTERED_FOR: 'app.registeredfor',
+  REPORTS: 'app.report',
+  SAVED_MAPS: 'app.savedmaps',
   SEARCHES: 'app.searchalert',
   SEARCHED_BY: 'app.searchedby'
 };
@@ -40,11 +41,13 @@ export const PROPERTY_TYPES = {
 
   // agency
   NAME: 'ol.name',
+  TYPE: 'ol.type',
   ID: 'ol.id',
   AGENCY_NAME: 'publicsafety.agencyname',
   CAMERA_ID: 'ol.resourceid',
   HIT_TYPE: 'ol.description',
   DESCRIPTION: 'ol.description',
+  TEXT: 'ol.text',
 
   TIMESTAMP: 'ol.datelogged',
   CONFIDENCE: 'ol.confidence',
@@ -55,5 +58,9 @@ export const PROPERTY_TYPES = {
   END_DATE_TIME: 'ol.datetimeend',
   SEARCH_REASON: 'ol.searchreason',
   CASE_NUMBER: 'criminaljustice.casenumber',
-  SEARCH_QUERY: 'ol.searchquery'
+  SEARCH_QUERY: 'ol.searchquery',
+
+  // reports
+  REPORT_CREATED_DATE_TIME: 'ol.datetimeadministered',
+  REPORT_CREATOR_ID: 'general.id'
 };

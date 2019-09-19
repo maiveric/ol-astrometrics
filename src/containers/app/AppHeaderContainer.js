@@ -15,28 +15,29 @@ import { withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import AppNavigationContainer from './AppNavigationContainer';
-import OpenLatticeLogo from '../../assets/images/logo_v2.png';
+import AstrometricsIcon from '../../components/icons/AstrometricsIcon';
+import UsernameAndIcon from '../../components/icons/UsernameAndIcon';
 import * as Routes from '../../core/router/Routes';
 import { STATE, APP } from '../../utils/constants/StateConstants';
-import {
-  APP_CONTAINER_MAX_WIDTH,
-  APP_CONTAINER_WIDTH,
-  APP_CONTENT_PADDING,
-} from '../../core/style/Sizes';
+import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
 import { switchOrganization } from './AppActions';
 import { orgSelectStyles } from '../../core/style/OrgSelectStyles';
 
 const { logout } = AuthActions;
-const { NEUTRALS } = Colors;
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
-const APP_HEADER_BORDER :string = '#e6e6eb';
+const APP_HEADER_BORDER :string = '#36353B';
 
 const AppHeaderOuterWrapper = styled.header`
   border-bottom: 1px solid ${APP_HEADER_BORDER};
   display: flex;
   flex: 0 0 auto;
   justify-content: center;
+  background-color: #121117;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 10;
 `;
 
 const AppHeaderInnerWrapper = styled.div`
@@ -44,16 +45,8 @@ const AppHeaderInnerWrapper = styled.div`
   display: flex;
   flex: 1 0 auto;
   justify-content: space-between;
-  max-width: ${APP_CONTAINER_MAX_WIDTH}px;
   min-width: ${APP_CONTAINER_WIDTH}px;
-  padding: 0 ${APP_CONTENT_PADDING}px;
-`;
-
-const DisplayName = styled.span`
-  margin-right: 10px;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 12px;
-  color: #2e2e34;
+  padding: 0 24px;
 `;
 
 const LeftSideContentWrapper = styled.div`
@@ -87,60 +80,55 @@ const LogoTitleWrapperLink = styled(Link)`
   }
 `;
 
-const AppLogoIcon = styled.img.attrs({
-  alt: 'OpenLattice Logo Icon',
-  src: OpenLatticeLogo,
-})`
-  height: 26px;
-`;
-
 const AppTitle = styled.h1`
-  color: ${NEUTRALS[0]};
+  color: #ffffff;
   font-size: 14px;
   font-weight: 600;
-  line-height: normal;
-  margin: 0 0 0 10px;
+  line-height: 17px;
+  margin: 0 0 0 23px;
 `;
 
 const LogoutButton = styled(Button)`
   font-size: 12px;
   line-height: 16px;
   margin-left: 30px;
-  padding: 6px 29px;
-`;
-
-const SupportLink = styled.a.attrs({
-  href: 'https://support.openlattice.com/servicedesk/customer/portal/1/user/login?destination=portal%2F1'
-})`
-  text-decoration: none;
-  border: none;
+  padding: 7px 29px;
+  background: #36353B;
   border-radius: 3px;
-  background-color: #f0f0f7;
-  color: #8e929b;
-  font-family: 'Open Sans', sans-serif;
-  padding: 12px 35px;
+  font-weight: 500;
   font-size: 12px;
-  line-height: 16px;
-  margin-left: 30px;
-  padding: 6px 29px;
+  line-height: 150%;
+  border: none;
 
-  &:hover:enabled {
-    background-color: #dcdce7;
-    cursor: pointer;
+  text-align: center;
+
+  color: #FFFFFF;
+
+  &:hover {
+    background: #4F4E54;
   }
 
   &:active {
-    background-color: #b6bbc7;
-    color: #ffffff;
+    background: #4F4E54;
   }
+`;
 
-  &:focus {
-    outline: none;
-  }
+const SupportLink = styled.a.attrs(_ => ({
+  href: 'https://support.openlattice.com/servicedesk/customer/portal/1/user/login?destination=portal%2F1'
+}))`
+  text-decoration: none;
+  border: none;
+  border-radius: 3px;
+  color: #ffffff;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 150%;
+  margin-left: 30px;
+`;
 
-  &:disabled {
-    color: #b6bbc7;
-  }
+const OrgSelect = styled.div`
+  margin-right: 24px;
 `;
 
 type Props = {
@@ -181,27 +169,31 @@ class AppHeaderContainer extends Component<Props> {
     );
   }
 
-  renderLeftSideContent = () => (
-    <LeftSideContentWrapper>
-      <LogoTitleWrapperLink to={Routes.ROOT}>
-        <AppLogoIcon />
-        <AppTitle>
-          Astrometrics
-        </AppTitle>
-      </LogoTitleWrapperLink>
-      <AppNavigationContainer />
-    </LeftSideContentWrapper>
-  )
+  renderLeftSideContent = () => {
+    const { isAdmin } = this.props;
+
+    return (
+      <LeftSideContentWrapper>
+        <LogoTitleWrapperLink to={Routes.ROOT}>
+          <AstrometricsIcon />
+          <AppTitle>
+            Astrometrics
+          </AppTitle>
+        </LogoTitleWrapperLink>
+        <AppNavigationContainer isAdmin={isAdmin} />
+      </LeftSideContentWrapper>
+    );
+  }
 
   renderRightSideContent = () => {
 
     const { actions } = this.props;
     return (
       <RightSideContentWrapper>
-        <DisplayName>{this.getDisplayName()}</DisplayName>
-        <div>{ this.renderOrgSelector() }</div>
+        <OrgSelect>{ this.renderOrgSelector() }</OrgSelect>
+        <UsernameAndIcon username={this.getDisplayName()} />
         <SupportLink>
-          Contact Support
+          Support
         </SupportLink>
         <LogoutButton onClick={actions.logout}>
           Log Out
@@ -237,6 +229,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     organizations,
     selectedOrg: app.get(APP.SELECTED_ORG_ID, ''),
     loading: app.get(APP.LOADING, false),
+    isAdmin: app.get(APP.IS_ADMIN, false),
     isLoadingApp: state.getIn(['app', 'isLoadingApp'], false),
   };
 }

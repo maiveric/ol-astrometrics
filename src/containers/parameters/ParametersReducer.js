@@ -56,7 +56,8 @@ const {
   COLOR,
   ACCESSORIES,
   STYLE,
-  LABEL
+  LABEL,
+  NOT_READY
 } = PARAMETERS;
 
 const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
@@ -66,7 +67,7 @@ const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
   [ADDRESS]: '',
   [LATITUDE]: '',
   [LONGITUDE]: '',
-  [RADIUS]: '',
+  [RADIUS]: 10,
   [SEARCH_ZONES]: [],
   [START]: moment().subtract(1, 'year').toISOString(true),
   [END]: moment().toISOString(true),
@@ -159,9 +160,7 @@ export function getSearchFields(search :Map<*, *>) {
   const searchFields = [];
 
   // Case number and search reason are required fields
-  if (!search.get(CASE_NUMBER, '').length || !search.get(REASON, '').length) {
-    return [];
-  }
+  const areRequiredCriteriaUnmet = !search.get(CASE_NUMBER, '').length || !search.get(REASON, '').length;
 
   // At least 2 fields of license plate / geo search / time range must be present
   let numRequiredFields = 0;
@@ -182,13 +181,14 @@ export function getSearchFields(search :Map<*, *>) {
     searchFields.push(SEARCH_TYPES.GEO_ZONES);
     numRequiredFields += 1;
   }
+
   else if (isNum(search.get(LATITUDE)) && isNum(search.get(LONGITUDE)) && isNum(search.get(RADIUS))) {
     searchFields.push(SEARCH_TYPES.GEO_RADIUS);
     numRequiredFields += 1;
   }
 
-  if (numRequiredFields < 2) {
-    return [];
+  if (areRequiredCriteriaUnmet || numRequiredFields < 2) {
+    searchFields.push(NOT_READY);
   }
 
 

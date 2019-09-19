@@ -1,18 +1,20 @@
 import React from 'react';
 import styled from 'styled-components';
-import DrawControl from 'react-mapbox-gl-draw';
 import reactMapboxGl, {
   Feature,
   GeoJSONLayer,
   Layer,
+  Marker
 } from 'react-mapbox-gl';
 import { List, Map, Set } from 'immutable';
 
+import DrawComponent from '../../containers/map/DrawComponent';
 import mapMarker from '../../assets/images/map-marker.png';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
-import { DRAW_INSTRUCTIONS, HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
+import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
-import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
+import { SEARCH_ZONE_COLORS, SEARCH_DOT_COLOR } from '../../utils/constants/Colors';
+import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
@@ -25,6 +27,14 @@ const COORDS = {
 
 const DEFAULT_COORDS = COORDS.BAY_AREA;
 
+const LAYERS = {
+  ALL_SOURCE_FEATURES: 'allsourcefeatures',
+  SELECTED_SOURCE_FEATURES: 'selectedsourcefeatures',
+  SELECTED_READ: 'selectedread',
+  SEARCH_RADIUS: 'searchradius',
+  DATA_POINTS: 'datapoints'
+};
+
 type Props = {
   drawMode :boolean,
   entities :List<Map<*, *>>,
@@ -32,7 +42,6 @@ type Props = {
   searchParameters :Map<*, *>,
   selectedEntityKeyIds :Set<*>,
   selectedReadId :string,
-  setDrawMode :(drawMode :boolean) => void,
   setSearchZones :(searchZones :number[][]) => void,
   selectEntity :(entityKeyId :string) => void
 };
@@ -42,88 +51,38 @@ type State = {
 };
 
 const Wrapper = styled.div`
+  position: absolute;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
+  width: calc(100% - ${SIDEBAR_WIDTH}px);
+  height: calc(100% - ${INNER_NAV_BAR_HEIGHT - 1}px);
+  bottom: 0;
+  right: 0;
 `;
 
-const DrawModeInstructionBox = styled.div`
-  position: absolute;
-  z-index: 1;
-  top: 150px;
-  right: 50px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 3px;
-  padding: 20px;
+const Pin = styled.div`
   display: flex;
-  flex-direction: row;
-  width: 650px;
+  flex-direction: column;
+  align-items: center;
 
-  section {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: space-between;
+  div:first-child {
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background-color: white;
+    margin-bottom: -5px;
+  }
 
-    &:first-child {
-      width: 100%;
-      font-size: 15px;
-
-      span {
-        font-style: italic;
-        font-weight: 600;
-        margin-bottom: 15px;
-      }
-    }
-
-    &:last-child {
-      width: 220px;
-      margin-left: 20px;
-
-      button {
-        height: 48%;
-        width: 100%;
-        border: none;
-        border-radius: 3px;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 15px;
-
-        &:first-child {
-          background-color: #6124e2;
-
-          &:hover {
-            background-color: #8045ff;
-          }
-
-          &:active {
-            background-color: #361876;
-          }
-        }
-
-        &:last-child {
-          background-color: transparent;
-
-          &:hover {
-            color: #dcdce7;
-          }
-        }
-
-        &:hover {
-          cursor: pointer;
-        }
-
-        &:focus {
-          outline: none;
-        }
-      }
-    }
+  div:last-child {
+    width: 2px;
+    background-color: white;
+    height: 16px;
   }
 `;
 
 const MapComponent = reactMapboxGl({
-  accessToken: __MAPBOX_TOKEN__
+  accessToken: __MAPBOX_TOKEN__,
+  logoPosition: 'top-right'
 });
 
 class SimpleMap extends React.Component<Props, State> {
@@ -192,36 +151,32 @@ class SimpleMap extends React.Component<Props, State> {
     )).toArray();
   }
 
-  renderDefaultLayer = () => {
-    const image = new Image(20, 30);
-    image.src = mapMarker;
-    const images = ['mapMarker', image];
-    return (
-      <Layer
-          type="symbol"
-          id="symbol"
-          images={images}
-          layout={{ 'icon-image': 'mapMarker' }}>
-        {this.getFeatures()}
-      </Layer>
-    );
-  }
-
-  renderHeatmapLayer = () => (
-    <Layer
-        type="heatmap"
-        id="heatmap"
-        paint={HEATMAP_PAINT}>
-      {this.getFeatures()}
-    </Layer>
-  )
-
   metersToPixelsAtMaxZoom = (meters, latitude) => meters / 0.075 / Math.cos(latitude * Math.PI / 180);
 
   milesToPixelsAtMaxZoom = (miles, latitude) => this.metersToPixelsAtMaxZoom(miles * 1609.34, latitude);
 
-  renderSearchAreaLayer = () => {
+  renderLatLong = () => {
     const { searchParameters } = this.props;
+
+    const latitude = searchParameters.get(PARAMETERS.LATITUDE);
+    const longitude = searchParameters.get(PARAMETERS.LONGITUDE);
+
+    if (!latitude || !longitude) {
+      return null;
+    }
+
+    return (
+      <Marker coordinates={[longitude, latitude]} anchor="bottom">
+        <Pin>
+          <div />
+          <div />
+        </Pin>
+      </Marker>
+    );
+  }
+
+  renderSearchAreaLayer = () => {
+    const { entities, searchParameters } = this.props;
     const radius = searchParameters.get(PARAMETERS.RADIUS);
     const latitude = searchParameters.get(PARAMETERS.LATITUDE);
     const longitude = searchParameters.get(PARAMETERS.LONGITUDE);
@@ -230,10 +185,12 @@ class SimpleMap extends React.Component<Props, State> {
       return (
         <Layer
             type="circle"
-            id="search-radius"
+            id={LAYERS.SEARCH_RADIUS}
             paint={{
-              'circle-opacity': 0.3,
+              'circle-opacity': entities.size ? 0.1 : 0.3,
               'circle-color': SEARCH_ZONE_COLORS[0],
+              'circle-stroke-color': SEARCH_ZONE_COLORS[0],
+              'circle-stroke-width': 1,
               'circle-radius': {
                 stops: [
                   [0, 0],
@@ -250,25 +207,18 @@ class SimpleMap extends React.Component<Props, State> {
     return null;
   }
 
-  saveSearchZones = () => {
-    const { setSearchZones } = this.props;
-    const searchZones = this.drawControl.draw.getAll();
-    if (searchZones && searchZones.features && searchZones.features.length) {
-      const coordinateSets = searchZones.features.map(feature => feature.geometry.coordinates[0]);
-      setSearchZones(coordinateSets);
-    }
-  }
-
   renderSearchZones = () => {
-    const { searchParameters } = this.props;
+    const { entities, searchParameters } = this.props;
 
     return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
+      const color = SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length];
+
       return (
         <GeoJSONLayer
             key={`polygon-${index}`}
             fillPaint={{
-              'fill-opacity': 0.3,
-              'fill-color': SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length]
+              'fill-opacity': entities.size ? 0.1 : 0.3,
+              'fill-color': color
             }}
             data={{
               type: 'Feature',
@@ -279,38 +229,6 @@ class SimpleMap extends React.Component<Props, State> {
             }} />
       );
     });
-  }
-
-  renderDrawModeInstructions = () => {
-    const { setDrawMode } = this.props;
-
-    return (
-      <DrawModeInstructionBox>
-        <section>
-          <span>Drawing mode</span>
-          <div>{DRAW_INSTRUCTIONS}</div>
-        </section>
-        <section>
-          <button onClick={this.saveSearchZones}>Save search zones</button>
-          <button onClick={() => setDrawMode(false)}>Cancel</button>
-        </section>
-      </DrawModeInstructionBox>
-    );
-  }
-
-  renderDrawControl = () => {
-    return (
-      <DrawControl
-          ref={(drawControl) => {
-            this.drawControl = drawControl;
-          }}
-          position="bottom-left"
-          displayControlsDefault={false}
-          controls={{
-            polygon: true,
-            trash: true
-          }} />
-    );
   }
 
   mapEntityToFeature = (entity) => {
@@ -325,7 +243,7 @@ class SimpleMap extends React.Component<Props, State> {
     };
   }
 
-  getSourceLayer = (id, entityFilter, shouldCluster) => {
+  getSourceLayer = (id, entityFilter) => {
     const { entities } = this.props;
 
     return (
@@ -336,24 +254,18 @@ class SimpleMap extends React.Component<Props, State> {
             features: entities.filter(entityFilter).map(this.mapEntityToFeature).toArray()
           }}
           fillOnClick={console.log}
-          circleOnClick={console.log}
-          sourceOptions={{
-            cluster: shouldCluster,
-            clusterMaxZoom: 14,
-            clusterRadius: 50
-          }} />
+          circleOnClick={console.log} />
     );
   }
 
-  addSource = () => this.getSourceLayer('sourcefeatures', entity => getCoordinates(entity), true)
+  addSource = () => this.getSourceLayer(LAYERS.ALL_SOURCE_FEATURES, entity => getCoordinates(entity))
 
   addSelectedSource = () => {
     const { selectedEntityKeyIds } = this.props;
 
     return this.getSourceLayer(
-      'selectedsourcefeatures',
-      entity => selectedEntityKeyIds.has(getEntityKeyId(entity)) && getCoordinates(entity),
-      false
+      LAYERS.SELECTED_SOURCE_FEATURES,
+      entity => selectedEntityKeyIds.has(getEntityKeyId(entity)) && getCoordinates(entity)
     );
   }
 
@@ -361,52 +273,21 @@ class SimpleMap extends React.Component<Props, State> {
     const { selectedReadId } = this.props;
 
     return this.getSourceLayer(
-      'selectedread',
-      entity => getEntityKeyId(entity) === selectedReadId && getCoordinates(entity),
-      false
-    );
-  }
-
-  renderClusters = () => {
-    const { selectedEntityKeyIds } = this.props;
-    return (
-      <Layer
-          type="circle"
-          sourceId="sourcefeatures"
-          filter={['has', 'point_count']}
-          paint={{
-            'circle-opacity': selectedEntityKeyIds.size ? 0.4 : 1,
-            'circle-color': SEARCH_ZONE_COLORS[0],
-            'circle-radius': [
-              'step',
-              ['get', 'point_count'],
-              10,
-              20,
-              20,
-              100,
-              30,
-              300,
-              40,
-              500,
-              50
-            ],
-            'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': 2,
-            'circle-stroke-opacity': selectedEntityKeyIds.size ? 0.4 : 1
-          }} />
+      LAYERS.SELECTED_READ,
+      entity => getEntityKeyId(entity) === selectedReadId && getCoordinates(entity)
     );
   }
 
   renderSelectedFeatures = () => (
     <Layer
         type="circle"
-        sourceId="selectedsourcefeatures"
+        sourceId={LAYERS.SELECTED_SOURCE_FEATURES}
         paint={{
           'circle-opacity': 1,
-          'circle-color': SEARCH_ZONE_COLORS[0],
-          'circle-radius': 8,
+          'circle-color': SEARCH_DOT_COLOR.UNSELECTED,
+          'circle-radius': 5,
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 4,
+          'circle-stroke-width': 2,
           'circle-stroke-opacity': 1
         }} />
   )
@@ -414,13 +295,13 @@ class SimpleMap extends React.Component<Props, State> {
   renderSelectedReadFeature = () => (
     <Layer
         type="circle"
-        sourceId="selectedread"
+        sourceId={LAYERS.SELECTED_READ}
         paint={{
           'circle-opacity': 1,
-          'circle-color': '#ff3c5d',
-          'circle-radius': 8,
+          'circle-color': SEARCH_DOT_COLOR.SELECTED,
+          'circle-radius': 5,
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 4,
+          'circle-stroke-width': 2,
           'circle-stroke-opacity': 1
         }} />
   )
@@ -428,7 +309,7 @@ class SimpleMap extends React.Component<Props, State> {
   renderSelectedFeaturesInnerCircles = () => (
     <Layer
         type="circle"
-        sourceId="selectedsourcefeatures"
+        sourceId={LAYERS.SELECTED_SOURCE_FEATURES}
         paint={{
           'circle-opacity': 1,
           'circle-color': '#ffffff',
@@ -436,35 +317,20 @@ class SimpleMap extends React.Component<Props, State> {
         }} />
   )
 
-  renderClusteredCounts = () => {
-    return (
-      <Layer
-          type="symbol"
-          sourceId="sourcefeatures"
-          filter={['has', 'point_count']}
-          layout={{
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 12
-          }} />
-    );
-  }
-
   renderUnclusteredPoints = () => {
     const { selectedEntityKeyIds } = this.props;
 
     return (
       <Layer
-          id="data-points"
+          id={LAYERS.DATA_POINTS}
           type="circle"
-          sourceId="sourcefeatures"
-          filter={['!', ['has', 'point_count']]}
+          sourceId={LAYERS.ALL_SOURCE_FEATURES}
           paint={{
-            'circle-opacity': selectedEntityKeyIds.size ? 0.4 : 1,
-            'circle-color': SEARCH_ZONE_COLORS[0],
-            'circle-radius': 6,
+            'circle-opacity': 1,
+            'circle-color': selectedEntityKeyIds.size ? SEARCH_DOT_COLOR.UNSELECTED : SEARCH_DOT_COLOR.SELECTED,
+            'circle-radius': selectedEntityKeyIds.size ? 3 : 5,
             'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': 2,
+            'circle-stroke-width': selectedEntityKeyIds.size ? 0 : 2,
             'circle-stroke-opacity': selectedEntityKeyIds.size ? 0.4 : 1
           }} />
     );
@@ -492,8 +358,46 @@ class SimpleMap extends React.Component<Props, State> {
     }
   }
 
+  renderAddressAndRadiusSearchParams = (searchFields) => {
+    const { drawMode } = this.props;
+
+    const shouldRender = searchFields.includes(SEARCH_TYPES.GEO_RADIUS) && !drawMode;
+
+    const radiusArea = this.renderSearchAreaLayer();
+    const addressPin = this.renderLatLong();
+
+    return shouldRender ? (
+      <>
+        {radiusArea}
+        {addressPin}
+      </>
+    ) : null;
+  }
+
+  renderReads = () => {
+
+    return (
+      <>
+        {this.addSource()}
+        {this.renderUnclusteredPoints()}
+      </>
+    );
+  }
+
+  renderSelectedReads = () => {
+
+    return (
+      <>
+        {this.addSelectedSource()}
+        {this.addSelectedReadSource()}
+        {this.renderSelectedFeatures()}
+        {this.renderSelectedReadFeature()}
+      </>
+    )
+  }
+
   render() {
-    const { drawMode, searchParameters } = this.props;
+    const { searchParameters } = this.props;
     const { fitToBounds } = this.state;
 
     const searchFields = getSearchFields(searchParameters);
@@ -515,7 +419,7 @@ class SimpleMap extends React.Component<Props, State> {
         <MapComponent
             style={MAP_STYLE.DARK}
             onStyleLoad={(map) => {
-              map.on('click', 'data-points', this.onPointClick);
+              map.on('click', LAYERS.DATA_POINTS, this.onPointClick);
             }}
             onClick={this.onMapClick}
             containerStyle={{
@@ -524,22 +428,14 @@ class SimpleMap extends React.Component<Props, State> {
             }}
             {...optionalProps}>
 
-          {this.addSource()}
-          {drawMode ? this.renderDrawModeInstructions() : null}
-          {drawMode ? this.renderDrawControl() : null}
-          {this.renderClusters()}
-          {this.renderClusteredCounts()}
-          {this.renderUnclusteredPoints()}
-          {/* {heatmap ? this.renderHeatmapLayer() : this.renderDefaultLayer()} */}
+          <DrawComponent />
 
-          {this.addSelectedSource()}
-          {this.addSelectedReadSource()}
-          {this.renderSelectedFeatures()}
-          {this.renderSelectedReadFeature()}
-          {this.renderSelectedFeaturesInnerCircles()}
+          {this.renderReads()}
+
+          {this.renderSelectedReads()}
 
           {this.renderSearchZones()}
-          {searchFields.includes(SEARCH_TYPES.GEO_RADIUS) && !drawMode ? this.renderSearchAreaLayer() : null}
+          {this.renderAddressAndRadiusSearchParams(searchFields)}
         </MapComponent>
       </Wrapper>
     );

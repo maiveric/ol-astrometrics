@@ -9,7 +9,9 @@ type Props = {
   title :string,
   options :{ label :string, onClick :() => void }[],
   openAbove? :boolean,
-  invisible? :boolean
+  invisible? :boolean,
+  subtle? :boolean,
+  Icon? :Object
 }
 
 type State = {
@@ -27,7 +29,6 @@ const DropdownButtonWrapper = styled.div`
     return '';
   }}
   display: flex;
-  flex: 1 0 auto;
   flex-direction: column;
   margin: 0;
   padding: 0;
@@ -46,6 +47,7 @@ const BaseButton = styled(BasicButton)`
   }
 
   span {
+    color ${props => (props.subtle ? '#807F85' : '#ffffff')};
     font-weight: 600 !important;
     width: fit-content !important;
     max-width: 100%;
@@ -76,15 +78,14 @@ const BaseButton = styled(BasicButton)`
 `;
 
 const MenuContainer = styled.div`
-  background-color: #fefefe;
-  border-radius: 5px;
-  border: 1px solid #e1e1eb;
+  background-color: #36353B;
+  border-radius: 3px;
   position: absolute;
   z-index: 1;
   min-width: max-content;
   max-width: 400px;
   visibility: ${props => (props.open ? 'visible' : 'hidden')}};
-  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.25);
   bottom: ${(props) => {
     if (props.invisible) {
       return props.openAbove ? '30px' : 'auto';
@@ -109,25 +110,30 @@ const MenuContainer = styled.div`
     text-transform: none;
     font-family: 'Open Sans', sans-serif;
     font-size: 14px;
-    color: #555e6f;
+    color: #CAC9CE;
+    background-color: #36353B;
     border: none;
     min-width: fit-content !important;
 
     &:hover {
-      background-color: #e6e6f7;
+      color: #ffffff;
+      background-color: #4F4E54;
+      cursor: pointer;
     }
   }
 `;
 
 const StyledIcon = styled(FontAwesomeIcon)`
   margin-left: 10px;
+  color: #CAC9CE;
 `;
 
 export default class DropdownButton extends React.Component<Props, State> {
 
   static defaultProps = {
     openAbove: false,
-    invisible: false
+    invisible: false,
+    subtle: false
   };
 
   constructor(props :Props) {
@@ -156,18 +162,26 @@ export default class DropdownButton extends React.Component<Props, State> {
   render() {
     const {
       invisible,
+      subtle,
       openAbove,
       options,
-      title
+      title,
+      Icon
     } = this.props;
     const { open } = this.state;
 
     const icon = open ? faChevronUp : faChevronDown;
+
     return (
       <DropdownButtonWrapper open={open}>
-        <BaseButton open={open} invisible={invisible} onClick={this.toggleDropdown} onBlur={this.toggleDropdown}>
+        <BaseButton
+            open={open}
+            invisible={invisible}
+            subtle={subtle}
+            onClick={this.toggleDropdown}
+            onBlur={this.toggleDropdown}>
           <span>{title}</span>
-          <StyledIcon icon={icon} />
+          {Icon ? <Icon /> : <StyledIcon icon={icon} />}
         </BaseButton>
         <MenuContainer open={open} openAbove={openAbove} invisible={invisible}>
           {options.map(option => (

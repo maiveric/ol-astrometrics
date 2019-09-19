@@ -11,7 +11,9 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import type { RequestSequence } from 'redux-reqseq';
 
+import { ScrollableSidebar, SidebarHeader, PaddedSection } from '../../components/body/Sidebar';
 import DropdownButton from '../../components/buttons/DropdownButton';
+import FilterIcon from '../../components/icons/FilterIcon';
 import Spinner from '../../components/spinner/Spinner';
 import Pagination from '../../components/pagination/Pagination';
 import VehicleCard from '../../components/vehicles/VehicleCard';
@@ -22,11 +24,12 @@ import {
   SEARCH_PARAMETERS
 } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId } from '../../utils/DataUtils';
+import { getEntityKeyId, countWithLabel } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
@@ -56,63 +59,49 @@ type Props = {
 };
 
 type State = {
-  sort :string
+  sort :string,
+  page :number
 };
 
-const SidebarWrapper = styled.div`
-  position: absolute;
-  z-index: 1;
-  right: 0;
-  width: 500px;
-  padding: 100px 30px 30px 30px;
-  background-color: rgba(26, 16, 59, 0.9);
+const VehicleReadCount = styled.div`
+  padding-top: 4px;
   display: flex;
-  flex-direction: column;
-  height: 100%;
-  color: #ffffff;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 150%;
 
-  h1 {
-    font-size: 20px;
-    font-weight: 400;
+  div:last-child {
+    padding-left: 10px;
+    color: #807F85;
   }
 `;
 
 const FilterBar = styled.div`
-  margin: 10px 0 20px 0;
+  padding-bottom: 24px;
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
 `;
 
 const FilterGroup = styled.div`
-  width: 50%;
+  width: fit-content;
   display: flex;
   flex-direction: row;
   align-items: center;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-
-  span {
-    font-weight: 300;
-    padding-right: 10px;
-    width: 30%;
-  }
-
-  article {
-    width: 70%;
-  }
 `;
 
-const VehicleListWrapper = styled.div`
-  height: 100%;
-  overflow-y: scroll;
-  -ms-overflow-style: none;
-  overflow: -moz-scrollbars-none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+const FilterLabel = styled.span`
+  font-weight: normal;
+  padding-right: 10px;
+  color: #807F85;
 `;
 
 const SORT_TYPE = {
@@ -176,13 +165,12 @@ class Sidebar extends React.Component<Props, State> {
     return (
       <FilterBar>
         <FilterGroup>
-          <span>Sort by: </span>
+          <FilterLabel>Sort by </FilterLabel>
           <DropdownButton title={sort} options={sortOptions} invisible />
         </FilterGroup>
         <FilterGroup>
-          <span>Filter: </span>
           <article>
-            <DropdownButton title={filterTitle} options={this.getFilterOptions(records)} invisible />
+            <DropdownButton title="" options={this.getFilterOptions(records)} Icon={FilterIcon} invisible />
           </article>
         </FilterGroup>
       </FilterBar>
@@ -205,9 +193,9 @@ class Sidebar extends React.Component<Props, State> {
   }
 
   onVehicleClick = (entityKeyId) => {
-    const { actions, selectedEntityKeyIds } = this.props;
-    const value = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
-    actions.selectEntity(value);
+    const { actions, selectedEntityKeyIds, vehiclesEntitySetId } = this.props;
+    const data = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
+    actions.selectEntity({ data, vehiclesEntitySetId });
   }
 
   sortVehicles = (vehicles, recordsByVehicleId) => {
@@ -274,19 +262,62 @@ class Sidebar extends React.Component<Props, State> {
     return false;
   }
 
-  render() {
+  renderHeader = (numVehicles) => {
+    const { actions, results } = this.props;
+
+    const numReads = results.size;
+
+    return (
+      <SidebarHeader
+          backButtonText="Update search"
+          backButtonOnClick={() => actions.editSearchParameters(true)}
+          mainContent={(
+            <VehicleReadCount>
+              <div>{countWithLabel(numVehicles, 'vehicle')}</div>
+              <div>{countWithLabel(numReads, 'read')}</div>
+            </VehicleReadCount>
+          )} />
+    );
+  }
+
+  renderVehicles = (vehiclePage, recordsByVehicleId) => {
     const {
       actions,
       departmentOptions,
       deviceOptions,
-      isLoadingResults,
-      isLoadingNeighbors,
       reportVehicles
     } = this.props;
-    const { sort, page } = this.state;
+    const { sort } = this.state;
+
+    return vehiclePage.map((vehicle) => {
+      const entityKeyId = getEntityKeyId(vehicle);
+      const isInReport = reportVehicles.has(entityKeyId);
+      const toggleReport = isInReport
+        ? () => actions.removeVehicleFromReport(entityKeyId)
+        : () => actions.addVehicleToReport(entityKeyId);
+      return (
+        <VehicleCard
+            key={entityKeyId}
+            isUnselected={this.vehicleIsUnselected(recordsByVehicleId.get(entityKeyId, List()))}
+            onClick={() => this.onVehicleClick(entityKeyId)}
+            vehicle={vehicle}
+            departmentOptions={departmentOptions}
+            deviceOptions={deviceOptions}
+            isInReport={isInReport}
+            toggleReport={toggleReport}
+            records={recordsByVehicleId.get(entityKeyId, List())}
+            count={recordsByVehicleId.get(entityKeyId).size}
+            timestampDesc={sort !== SORT_TYPE.OLDEST} />
+      );
+    });
+  }
+
+  render() {
+    const { isLoadingResults, isLoadingNeighbors } = this.props;
+    const { page } = this.state;
 
     if (isLoadingResults || isLoadingNeighbors) {
-      return <SidebarWrapper><Spinner /></SidebarWrapper>;
+      return <ScrollableSidebar><Spinner /></ScrollableSidebar>;
     }
 
     const { vehicles, recordsByVehicleId } = this.getVehicleList();
@@ -299,37 +330,20 @@ class Sidebar extends React.Component<Props, State> {
     const vehiclePage = sortedVehicles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     return (
-      <SidebarWrapper>
-        <h1>{vehicles.size} vehicles found</h1>
-        {this.renderFilters(recordsByVehicleId.valueSeq())}
-        <VehicleListWrapper>
-          {vehiclePage.map((vehicle) => {
-            const entityKeyId = getEntityKeyId(vehicle);
-            const isInReport = reportVehicles.has(entityKeyId);
-            const toggleReport = isInReport
-              ? () => actions.removeVehicleFromReport(entityKeyId)
-              : () => actions.addVehicleToReport(entityKeyId);
-            return (
-              <VehicleCard
-                  key={entityKeyId}
-                  isUnselected={this.vehicleIsUnselected(recordsByVehicleId.get(entityKeyId, List()))}
-                  onClick={() => this.onVehicleClick(entityKeyId)}
-                  vehicle={vehicle}
-                  departmentOptions={departmentOptions}
-                  deviceOptions={deviceOptions}
-                  isInReport={isInReport}
-                  toggleReport={toggleReport}
-                  records={recordsByVehicleId.get(entityKeyId, List())}
-                  count={recordsByVehicleId.get(entityKeyId).size}
-                  timestampDesc={sort === SORT_TYPE.NEWEST} />
-            );
-          })}
-        </VehicleListWrapper>
-        <Pagination
-            numPages={Math.ceil(sortedVehicles.size / PAGE_SIZE)}
-            activePage={page}
-            onChangePage={newPage => this.setState({ page: newPage })} />
-      </SidebarWrapper>
+      <ScrollableSidebar>
+        {this.renderHeader(vehicles.size)}
+        <PaddedSection>
+
+          {this.renderFilters(recordsByVehicleId.valueSeq())}
+
+          {this.renderVehicles(vehiclePage, recordsByVehicleId)}
+
+          <Pagination
+              numPages={Math.ceil(sortedVehicles.size / PAGE_SIZE)}
+              activePage={page}
+              onChangePage={newPage => this.setState({ page: newPage })} />
+        </PaddedSection>
+      </ScrollableSidebar>
     );
   }
 }
@@ -371,6 +385,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ReportActionFactory).forEach((action :string) => {
     actions[action] = ReportActionFactory[action];
+  });
+
+  Object.keys(ParametersActionFactory).forEach((action :string) => {
+    actions[action] = ParametersActionFactory[action];
   });
 
   return {

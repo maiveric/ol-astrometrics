@@ -1,8 +1,17 @@
 import { Map } from 'immutable';
 
-import { STATE, APP } from './constants/StateConstants';
+import {
+  STATE,
+  APP,
+  EDM,
+  SEARCH_PARAMETERS
+} from './constants/StateConstants';
 
 export const getAppFromState = state => state.get(STATE.APP, Map());
+export const getEdmFromState = state => state.get(STATE.EDM, Map());
+export const getAuditFromState = state => state.get(STATE.AUDIT, Map());
+export const getParamsFromState = state => state.getIn([STATE.PARAMETERS, SEARCH_PARAMETERS.SEARCH_PARAMETERS], Map());
+export const getDrawFromState = state => state.get(STATE.DRAW, Map());
 
 export const getSelectedOrganizationId = (app :Map) => app.get(APP.SELECTED_ORG_ID);
 
@@ -11,3 +20,12 @@ export const getEntitySetId = (app :Map, fqn :string) :string => app.getIn([
   getSelectedOrganizationId(app),
   fqn
 ]);
+
+export const getPropertyTypeId = (state :Map, fqn :string) => state.getIn([
+  STATE.EDM,
+  EDM.PROPERTY_TYPES,
+  fqn,
+  'id'
+]);
+
+export const getUserIdFromState = app => app.get(APP.SELF_ENTITY_KEY_ID);

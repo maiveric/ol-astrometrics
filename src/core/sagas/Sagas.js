@@ -7,10 +7,13 @@ import { AuthSagas } from 'lattice-auth';
 
 import * as AlertSagas from '../../containers/alerts/AlertSagas';
 import * as AppSagas from '../../containers/app/AppSagas';
+import * as AuditSagas from '../../containers/audit/AuditSagas';
+import * as DrawSagas from '../../containers/map/DrawSagas';
 import * as EdmSagas from '../../containers/edm/EdmSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
 import * as ParametersSagas from '../../containers/parameters/ParametersSagas';
 import * as ReportSagas from '../../containers/report/ReportSagas';
+import * as RoutingSagas from '../router/RoutingSagas';
 import * as SubmitSagas from '../../containers/submit/SubmitSagas';
 
 export default function* sagas() :Generator<*, *, *> {
@@ -34,6 +37,17 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AppSagas.authExpirationCleanupWatcher),
     fork(AppSagas.authFailureCleanupWatcher),
     fork(AppSagas.logoutCleanupWatcher),
+    fork(AppSagas.getOrCreateUserIdWatcher),
+
+    /* AuditSagas */
+    fork(AuditSagas.loadAuditDataWatcher),
+    fork(AuditSagas.applyFiltersWatcher),
+    fork(AuditSagas.loadAuditDashboardDataWatcher),
+    fork(AuditSagas.setAuditDashboardWindowWatcher),
+
+    /* DrawSagas */
+    fork(DrawSagas.loadSavedMapsWatcher),
+    fork(DrawSagas.saveMapWatcher),
 
     /* EdmSagas */
     fork(EdmSagas.loadDataModelWatcher),
@@ -48,8 +62,15 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* ReportSagas */
     fork(ReportSagas.exportReportWatcher),
+    fork(ReportSagas.loadReportsWatcher),
+
+    /* RoutingSagas */
+    fork(RoutingSagas.goToPathWatcher),
+    fork(RoutingSagas.goToRootWatcher),
 
     /* SubmitSagas */
+    fork(SubmitSagas.deleteEntityWatcher),
+    fork(SubmitSagas.partialReplaceEntityWatcher),
     fork(SubmitSagas.replaceEntityWatcher),
     fork(SubmitSagas.submitWatcher)
   ]);
