@@ -10,7 +10,6 @@ export const APP_TYPES = {
   RECORDED_BY: 'app.recordedby',
   CARS: 'app.vehicle',
   USERS: 'app.staff',
-  ALERTS: 'app.searchalert',
   REGISTERED_FOR: 'app.registeredfor',
   REPORTS: 'app.report',
   SAVED_MAPS: 'app.savedmaps',

@@ -21,6 +21,7 @@ import {
   SearchApi,
   DataApi,
   EntityDataModelApi,
+  AuthorizationApi,
   Constants
 } from 'lattice';
 
@@ -52,9 +53,9 @@ const LOG = new Logger('AppSagas');
 export const getAuth0Id = () => {
   const { id } = AuthUtils.getUserInfo();
   return id;
-}
+};
 
-function* getOrCreateUserIdForEntitySet(userEntitySetId) {
+function* getOrCreateUserIdForEntitySet(userEntitySetId) :Generator<*, *, *> {
   try {
     const userId = getAuth0Id();
 
@@ -85,6 +86,22 @@ function* getOrCreateUserIdForEntitySet(userEntitySetId) {
     console.error('Unable to get or create user id');
     console.error(error);
     return undefined;
+  }
+}
+
+function* checkIfAdmin(searchesEntitySetId) :Generator<*, *, *> {
+  try {
+
+    const [{ permissions }] = yield call(AuthorizationApi.checkAuthorizations, [{
+      aclKey: [searchesEntitySetId],
+      permissions: ['OWNER']
+    }]);
+
+    return permissions.OWNER;
+  }
+  catch (error) {
+    console.error(error);
+    return false;
   }
 }
 
@@ -190,14 +207,17 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
     }
 
     const usersEntitySetId = configByOrgId.getIn([selectedOrg, APP_TYPES.USERS]);
+    const searchesEntitySetId = configByOrgId.getIn([selectedOrg, APP_TYPES.SEARCHES]);
     const entityKeyId = yield call(getOrCreateUserIdForEntitySet, usersEntitySetId);
+    const isAdmin = yield call(checkIfAdmin, searchesEntitySetId);
 
     yield put(loadApp.success(action.id, {
       configByOrgId,
       orgsById,
       selectedOrg,
       entityKeyId,
-      fqnMap
+      fqnMap,
+      isAdmin
     }));
   }
   catch (error) {
@@ -215,9 +235,11 @@ function* switchOrganizationWorker(action :Object) :Generator<*, *, *> {
 
   const app = yield select(getAppFromState);
   const userEntitySetId = app.getIn([APP.CONFIG_BY_ORG_ID, action.value, APP_TYPES.USERS]);
-  const userId = yield call(getOrCreateUserIdForEntitySet, userEntitySetId);
+  const searchesEntitySetId = app.getIn([APP.CONFIG_BY_ORG_ID, action.value, APP_TYPES.SEARCHES]);
+  const entityKeyId = yield call(getOrCreateUserIdForEntitySet, userEntitySetId);
+  const isAdmin = yield call(checkIfAdmin, searchesEntitySetId);
 
-  yield put(switchOrganization.success(action.id, userId));
+  yield put(switchOrganization.success(action.id, { entityKeyId, isAdmin }));
 }
 
 function* switchOrganizationWatcher() :Generator<*, *, *> {

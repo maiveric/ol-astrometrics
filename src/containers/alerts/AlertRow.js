@@ -233,7 +233,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const submit = state.get(STATE.SUBMIT);
 
   return {
-    alertsEntitySetId: getEntitySetId(app, APP_TYPES.ALERTS),
     readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     alerts: alerts.get(ALERTS.ALERT_LIST),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),

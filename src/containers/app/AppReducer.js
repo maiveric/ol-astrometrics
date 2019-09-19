@@ -24,7 +24,8 @@ const INITIAL_STATE :Map<*, *> = fromJS({
   [APP.SETTINGS_BY_ORG_ID]: Map(),
   [APP.CONFIG_BY_ORG_ID]: Map(),
   [APP.ORGS_BY_ID]: Map(),
-  [APP.SELF_ENTITY_KEY_ID]: undefined
+  [APP.SELF_ENTITY_KEY_ID]: undefined,
+  [APP.IS_ADMIN]: false
 });
 
 export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Object) {
@@ -56,14 +57,16 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
             orgsById,
             selectedOrg,
             entityKeyId,
-            fqnMap
+            fqnMap,
+            isAdmin
           } = value;
 
           return state.merge(fqnMap)
             .set(APP.CONFIG_BY_ORG_ID, configByOrgId)
             .set(APP.ORGS_BY_ID, orgsById)
             .set(APP.SELECTED_ORG_ID, selectedOrg)
-            .set(APP.SELF_ENTITY_KEY_ID, entityKeyId);
+            .set(APP.SELF_ENTITY_KEY_ID, entityKeyId)
+            .set(APP.IS_ADMIN, isAdmin);
         },
         FAILURE: () => {
 
@@ -96,7 +99,9 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
     case switchOrganization.case(action.type): {
       return switchOrganization.reducer(state, action, {
         REQUEST: () => state.set(APP.SELECTED_ORG_ID, action.value),
-        SUCCESS: () => state.set(APP.SELF_ENTITY_KEY_ID, action.value)
+        SUCCESS: () => state
+          .set(APP.SELF_ENTITY_KEY_ID, action.value.entityKeyId)
+          .set(APP.IS_ADMIN, action.value.isAdmin)
       });
     }
 
