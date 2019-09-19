@@ -191,8 +191,6 @@ class AuditDashboard extends React.Component<Props, State> {
       counts = counts.set(value, counts.get(value, 0) + 1);
     });
 
-    console.log(counts.toJS())
-
     return (
       <>
         <HeaderLabel>{header}</HeaderLabel>

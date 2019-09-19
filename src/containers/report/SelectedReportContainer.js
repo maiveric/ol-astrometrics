@@ -232,16 +232,6 @@ class SelectedReportContainer extends React.Component<Props, State> {
     return dt1.isValid() && dt1.isAfter(dt2) ? -1 : 1;
   }
 
-  removeReads = (readEntityKeyIds) => {
-    console.log('removing')
-    console.log(readEntityKeyIds);
-  }
-
-  viewReadDetails = (read) => {
-    console.log('viewing')
-    console.log(read.toJS());
-  }
-
   renderReportList = () => {
     const { actions, reports } = this.props;
 
