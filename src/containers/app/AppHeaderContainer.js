@@ -169,17 +169,21 @@ class AppHeaderContainer extends Component<Props> {
     );
   }
 
-  renderLeftSideContent = () => (
-    <LeftSideContentWrapper>
-      <LogoTitleWrapperLink to={Routes.ROOT}>
-        <AstrometricsIcon />
-        <AppTitle>
-          Astrometrics
-        </AppTitle>
-      </LogoTitleWrapperLink>
-      <AppNavigationContainer />
-    </LeftSideContentWrapper>
-  )
+  renderLeftSideContent = () => {
+    const { isAdmin } = this.props;
+
+    return (
+      <LeftSideContentWrapper>
+        <LogoTitleWrapperLink to={Routes.ROOT}>
+          <AstrometricsIcon />
+          <AppTitle>
+            Astrometrics
+          </AppTitle>
+        </LogoTitleWrapperLink>
+        <AppNavigationContainer isAdmin={isAdmin} />
+      </LeftSideContentWrapper>
+    );
+  }
 
   renderRightSideContent = () => {
 
@@ -225,6 +229,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     organizations,
     selectedOrg: app.get(APP.SELECTED_ORG_ID, ''),
     loading: app.get(APP.LOADING, false),
+    isAdmin: app.get(APP.IS_ADMIN, false),
     isLoadingApp: state.getIn(['app', 'isLoadingApp'], false),
   };
 }

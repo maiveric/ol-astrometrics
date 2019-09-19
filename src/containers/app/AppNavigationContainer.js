@@ -18,26 +18,28 @@ const NavigationContentWrapper = styled.nav`
   margin-left: 30px;
 `;
 
-type Props = {};
+type Props = {
+  isAdmin :boolean
+};
 
-class AppNavigationContainer extends Component<Props> {
-
-  render() {
-
-    return (
-      <NavigationContentWrapper>
-        <NavLinkWrapper to={Routes.EXPLORE}>
-          Search
-        </NavLinkWrapper>
-        <NavLinkWrapper to={Routes.AUDIT}>
-          Audit Log
-        </NavLinkWrapper>
-        <NavLinkWrapper to={Routes.QUALITY}>
-          Data Quality
-        </NavLinkWrapper>
-      </NavigationContentWrapper>
-    );
-  }
-}
+const AppNavigationContainer = ({ isAdmin }) => (
+  <NavigationContentWrapper>
+    <NavLinkWrapper to={Routes.EXPLORE}>
+      Search
+    </NavLinkWrapper>
+    {
+      isAdmin ? (
+        <>
+          <NavLinkWrapper to={Routes.AUDIT}>
+            Audit Log
+          </NavLinkWrapper>
+          <NavLinkWrapper to={Routes.QUALITY}>
+            Data Quality
+          </NavLinkWrapper>
+        </>
+      ) : null
+    }
+  </NavigationContentWrapper>
+);
 
 export default withRouter<*>(AppNavigationContainer);
