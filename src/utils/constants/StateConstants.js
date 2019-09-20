@@ -143,7 +143,10 @@ export const PARAMETERS = {
 export const QUALITY = {
   IS_LOADING: 'isLoading',
   DASHBOARD_DATA: 'dashboardData',
-  DASHBOARD_WINDOW: 'qualityDashboardWindow'
+  DASHBOARD_WINDOW: 'qualityDashboardWindow',
+  AGENCIES_BY_ID: 'agenciesById',
+  AGENCY_COUNTS: 'agencyCounts',
+  IS_LOADING_AGENCY_DATA: 'isLoadingAgencyData'
 };
 
 export const SUBMIT = {

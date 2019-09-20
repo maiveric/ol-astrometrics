@@ -83,6 +83,7 @@ class QualityContainer extends React.Component<Props, State> {
     }
     else {
       actions.loadQualityDashboardData();
+      actions.loadAgencies();
     }
   }
 
@@ -91,6 +92,7 @@ class QualityContainer extends React.Component<Props, State> {
 
     if (!prevProps.edmLoaded && edmLoaded) {
       actions.loadQualityDashboardData();
+      actions.loadAgencies();
     }
   }
 

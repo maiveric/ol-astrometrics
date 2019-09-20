@@ -3,8 +3,8 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
-import { List, Map, Set } from 'immutable';
+import styled, { css } from 'styled-components';
+import { OrderedMap, Map, Set } from 'immutable';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
@@ -19,6 +19,12 @@ import Spinner from '../../components/spinner/Spinner';
 import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
 import BarChart from '../../components/charts/BarChart';
 import DropdownButton from '../../components/buttons/DropdownButton';
+import {
+  Table,
+  Cell,
+  HeaderCell,
+  LightRow
+} from '../../components/body/Table';
 import {
   STATE,
   AUDIT,
@@ -42,6 +48,7 @@ type Props = {
   endDate :Object,
   filter :string,
   edm :Map<*, *>;
+  agenciesById :Map<*, *>;
   actions :{
     loadQualityDashboardData :(startDate :Object, endDate :Object) => void;
     loadDataModel :() => void;
@@ -86,6 +93,35 @@ const HeaderLabel = styled.div`
   color: #ffffff;
 `;
 
+const ReadBreakdowns = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  section {
+    width: 49%;
+    display: flex;
+    flex-direction: column;
+  }
+`;
+
+const cellStyle = css`
+
+  &:nth-child(2) {
+    text-align: right;
+  }
+`;
+
+const StyledCell = styled(Cell).attrs(_ => ({
+  light: true
+}))`${cellStyle}`;
+
+const StyledHeaderCell = styled(HeaderCell).attrs(_ => ({
+  light: true
+}))`${cellStyle}`;
+
+
 class QualityDashboard extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -100,9 +136,52 @@ class QualityDashboard extends React.Component<Props, State> {
     return (
       <BarChart color="#34B88B" resourceType="searches" countsMap={counts} />
     );
-
   }
 
+    renderBreakdown = (header, label, countMap, labelMapper) => {
+
+      let counts = OrderedMap();
+
+      countMap.entrySeq().forEach(([key, count]) => {
+        counts = counts.set(labelMapper(key), count);
+      });
+
+      return (
+        <>
+          <HeaderLabel>{header}</HeaderLabel>
+
+          <Table>
+            <tbody>
+              <LightRow>
+                <StyledHeaderCell>{label}</StyledHeaderCell>
+                <StyledHeaderCell>Count</StyledHeaderCell>
+              </LightRow>
+              {counts.sort((v1, v2) => (v1 > v2 ? -1 : 1)).entrySeq().map(([key, value]) => (
+                <LightRow key={key}>
+                  <StyledCell>{key}</StyledCell>
+                  <StyledCell>{value}</StyledCell>
+                </LightRow>
+              ))}
+            </tbody>
+          </Table>
+
+        </>
+      );
+    }
+
+  renderReadBreakdowns = () => {
+    const { agencyCounts, agenciesById } = this.props;
+
+    const agencyMapper = id => agenciesById.get(id, 'Unknown');
+
+    return (
+      <ReadBreakdowns>
+        <section>
+          {this.renderBreakdown('Agency contributions', 'Agency', agencyCounts, agencyMapper)}
+        </section>
+      </ReadBreakdowns>
+    );
+  }
 
   render() {
 
@@ -110,7 +189,8 @@ class QualityDashboard extends React.Component<Props, State> {
       actions,
       isLoadingEdm,
       isLoadingResults,
-      dashboardWindow
+      dashboardWindow,
+      agenciesById
     } = this.props;
 
     if (isLoadingEdm || isLoadingResults) {
@@ -132,13 +212,14 @@ class QualityDashboard extends React.Component<Props, State> {
 
         {this.renderReadsOverTime()}
 
+        {this.renderReadBreakdowns()}
+
       </Wrapper>
     );
   }
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const audit = state.get(STATE.AUDIT);
   const quality = state.get(STATE.QUALITY);
   const edm = state.get(STATE.EDM);
 
@@ -148,11 +229,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
     isLoadingResults: quality.get(QUALITY.IS_LOADING),
     counts: quality.get(QUALITY.DASHBOARD_DATA),
+    agencyCounts: quality.get(QUALITY.AGENCY_COUNTS),
     dashboardWindow: quality.get(QUALITY.DASHBOARD_WINDOW),
-
-    startDate: audit.get(AUDIT.START_DATE),
-    endDate: audit.get(AUDIT.END_DATE),
-    filter: audit.get(AUDIT.FILTER)
+    agenciesById: quality.get(QUALITY.AGENCIES_BY_ID),
   };
 }
 
