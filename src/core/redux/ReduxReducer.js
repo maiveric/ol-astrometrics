@@ -13,6 +13,7 @@ import DrawReducer from '../../containers/map/DrawReducer';
 import EdmReducer from '../../containers/edm/EdmReducer';
 import ExploreReducer from '../../containers/explore/ExploreReducer';
 import ParametersReducer from '../../containers/parameters/ParametersReducer';
+import QualityReducer from '../../containers/quality/QualityReducer';
 import ReportReducer from '../../containers/report/ReportReducer';
 import SubmitReducer from '../../containers/submit/SubmitReducer';
 import { STATE } from '../../utils/constants/StateConstants';
@@ -29,6 +30,7 @@ export default function reduxReducer(routerHistory :any) {
     [STATE.EDM]: EdmReducer,
     [STATE.EXPLORE]: ExploreReducer,
     [STATE.PARAMETERS]: ParametersReducer,
+    [STATE.QUALITY]: QualityReducer,
     [STATE.REPORT]: ReportReducer,
     [STATE.SUBMIT]: SubmitReducer,
   });

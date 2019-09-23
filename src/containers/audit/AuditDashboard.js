@@ -30,7 +30,8 @@ import {
   AUDIT,
   AUDIT_EVENT,
   EDM,
-  DASHBOARD_WINDOWS
+  DASHBOARD_WINDOWS,
+  DATE_FORMATS
 } from '../../utils/constants/StateConstants';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -82,12 +83,6 @@ const RANGES = {
   WEEK: 'week',
   MONTH: 'month',
   YEAR: 'year'
-};
-
-const DATE_FORMATS = {
-  [DASHBOARD_WINDOWS.WEEK]: 'MM/DD',
-  [DASHBOARD_WINDOWS.MONTH]: 'MM/DD',
-  [DASHBOARD_WINDOWS.YEAR]: 'MMM'
 };
 
 const SpaceBetweenRow = styled.div`

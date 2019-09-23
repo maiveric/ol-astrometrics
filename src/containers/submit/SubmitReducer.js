@@ -8,6 +8,7 @@ import { SUBMIT } from '../../utils/constants/StateConstants';
 import {
   CLEAR_SUBMIT,
   deleteEntity,
+  deleteEntities,
   partialReplaceEntity,
   replaceEntity,
   submit
@@ -26,6 +27,19 @@ function submitReducer(state :Immutable.Map<*, *> = INITIAL_STATE, action :Objec
 
     case deleteEntity.case(action.type): {
       return deleteEntity.reducer(state, action, {
+        REQUEST: () => state
+          .set(SUBMIT.SUBMITTING, true)
+          .set(SUBMIT.SUBMITTED, false)
+          .set(SUBMIT.SUCCESS, false)
+          .set(SUBMIT.ERROR, ''),
+        SUCCESS: () => state.set(SUBMIT.SUCCESS, true).set(SUBMIT.ERROR, ''),
+        FAILURE: () => state.set(SUBMIT.SUCCESS, false).set(SUBMIT.ERROR, action.value),
+        FINALLY: () => state.set(SUBMIT.SUBMITTING, false).set(SUBMIT.SUBMITTED, true)
+      });
+    }
+
+    case deleteEntities.case(action.type): {
+      return deleteEntities.reducer(state, action, {
         REQUEST: () => state
           .set(SUBMIT.SUBMITTING, true)
           .set(SUBMIT.SUBMITTED, false)

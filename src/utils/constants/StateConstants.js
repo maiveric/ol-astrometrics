@@ -7,6 +7,7 @@ export const STATE = {
   ENTITY_SETS: 'ENTITY_SETS',
   EXPLORE: 'EXPLORE',
   PARAMETERS: 'PARAMETERS',
+  QUALITY: 'QUALITY',
   REPORT: 'REPORT',
   SUBMIT: 'SUBMIT'
 };
@@ -110,8 +111,8 @@ export const REPORT = {
   NEW_REPORT_NAME: 'newReportName',
   NEW_REPORT_CASE: 'newReportCase',
   REPORT_TO_DELETE: 'reportToDelete',
-  VEHICLE_TO_DELETE: 'vehicleToDelete',
-  READ_TO_DELETE: 'readToDelete'
+  READS_TO_DELETE: 'readsToDelete',
+  IS_REMOVING_ENTIRE_VEHICLE: 'isRemovingEntireVehicle'
 };
 
 export const PARAMETERS = {
@@ -137,6 +138,21 @@ export const PARAMETERS = {
 
   // placeholder item to indicate search criteria is not met
   NOT_READY: 'notReady'
+};
+
+export const QUALITY = {
+  IS_LOADING: 'isLoading',
+  DASHBOARD_DATA: 'dashboardData',
+  DASHBOARD_WINDOW: 'qualityDashboardWindow',
+  AGENCIES_BY_ID: 'agenciesById',
+  DEVICES_BY_ID: 'devicesById',
+  DEVICES_BY_AGENCY: 'devicesByAgency',
+  AGENCY_COUNTS: 'agencyCounts',
+  DEVICE_COUNTS: 'deviceCounts',
+  SELECTED_AGENCY_ID: 'selectedAgencyId',
+  IS_LOADING_AGENCIES: 'isLoadingAgencies',
+  IS_LOADING_AGENCY_DATA: 'isLoadingAgencyData',
+  IS_LOADING_DEVICE_DATA: 'isLoadingDeviceData',
 };
 
 export const SUBMIT = {
@@ -165,4 +181,10 @@ export const AUDIT_EVENT = {
 export const DASHBOARD_WINDOWS = {
   WEEK: 'week',
   MONTH: 'month'
+};
+
+export const DATE_FORMATS = {
+  [DASHBOARD_WINDOWS.WEEK]: 'MM/DD',
+  [DASHBOARD_WINDOWS.MONTH]: 'MM/DD',
+  [DASHBOARD_WINDOWS.YEAR]: 'MMM'
 };

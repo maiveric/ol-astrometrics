@@ -13,6 +13,7 @@ import type { RequestSequence } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
 import AuditContainer from '../audit/AuditContainer';
+import QualityContainer from '../quality/QualityContainer';
 import EulaContainer from '../eula/EulaContainer';
 import ExploreContainer from '../explore/ExploreContainer';
 import Spinner from '../../components/spinner/Spinner';
@@ -83,6 +84,7 @@ class AppContainer extends Component<Props> {
       <Switch>
         <Route path={Routes.EXPLORE} component={ExploreContainer} />
         <Route path={Routes.AUDIT} component={AuditContainer} />
+        <Route path={Routes.QUALITY} component={QualityContainer} />
         <Redirect to={Routes.EXPLORE} />
       </Switch>
     );

@@ -38,6 +38,9 @@ export const toggleDeleteReportModal :RequestSequence = newRequestSequence(TOGGL
 export const SELECT_REPORT :string = 'SELECT_REPORT';
 export const selectReport :RequestSequence = newRequestSequence(SELECT_REPORT);
 
+export const TOGGLE_DELETE_READS_MODAL :string = 'TOGGLE_DELETE_READS_MODAL';
+export const toggleDeleteReadsModal :RequestSequence = newRequestSequence(TOGGLE_DELETE_READS_MODAL);
+
 
 export {
   ADD_VEHICLE_TO_REPORT,

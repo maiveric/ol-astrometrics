@@ -12,6 +12,7 @@ import * as DrawSagas from '../../containers/map/DrawSagas';
 import * as EdmSagas from '../../containers/edm/EdmSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
 import * as ParametersSagas from '../../containers/parameters/ParametersSagas';
+import * as QualitySagas from '../../containers/quality/QualitySagas';
 import * as ReportSagas from '../../containers/report/ReportSagas';
 import * as RoutingSagas from '../router/RoutingSagas';
 import * as SubmitSagas from '../../containers/submit/SubmitSagas';
@@ -60,6 +61,13 @@ export default function* sagas() :Generator<*, *, *> {
     fork(ParametersSagas.geocodeAddressWatcher),
     fork(ParametersSagas.loadDepartmentsAndDevicesWatcher),
 
+    /* QualitySagas */
+    fork(QualitySagas.loadQualityDashboardDataWatcher),
+    fork(QualitySagas.setQualityDashboardWindowWatcher),
+    fork(QualitySagas.loadAgenciesWatcher),
+    fork(QualitySagas.loadQualityAgencyDataWatcher),
+    fork(QualitySagas.loadQualityDeviceDataWatcher),
+
     /* ReportSagas */
     fork(ReportSagas.exportReportWatcher),
     fork(ReportSagas.loadReportsWatcher),
@@ -70,6 +78,7 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* SubmitSagas */
     fork(SubmitSagas.deleteEntityWatcher),
+    fork(SubmitSagas.deleteEntitiesWatcher),
     fork(SubmitSagas.partialReplaceEntityWatcher),
     fork(SubmitSagas.replaceEntityWatcher),
     fork(SubmitSagas.submitWatcher)

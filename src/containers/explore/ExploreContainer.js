@@ -29,6 +29,7 @@ import NewAlertModal from '../alerts/NewAlertModal';
 import NewReportModal from '../report/NewReportModal';
 import RenameReportModal from '../report/RenameReportModal';
 import DeleteReportModal from '../report/DeleteReportModal';
+import DeleteVehicleReadsModal from '../report/DeleteVehicleReadsModal';
 import AddReadsToReportModal from '../report/AddReadsToReportModal';
 import AllReportsContainer from '../report/AllReportsContainer';
 import {
@@ -60,6 +61,8 @@ type Props = {
   reportModalOpen :boolean;
   renameReportModalOpen :boolean;
   deleteReportModalOpen :boolean;
+  deleteReportReadsModalOpen :boolean;
+  isRemovingEntireVehicle :boolean;
   drawMode :boolean;
   displayFullSearchOptions :boolean;
   results :List<*>;
@@ -161,7 +164,8 @@ class ExploreContainer extends React.Component<Props, State> {
       addReadsToReportModalOpen,
       reportModalOpen,
       renameReportModalOpen,
-      deleteReportModalOpen
+      deleteReportModalOpen,
+      deleteReportReadsModalOpen
     } = this.props;
 
     let modalProps = {
@@ -205,6 +209,15 @@ class ExploreContainer extends React.Component<Props, State> {
       };
 
       content = <DeleteReportModal />;
+    }
+
+    else if (deleteReportReadsModalOpen) {
+      modalProps = {
+        isOpen: true,
+        onClose: () => actions.toggleDeleteReadsModal({ entityKeyIds: Set() })
+      };
+
+      content = <DeleteVehicleReadsModal />;
     }
 
     else if (addReadsToReportModalOpen) {
@@ -351,6 +364,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     reportModalOpen: reports.get(REPORT.REPORT_MODAL_OPEN),
     renameReportModalOpen: !!reports.get(REPORT.RENAME_REPORT_MODAL_OPEN),
     deleteReportModalOpen: !!reports.get(REPORT.REPORT_TO_DELETE),
+    deleteReportReadsModalOpen: !!reports.get(REPORT.READS_TO_DELETE).size,
+    isRemovingEntireVehicle: !!reports.get(REPORT.IS_REMOVING_ENTIRE_VEHICLE),
     newMapModalOpen: draw.get(DRAW.IS_CREATING_MAP)
   };
 }

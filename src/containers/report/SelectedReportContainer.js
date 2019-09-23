@@ -14,15 +14,11 @@ import {
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronUp, faChevronDown } from '@fortawesome/pro-light-svg-icons';
 
 import ReportRow from './ReportRow';
 import Spinner from '../../components/spinner/Spinner';
-import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import ReportVehicleInfo from '../../components/vehicles/ReportVehicleInfo';
@@ -30,23 +26,18 @@ import { VehicleHeader } from '../../components/vehicles/VehicleCard';
 import { SidebarHeader } from '../../components/body/Sidebar';
 import {
   STATE,
-  ALERTS,
   REPORT,
-  EDM,
   PARAMETERS,
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
-  entityKeyId :string,
   report :Map,
   isLoadingReports :boolean,
   isSubmitting :boolean,
@@ -59,13 +50,11 @@ type Props = {
     loadReports :(edm :Map) => void,
     toggleReportModal :(isOpen :boolean) => void,
     setReportValue :({ field :string, value :string }) => void,
-    submit :(
-      values :Object,
-      config :Object,
-      includeUserId :boolean,
-      callback :Function
+    toggleDeleteReadsModal :(
+      entityKeyIds :Set,
+      isVehicle :boolean
     ) => void,
-    replaceEntity :(
+    deleteEntities :(
       entityKeyId :string,
       entitySetId :string,
       values :Object,
@@ -255,6 +244,11 @@ class SelectedReportContainer extends React.Component<Props, State> {
     );
   }
 
+  removeReads = (entityKeyIds, isVehicle) => {
+    const { actions } = this.props;
+    actions.toggleDeleteReadsModal({ entityKeyIds, isVehicle });
+  }
+
   renderRead = (readObj) => {
     const { expanded } = this.state;
     const { departmentOptions, deviceOptions } = this.props;
@@ -282,7 +276,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
         <InnerRow>
           <span>{dateTimeStr}</span>
           <InnerRow>
-            <SubtleButton onClick={() => this.removeReads([associationEntityKeyId])} noHover>Remove</SubtleButton>
+            <SubtleButton onClick={() => this.removeReads(Set.of(associationEntityKeyId))} noHover>Remove</SubtleButton>
             <SubtleButton onClick={onExpand} noHover>
               <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
             </SubtleButton>
@@ -300,9 +294,9 @@ class SelectedReportContainer extends React.Component<Props, State> {
 
     const state = reads.first().getIn(['neighborDetails', PROPERTY_TYPES.STATE, 0], 'CA');
 
-    const readIds = reads.map(read => getEntityKeyId(read.get('associationDetails', Map()))).toJS();
+    const readIds = reads.map(read => getEntityKeyId(read.get('associationDetails', Map()))).toSet();
 
-    const removeButton = <SubtleButton onClick={() => this.removeReads(readIds)} noHover>Remove</SubtleButton>;
+    const removeButton = <SubtleButton onClick={() => this.removeReads(readIds, true)} noHover>Remove</SubtleButton>;
 
     return (
       <VehicleSection key={plate}>
@@ -374,7 +368,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const entityKeyId = reports.get(REPORT.SELECTED_REPORT);
 
   return {
-    entityKeyId,
     report: reports.getIn([REPORT.REPORTS, entityKeyId]),
     reportReads: reports.getIn([REPORT.READS_BY_REPORT, entityKeyId], Set()),
     isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),

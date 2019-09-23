@@ -17,6 +17,7 @@ import {
   TOGGLE_REPORT_MODAL,
   TOGGLE_RENAME_REPORT_MODAL,
   TOGGLE_DELETE_REPORT_MODAL,
+  TOGGLE_DELETE_READS_MODAL,
   SELECT_REPORT,
   SET_REPORT_VALUE,
   createReport,
@@ -36,7 +37,9 @@ const {
   RENAME_REPORT_MODAL_OPEN,
   NEW_REPORT_NAME,
   NEW_REPORT_CASE,
-  REPORT_TO_DELETE
+  REPORT_TO_DELETE,
+  READS_TO_DELETE,
+  IS_REMOVING_ENTIRE_VEHICLE
 } = REPORT;
 
 const INITIAL_STATE :Map<> = fromJS({
@@ -50,6 +53,8 @@ const INITIAL_STATE :Map<> = fromJS({
   [REPORT_MODAL_OPEN]: false,
   [RENAME_REPORT_MODAL_OPEN]: undefined,
   [REPORT_TO_DELETE]: undefined,
+  [READS_TO_DELETE]: Set(),
+  [IS_REMOVING_ENTIRE_VEHICLE]: false,
   [NEW_REPORT_NAME]: '',
   [NEW_REPORT_CASE]: ''
 });
@@ -94,6 +99,15 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case TOGGLE_DELETE_REPORT_MODAL:
       return state.set(REPORT_TO_DELETE, action.value);
+
+    case TOGGLE_DELETE_READS_MODAL: {
+      if (!action.value) {
+        return state.set(IS_REMOVING_ENTIRE_VEHICLE, false).set(READS_TO_DELETE, Set());
+      }
+      return state
+        .set(IS_REMOVING_ENTIRE_VEHICLE, !!action.value.isVehicle)
+        .set(READS_TO_DELETE, action.value.entityKeyIds);
+    }
 
     case ADD_VEHICLE_TO_REPORT:
       return state.set(VEHICLE_ENTITY_KEY_IDS, state.get(VEHICLE_ENTITY_KEY_IDS).add(action.value));
