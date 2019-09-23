@@ -11,6 +11,9 @@ export const loadAgencies :RequestSequence = newRequestSequence(LOAD_AGENCIES);
 export const LOAD_QUALITY_AGENCY_DATA :string = 'LOAD_QUALITY_AGENCY_DATA';
 export const loadQualityAgencyData :RequestSequence = newRequestSequence(LOAD_QUALITY_AGENCY_DATA);
 
+export const LOAD_QUALITY_DEVICE_DATA :string = 'LOAD_QUALITY_DEVICE_DATA';
+export const loadQualityDeviceData :RequestSequence = newRequestSequence(LOAD_QUALITY_DEVICE_DATA);
+
 export const LOAD_QUALITY_DASHBOARD_DATA :string = 'LOAD_QUALITY_DASHBOARD_DATA';
 export const loadQualityDashboardData :RequestSequence = newRequestSequence(LOAD_QUALITY_DASHBOARD_DATA);
 

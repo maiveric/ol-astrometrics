@@ -43,6 +43,7 @@ type Props = {
   isLoadingEdm :boolean;
   isLoadingResults :boolean;
   isLoadingAgencies :boolean;
+  isLoadingDevices :boolean;
   dashboardWindow :string;
   counts :Map<*>;
   startDate :Object,
@@ -50,8 +51,13 @@ type Props = {
   filter :string,
   edm :Map<*, *>;
   agenciesById :Map<*, *>;
+  devicesById :Map<*, *>;
+  agencyCounts :Map<*, *>;
+  deviceCounts :Map<*, *>;
+  devicesById :Map<*, *>;
   actions :{
     loadQualityDashboardData :(startDate :Object, endDate :Object) => void;
+    loadQualityDeviceData :(key :string) => void;
     loadDataModel :() => void;
     updateAuditEnd :(value :string) => void;
     updateAuditStart :(value :string) => void;
@@ -68,13 +74,6 @@ const Wrapper = styled.div`
   width: 100%;
   height: 100%;
   background-color: #1F1E24;
-`;
-
-const Header = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: flex-start;
-  padding-bottom: 50px;
 `;
 
 const SpaceBetweenRow = styled.div`
@@ -112,18 +111,24 @@ const cellStyle = css`
   &:nth-child(2) {
     text-align: right;
   }
+
+  ${props => (props.clickable ? css`
+    &:hover {
+      cursor: pointer;
+    }
+  ` : '')}
 `;
 
-const StyledCell = styled(Cell).attrs(_ => ({
-  light: true
+const StyledCell = styled(Cell).attrs(({ light }) => ({
+  light
 }))`${cellStyle}`;
 
-const StyledHeaderCell = styled(HeaderCell).attrs(_ => ({
-  light: true
+const StyledHeaderCell = styled(HeaderCell).attrs(({ light }) => ({
+  light
 }))`${cellStyle}`;
 
 
-class QualityDashboard extends React.Component<Props, State> {
+class QualityContributions extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
@@ -139,46 +144,93 @@ class QualityDashboard extends React.Component<Props, State> {
     );
   }
 
-    renderBreakdown = (header, label, countMap, labelMapper, isLoading) => {
+  sortCountMap = countMap => countMap.sort((v1, v2) => (v1 > v2 ? -1 : 1));
 
-      let counts = OrderedMap();
+  renderAgencyBreakdown = () => {
 
-      countMap.entrySeq().forEach(([key, count]) => {
-        counts = counts.set(labelMapper(key), count);
-      });
+    const {
+      actions,
+      isLoadingAgencies,
+      agenciesById,
+      agencyCounts
+    } = this.props;
 
-      return (
-        <>
-          <HeaderLabel>{header}</HeaderLabel>
+    const counts = this.sortCountMap(agencyCounts);
 
-          <Table isLoading={isLoading}>
-            <tbody>
-              <LightRow>
-                <StyledHeaderCell>{label}</StyledHeaderCell>
-                <StyledHeaderCell>Count</StyledHeaderCell>
+    const getOnClick = key => () => actions.loadQualityDeviceData(key);
+
+    return (
+      <>
+        <HeaderLabel>Agency contributions</HeaderLabel>
+
+        <Table isLoading={isLoadingAgencies}>
+          <tbody>
+            <tr>
+              <StyledHeaderCell>Agency</StyledHeaderCell>
+              <StyledHeaderCell>Count</StyledHeaderCell>
+            </tr>
+            {counts.entrySeq().map(([key, value]) => (
+              <tr key={key}>
+                <StyledCell clickable onClick={getOnClick(key)}>{agenciesById.get(key, 'Unknown')}</StyledCell>
+                <StyledCell clickable onClick={getOnClick(key)}>{value}</StyledCell>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+
+      </>
+    );
+  }
+
+  renderDeviceBreakdown = () => {
+
+    const {
+      isLoadingDevices,
+      devicesById,
+      deviceCounts
+    } = this.props;
+
+    const counts = this.sortCountMap(deviceCounts);
+
+    return (
+      <>
+        <HeaderLabel>Device contributions</HeaderLabel>
+
+        <Table light isLoading={isLoadingDevices}>
+          <tbody>
+            <LightRow>
+              <StyledHeaderCell light>Device</StyledHeaderCell>
+              <StyledHeaderCell light>Count</StyledHeaderCell>
+            </LightRow>
+            {counts.entrySeq().map(([key, value]) => (
+              <LightRow key={key}>
+                <StyledCell light>{devicesById.get(key, 'Unknown')}</StyledCell>
+                <StyledCell light>{value}</StyledCell>
               </LightRow>
-              {counts.sort((v1, v2) => (v1 > v2 ? -1 : 1)).entrySeq().map(([key, value]) => (
-                <LightRow key={key}>
-                  <StyledCell>{key}</StyledCell>
-                  <StyledCell>{value}</StyledCell>
-                </LightRow>
-              ))}
-            </tbody>
-          </Table>
+            ))}
+          </tbody>
+        </Table>
 
-        </>
-      );
-    }
+      </>
+    );
+  }
 
   renderReadBreakdowns = () => {
-    const { agencyCounts, agenciesById, isLoadingAgencies } = this.props;
-
-    const agencyMapper = id => agenciesById.get(id, 'Unknown');
+    const {
+      isLoadingAgencies,
+      isLoadingDevices,
+      agenciesById,
+      agencyCounts,
+      deviceCounts
+    } = this.props;
 
     return (
       <ReadBreakdowns>
         <section>
-          {this.renderBreakdown('Agency contributions', 'Agency', agencyCounts, agencyMapper, isLoadingAgencies)}
+          {this.renderAgencyBreakdown()}
+        </section>
+        <section>
+          {this.renderDeviceBreakdown()}
         </section>
       </ReadBreakdowns>
     );
@@ -207,11 +259,8 @@ class QualityDashboard extends React.Component<Props, State> {
       <Wrapper>
 
         <SpaceBetweenRow>
-          <HeaderLabel>Reads over time</HeaderLabel>
           <DropdownButton title={`Past ${dashboardWindow}`} options={windowOptions} invisible subtle />
         </SpaceBetweenRow>
-
-        {this.renderReadsOverTime()}
 
         {this.renderReadBreakdowns()}
 
@@ -228,12 +277,16 @@ function mapStateToProps(state :Map<*, *>) :Object {
     edmLoaded: edm.get(EDM.EDM_LOADED),
     isLoadingEdm: edm.get(EDM.IS_LOADING_DATA_MODEL),
 
-    isLoadingResults: quality.get(QUALITY.IS_LOADING),
     isLoadingAgencies: quality.get(QUALITY.IS_LOADING_AGENCY_DATA) || quality.get(QUALITY.IS_LOADING_AGENCIES),
+    isLoadingDevices: quality.get(QUALITY.IS_LOADING_DEVICE_DATA),
+    isLoadingResults: quality.get(QUALITY.IS_LOADING),
     counts: quality.get(QUALITY.DASHBOARD_DATA),
     agencyCounts: quality.get(QUALITY.AGENCY_COUNTS),
+    deviceCounts: quality.get(QUALITY.DEVICE_COUNTS),
+    selectedAgencyId: quality.get(QUALITY.SELECTED_AGENCY_ID),
     dashboardWindow: quality.get(QUALITY.DASHBOARD_WINDOW),
     agenciesById: quality.get(QUALITY.AGENCIES_BY_ID),
+    devicesById: quality.get(QUALITY.DEVICES_BY_ID)
   };
 }
 
@@ -256,4 +309,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
 }
 
 // $FlowFixMe
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(QualityDashboard));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(QualityContributions));

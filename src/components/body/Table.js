@@ -1,6 +1,9 @@
+import React from 'react';
 import styled, { css } from 'styled-components';
 
-export const Table = styled.table.attrs(_ => ({
+import Spinner from '../spinner/Spinner';
+
+export const StyledTable = styled.table.attrs(_ => ({
   cellspacing: '0'
 }))`
 border-collapse: collapse;
@@ -16,6 +19,13 @@ const lightStyle = css`
   padding: 8px 24px;
   background-color: #36353B;
   border-bottom: 1px solid #1F1E24;
+`;
+
+const TableSpinnerWrapper = styled.div`
+  position: relative;
+  border-radius: 3px;
+  background-color: ${props => (props.light ? '#36353B' : 'transparent')};
+  min-height: 200px;
 `;
 
 export const Cell = styled.td`
@@ -59,4 +69,16 @@ export const LightRow = styled.tr`
 
 `;
 
-export default Table;
+export const Table = (props) => {
+  const { isLoading, light } = props;
+
+  if (isLoading) {
+    return (
+      <TableSpinnerWrapper light={light}>
+        <Spinner />
+      </TableSpinnerWrapper>
+    );
+  }
+
+  return <StyledTable {...props} />;
+};

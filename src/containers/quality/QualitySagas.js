@@ -10,7 +10,12 @@ import {
   select,
   takeEvery
 } from '@redux-saga/core/effects';
-import { Map, OrderedMap, fromJS } from 'immutable';
+import {
+  Map,
+  List,
+  OrderedMap,
+  fromJS
+} from 'immutable';
 import { DataApi, PrincipalsApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
@@ -25,10 +30,12 @@ import {
   LOAD_AGENCIES,
   LOAD_QUALITY_AGENCY_DATA,
   LOAD_QUALITY_DASHBOARD_DATA,
+  LOAD_QUALITY_DEVICE_DATA,
   SET_QUALITY_DASHBOARD_WINDOW,
   loadAgencies,
   loadQualityAgencyData,
   loadQualityDashboardData,
+  loadQualityDeviceData,
   setQualityDashboardWindow
 } from './QualityActionFactory';
 
@@ -136,7 +143,26 @@ function* loadAgencyCounts() {
   const agenciesPTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.AGENCY_NAME));
 
   return yield call(loadCountsForIds, agencyIds, range, recordsEntitySetId, dateTimePTId, agenciesPTId);
+}
 
+function* loadDeviceCounts(agencyId) {
+
+  const app = yield select(getAppFromState);
+  const quality = yield select(getQualityFromState);
+
+  const range = quality.get(QUALITY.DASHBOARD_WINDOW);
+  const selectedAgencyId = agencyId || quality.get(QUALITY.SELECTED_AGENCY_ID);
+  const deviceIds = quality.getIn([QUALITY.DEVICES_BY_AGENCY, selectedAgencyId], List());
+
+  if (!selectedAgencyId || !deviceIds.size) {
+    return Map();
+  }
+
+  const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
+  const dateTimePTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+  const devicesPTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.CAMERA_ID));
+
+  return yield call(loadCountsForIds, deviceIds, range, recordsEntitySetId, dateTimePTId, devicesPTId);
 }
 
 function* loadQualityDashboardDataWorker(action :SequenceAction) {
@@ -164,10 +190,13 @@ function* setQualityDashboardWindowWorker(action :SequenceAction) {
   try {
     yield put(setQualityDashboardWindow.request(action.id, action.value));
 
-    const searches = yield call(loadDashboard);
-    const agencyCounts = yield call(loadAgencyCounts);
+    const [searches, agencyCounts, deviceCounts] = yield all([
+      call(loadDashboard),
+      call(loadAgencyCounts),
+      call(loadDeviceCounts)
+    ]);
 
-    yield put(setQualityDashboardWindow.success(action.id, { searches, agencyCounts }));
+    yield put(setQualityDashboardWindow.success(action.id, { searches, agencyCounts, deviceCounts }));
   }
   catch (error) {
     console.error(error)
@@ -181,6 +210,7 @@ function* setQualityDashboardWindowWorker(action :SequenceAction) {
 export function* setQualityDashboardWindowWatcher() :Generator<*, *, *> {
   yield takeEvery(SET_QUALITY_DASHBOARD_WINDOW, setQualityDashboardWindowWorker);
 }
+
 function* loadQualityAgencyDataWorker(action :SequenceAction) {
   try {
     yield put(loadQualityAgencyData.request(action.id, action.value));
@@ -202,29 +232,75 @@ export function* loadQualityAgencyDataWatcher() :Generator<*, *, *> {
   yield takeEvery(LOAD_QUALITY_AGENCY_DATA, loadQualityAgencyDataWorker);
 }
 
+function* loadQualityDeviceDataWorker(action :SequenceAction) {
+  try {
+    yield put(loadQualityDeviceData.request(action.id, action.value));
+
+    const deviceCounts = yield call(loadDeviceCounts, action.value);
+
+    yield put(loadQualityDeviceData.success(action.id, deviceCounts));
+  }
+  catch (error) {
+    console.error(error)
+    yield put(loadQualityDeviceData.failure(action.id, error));
+  }
+  finally {
+    yield put(loadQualityDeviceData.finally(action.id));
+  }
+}
+
+export function* loadQualityDeviceDataWatcher() :Generator<*, *, *> {
+  yield takeEvery(LOAD_QUALITY_DEVICE_DATA, loadQualityDeviceDataWorker);
+}
+
 function* loadAgenciesWorker(action :SequenceAction) {
   try {
     yield put(loadAgencies.request(action.id));
 
     const app = yield select(getAppFromState);
     const agencyEntitySetId = getEntitySetId(app, APP_TYPES.AGENCIES);
+    const devicesEntitySetId = getEntitySetId(app, APP_TYPES.CAMERAS);
 
-    const data = yield call(DataApi.getEntitySetData, agencyEntitySetId);
+    let agencies = yield call(DataApi.getEntitySetData, agencyEntitySetId);
+    agencies = fromJS(agencies);
+
+    const agencyEntityKeyIds = agencies.map(getEntityKeyId);
+
+    let devicesByAgencyEntityKeyId = yield call(SearchApi.searchEntityNeighborsWithFilter, agencyEntitySetId, {
+      entityKeyIds: agencyEntityKeyIds.toJS(),
+      sourceEntitySetIds: [devicesEntitySetId],
+      destinationEntitySetIds: [devicesEntitySetId]
+    });
+    devicesByAgencyEntityKeyId = fromJS(devicesByAgencyEntityKeyId);
 
     let agenciesById = Map();
-    fromJS(data).forEach((agency) => {
+    let devicesById = Map();
+    let devicesByAgency = Map();
+
+    agencies.forEach((agency) => {
       const id = agency.getIn([PROPERTY_TYPES.ID, 0]);
       const name = agency.getIn([PROPERTY_TYPES.NAME, 0], agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], ''));
 
+      let deviceIds = List();
+      devicesByAgencyEntityKeyId.get(getEntityKeyId(agency), List()).forEach((deviceNeighbor) => {
+        const device = deviceNeighbor.get('neighborDetails', Map());
+
+        const deviceId = device.getIn([PROPERTY_TYPES.ID, 0]);
+        const deviceName = device.getIn([PROPERTY_TYPES.NAME, 0], agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], ''));
+
+        deviceIds = deviceIds.push(deviceId);
+        devicesById = devicesById.set(deviceId, deviceName);
+      });
+
       agenciesById = agenciesById.set(id, name);
+      devicesByAgency = devicesByAgency.set(id, deviceIds);
     });
 
-
-    yield put(loadAgencies.success(action.id, agenciesById));
+    yield put(loadAgencies.success(action.id, { agenciesById, devicesByAgency, devicesById }));
     yield put(loadQualityAgencyData());
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(loadAgencies.failure(action.id, error));
   }
   finally {

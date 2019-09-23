@@ -15,6 +15,7 @@ import {
 } from 'react-router';
 
 import QualityDashboard from './QualityDashboard';
+import QualityContributions from './QualityContributions';
 import StyledInput from '../../components/controls/StyledInput';
 import Spinner from '../../components/spinner/Spinner';
 import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
@@ -122,7 +123,7 @@ class QualityContainer extends React.Component<Props, State> {
 
         <Switch>
           <Route path={Routes.QUALITY_DASHBOARD_ROUTE} component={QualityDashboard} />
-          <Route path={Routes.QUALITY_CONTRIBUTIONS_ROUTE} render={() => null} />
+          <Route path={Routes.QUALITY_CONTRIBUTIONS_ROUTE} component={QualityContributions} />
           <Redirect to={Routes.QUALITY_DASHBOARD_ROUTE} />
         </Switch>
 
@@ -140,6 +141,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingEdm: edm.get(EDM.IS_LOADING_DATA_MODEL),
 
     isLoadingResults: audit.get(AUDIT.IS_LOADING_RESULTS),
+    isLoadingAgencies: audit.get(AUDIT.IS_LOADING_AGENCIES),
     results: audit.get(AUDIT.FILTERED_RESULTS),
     startDate: audit.get(AUDIT.START_DATE),
     endDate: audit.get(AUDIT.END_DATE),

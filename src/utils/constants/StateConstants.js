@@ -145,8 +145,14 @@ export const QUALITY = {
   DASHBOARD_DATA: 'dashboardData',
   DASHBOARD_WINDOW: 'qualityDashboardWindow',
   AGENCIES_BY_ID: 'agenciesById',
+  DEVICES_BY_ID: 'devicesById',
+  DEVICES_BY_AGENCY: 'devicesByAgency',
   AGENCY_COUNTS: 'agencyCounts',
-  IS_LOADING_AGENCY_DATA: 'isLoadingAgencyData'
+  DEVICE_COUNTS: 'deviceCounts',
+  SELECTED_AGENCY_ID: 'selectedAgencyId',
+  IS_LOADING_AGENCIES: 'isLoadingAgencies',
+  IS_LOADING_AGENCY_DATA: 'isLoadingAgencyData',
+  IS_LOADING_DEVICE_DATA: 'isLoadingDeviceData',
 };
 
 export const SUBMIT = {
