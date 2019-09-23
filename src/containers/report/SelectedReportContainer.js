@@ -59,13 +59,11 @@ type Props = {
     loadReports :(edm :Map) => void,
     toggleReportModal :(isOpen :boolean) => void,
     setReportValue :({ field :string, value :string }) => void,
-    submit :(
-      values :Object,
-      config :Object,
-      includeUserId :boolean,
-      callback :Function
+    toggleDeleteReadsModal :(
+      entityKeyIds :Set,
+      isVehicle :boolean
     ) => void,
-    replaceEntity :(
+    deleteEntities :(
       entityKeyId :string,
       entitySetId :string,
       values :Object,
@@ -255,6 +253,11 @@ class SelectedReportContainer extends React.Component<Props, State> {
     );
   }
 
+  removeReads = (entityKeyIds, isVehicle) => {
+    const { actions } = this.props;
+    actions.toggleDeleteReadsModal({ entityKeyIds, isVehicle });
+  }
+
   renderRead = (readObj) => {
     const { expanded } = this.state;
     const { departmentOptions, deviceOptions } = this.props;
@@ -282,7 +285,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
         <InnerRow>
           <span>{dateTimeStr}</span>
           <InnerRow>
-            <SubtleButton onClick={() => this.removeReads([associationEntityKeyId])} noHover>Remove</SubtleButton>
+            <SubtleButton onClick={() => this.removeReads(Set.of(associationEntityKeyId))} noHover>Remove</SubtleButton>
             <SubtleButton onClick={onExpand} noHover>
               <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
             </SubtleButton>
@@ -300,9 +303,9 @@ class SelectedReportContainer extends React.Component<Props, State> {
 
     const state = reads.first().getIn(['neighborDetails', PROPERTY_TYPES.STATE, 0], 'CA');
 
-    const readIds = reads.map(read => getEntityKeyId(read.get('associationDetails', Map()))).toJS();
+    const readIds = reads.map(read => getEntityKeyId(read.get('associationDetails', Map()))).toSet();
 
-    const removeButton = <SubtleButton onClick={() => this.removeReads(readIds)} noHover>Remove</SubtleButton>;
+    const removeButton = <SubtleButton onClick={() => this.removeReads(readIds, true)} noHover>Remove</SubtleButton>;
 
     return (
       <VehicleSection key={plate}>
@@ -369,6 +372,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const reports = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
   const edm = state.get(STATE.EDM);
+  const app = state.get(STATE.APP);
   const submit = state.get(STATE.SUBMIT);
 
   const entityKeyId = reports.get(REPORT.SELECTED_REPORT);

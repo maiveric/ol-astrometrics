@@ -111,8 +111,8 @@ export const REPORT = {
   NEW_REPORT_NAME: 'newReportName',
   NEW_REPORT_CASE: 'newReportCase',
   REPORT_TO_DELETE: 'reportToDelete',
-  VEHICLE_TO_DELETE: 'vehicleToDelete',
-  READ_TO_DELETE: 'readToDelete'
+  READS_TO_DELETE: 'readsToDelete',
+  IS_REMOVING_ENTIRE_VEHICLE: 'isRemovingEntireVehicle'
 };
 
 export const PARAMETERS = {

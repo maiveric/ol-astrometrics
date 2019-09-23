@@ -21,10 +21,12 @@ import { APP } from '../../utils/constants/StateConstants';
 import { getAppFromState, getEntitySetId, getUserIdFromState } from '../../utils/AppUtils';
 import {
   DELETE_ENTITY,
+  DELETE_ENTITIES,
   PARTIAL_REPLACE_ENTITY,
   REPLACE_ENTITY,
   SUBMIT,
   deleteEntity,
+  deleteEntities,
   partialReplaceEntity,
   replaceEntity,
   submit
@@ -135,6 +137,36 @@ function* deleteEntityWorker(action) {
 
 function* deleteEntityWatcher() {
   yield takeEvery(DELETE_ENTITY, deleteEntityWorker);
+}
+
+function* deleteEntitiesWorker(action) {
+  try {
+    yield put(deleteEntities.request(action.id));
+    const {
+      entityKeyIds,
+      entitySetId,
+      callback
+    } = action.value;
+
+    const requests = entityKeyIds.map(entityKeyId => call(DataApi.deleteEntity, entitySetId, entityKeyId, 'Soft'));
+
+    yield all(requests);
+
+    yield put(deleteEntities.success(action.id));
+    if (callback) {
+      callback();
+    }
+  }
+  catch (error) {
+    yield put(deleteEntities.failure(action.id, error));
+  }
+  finally {
+    yield put(deleteEntities.finally(action.id));
+  }
+}
+
+export function* deleteEntitiesWatcher() {
+  yield takeEvery(DELETE_ENTITIES, deleteEntitiesWorker);
 }
 
 function* partialReplaceEntityWorker(action) {

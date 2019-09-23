@@ -78,6 +78,7 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* SubmitSagas */
     fork(SubmitSagas.deleteEntityWatcher),
+    fork(SubmitSagas.deleteEntitiesWatcher),
     fork(SubmitSagas.partialReplaceEntityWatcher),
     fork(SubmitSagas.replaceEntityWatcher),
     fork(SubmitSagas.submitWatcher)

@@ -180,7 +180,7 @@ class AllReportsContainer extends React.Component<Props, State> {
     }
 
     else if (selectedReportId) {
-      content = <SelectedReportContainer />
+      content = <SelectedReportContainer />;
     }
 
     else {
