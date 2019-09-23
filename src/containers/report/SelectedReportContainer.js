@@ -14,15 +14,11 @@ import {
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronUp, faChevronDown } from '@fortawesome/pro-light-svg-icons';
 
 import ReportRow from './ReportRow';
 import Spinner from '../../components/spinner/Spinner';
-import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import ReportVehicleInfo from '../../components/vehicles/ReportVehicleInfo';
@@ -30,23 +26,18 @@ import { VehicleHeader } from '../../components/vehicles/VehicleCard';
 import { SidebarHeader } from '../../components/body/Sidebar';
 import {
   STATE,
-  ALERTS,
   REPORT,
-  EDM,
   PARAMETERS,
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
-  entityKeyId :string,
   report :Map,
   isLoadingReports :boolean,
   isSubmitting :boolean,
@@ -372,13 +363,11 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const reports = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
   const edm = state.get(STATE.EDM);
-  const app = state.get(STATE.APP);
   const submit = state.get(STATE.SUBMIT);
 
   const entityKeyId = reports.get(REPORT.SELECTED_REPORT);
 
   return {
-    entityKeyId,
     report: reports.getIn([REPORT.REPORTS, entityKeyId]),
     reportReads: reports.getIn([REPORT.READS_BY_REPORT, entityKeyId], Set()),
     isLoadingReports: reports.get(REPORT.IS_LOADING_REPORTS),

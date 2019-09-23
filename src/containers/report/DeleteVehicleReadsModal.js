@@ -31,21 +31,12 @@ const { OPENLATTICE_ID_FQN } = Constants;
 type Props = {
   isSubmitting :boolean,
   isRemovingEntireVehicle :boolean,
-  entityKeyId :string,
   entitySetId :string,
-  report :Map,
   read :Map,
   readsToRemove :Set,
   actions :{
-    toggleReportModal :(isOpen :boolean) => void,
-    setReportValue :({ field :string, value :string }) => void,
-    submit :(
-      values :Object,
-      config :Object,
-      includeUserId :boolean,
-      callback :Function
-    ) => void,
-    replaceEntity :(
+    toggleDeleteReadsModal :(isOpen :boolean) => void,
+    deleteEntities :(
       entityKeyId :string,
       entitySetId :string,
       values :Object,
@@ -225,19 +216,15 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const entityKeyId = reports.get(REPORT.SELECTED_REPORT);
   const reportReads = reports.getIn([REPORT.READS_BY_REPORT, entityKeyId], Set());
   const readAssocEntityKeyId = reports.get(REPORT.READS_TO_DELETE).first();
-  const readNeighborToRemove = reportReads.find(n => n.getIn(['associationDetails', OPENLATTICE_ID_FQN, 0]) === readAssocEntityKeyId);
+  const readNeighborToRemove = reportReads
+    .find(n => n.getIn(['associationDetails', OPENLATTICE_ID_FQN, 0]) === readAssocEntityKeyId);
   const read = readNeighborToRemove ? readNeighborToRemove.get('neighborDetails', Map()) : null;
 
-  console.log({ entityKeyId, reportReads, readAssocEntityKeyId, readNeighborToRemove, read });
-
   return {
-    entityKeyId,
     entitySetId: getEntitySetId(app, APP_TYPES.REGISTERED_FOR),
     isRemovingEntireVehicle: reports.get(REPORT.IS_REMOVING_ENTIRE_VEHICLE),
     readsToRemove: reports.get(REPORT.READS_TO_DELETE),
-    report: reports.getIn([REPORT.REPORTS, entityKeyId]),
     read,
-    caseNum: reports.get(REPORT.NEW_REPORT_CASE),
     isSubmitting: submit.get(SUBMIT.SUBMITTING)
   };
 }
