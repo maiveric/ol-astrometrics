@@ -85,15 +85,6 @@ const SpaceBetweenRow = styled.div`
   justify-content: space-between;
 `;
 
-const HeaderLabel = styled.div`
-  padding-top: 56px;
-  font-weight: 600;
-  font-size: 20px;
-  line-height: 150%;
-  padding-bottom: 24px;
-  color: #ffffff;
-`;
-
 const ReadBreakdowns = styled.div`
   width: 100%;
   display: flex;
@@ -118,6 +109,13 @@ const cellStyle = css`
       cursor: pointer;
     }
   ` : '')}
+
+  ${props => (props.bold ? css`
+    font-weight: 600;
+    border-top: 1px solid #36353B;
+  ` : css`
+    border: none;
+  `)}
 `;
 
 const StyledCell = styled(Cell).attrs(({ light }) => ({
@@ -161,6 +159,11 @@ class QualityContributions extends React.Component<Props, State> {
 
     const getOnClick = key => () => actions.loadQualityDeviceData(key);
 
+    let total = 0;
+    counts.valueSeq().forEach((v) => {
+      total += v;
+    });
+
     return (
       <Table isLoading={isLoadingAgencies}>
         <tbody>
@@ -179,6 +182,10 @@ class QualityContributions extends React.Component<Props, State> {
               </tr>
             );
           })}
+          <tr>
+            <StyledCell bold>Total</StyledCell>
+            <StyledCell bold>{total}</StyledCell>
+          </tr>
         </tbody>
       </Table>
     );
@@ -197,10 +204,10 @@ class QualityContributions extends React.Component<Props, State> {
     return (
       <Table light isLoading={isLoadingDevices}>
         <tbody>
-          <LightRow>
-            <StyledHeaderCell light>Device</StyledHeaderCell>
-            <StyledHeaderCell light>Count</StyledHeaderCell>
-          </LightRow>
+          <tr>
+            <StyledHeaderCell>Device</StyledHeaderCell>
+            <StyledHeaderCell>Count</StyledHeaderCell>
+          </tr>
           {counts.entrySeq().map(([key, value]) => (
             <LightRow key={key}>
               <StyledCell light>{devicesById.get(key, 'Unknown')}</StyledCell>
