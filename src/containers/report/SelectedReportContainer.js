@@ -3,7 +3,8 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
+import ReactToPrint from 'react-to-print';
+import styled, { css } from 'styled-components';
 import moment from 'moment';
 import {
   Set,
@@ -66,6 +67,12 @@ type Props = {
 type State = {
   expanded :Set
 };
+
+const printableStyle = css`
+ ${props => (props.printable ? css`
+   color: black !important;
+  ` : '')}
+`;
 
 const Wrapper = styled.div`
   position: absolute;
@@ -132,6 +139,7 @@ const ReadRow = styled.div`
   padding: 16px;
   color: #CAC9CE;
   font-size: 14px;
+  ${printableStyle}
 `;
 
 const ReportDetails = styled.div`
@@ -142,11 +150,26 @@ const ReportDetails = styled.div`
   font-weight: 600;
   font-size: 24px;
   padding-top: 8px;
+  ${printableStyle}
 
   span {
     color: #807f85;
     padding-left: 10px;
   }
+`;
+
+const Print = styled.div`
+  width: 100%;
+  padding-bottom: 20px;
+  display: flex;
+  justify-content: center;
+`;
+
+const PrintableContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  padding: 30px;
 `;
 
 const EvenlySpacedRow = styled(Row)`
@@ -166,6 +189,12 @@ const InnerRow = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+`;
+
+const HiddenContent = styled.div`
+  max-height: 0;
+  max-width: 0;
+  overflow: hidden;
 `;
 
 class SelectedReportContainer extends React.Component<Props, State> {
@@ -249,7 +278,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
     actions.toggleDeleteReadsModal({ entityKeyIds, isVehicle });
   }
 
-  renderRead = (readObj) => {
+  renderRead = (readObj, isPrinting) => {
     const { expanded } = this.state;
     const { departmentOptions, deviceOptions } = this.props;
 
@@ -258,39 +287,49 @@ class SelectedReportContainer extends React.Component<Props, State> {
       return null;
     }
 
-
     const entityKeyId = getEntityKeyId(read);
     const associationEntityKeyId = getEntityKeyId(readObj.get('associationDetails'));
 
-    const isExpanded = expanded.has(entityKeyId);
+    const isExpanded = isPrinting || expanded.has(entityKeyId);
 
     const dateTime = moment(read.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
     const dateTimeStr = dateTime.isValid() ? dateTime.format('MM/DD/YYYY hh:mm a') : 'Date unknown';
 
-    const onExpand = () => isExpanded
+    const onExpand = () => (isExpanded
       ? this.setState({ expanded: expanded.delete(entityKeyId) })
-      : this.setState({ expanded: expanded.add(entityKeyId) })
+      : this.setState({ expanded: expanded.add(entityKeyId) }));
+
+    const onRemoveFromReport = () => this.removeReads(Set.of(associationEntityKeyId));
 
     return (
-      <ReadRow key={entityKeyId}>
+      <ReadRow key={entityKeyId} printable={isPrinting}>
         <InnerRow>
           <span>{dateTimeStr}</span>
           <InnerRow>
-            <SubtleButton onClick={() => this.removeReads(Set.of(associationEntityKeyId))} noHover>Remove</SubtleButton>
-            <SubtleButton onClick={onExpand} noHover>
-              <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
-            </SubtleButton>
+            { isPrinting ? null : (
+              <>
+                <SubtleButton onClick={onRemoveFromReport} noHover>Remove</SubtleButton>
+                <SubtleButton onClick={onExpand} noHover>
+                  <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
+                </SubtleButton>
+              </>
+            )}
           </InnerRow>
         </InnerRow>
         { isExpanded
-          ? <ReportVehicleInfo read={read} departmentOptions={departmentOptions} deviceOptions={deviceOptions} />
-          : null
+          ? (
+            <ReportVehicleInfo
+                read={read}
+                departmentOptions={departmentOptions}
+                deviceOptions={deviceOptions}
+                printable={isPrinting} />
+          ) : null
         }
       </ReadRow>
     );
   }
 
-  renderVehicleGroup = (plate, reads) => {
+  renderVehicleGroup = (plate, reads, isPrinting) => {
 
     const state = reads.first().getIn(['neighborDetails', PROPERTY_TYPES.STATE, 0], 'CA');
 
@@ -300,17 +339,17 @@ class SelectedReportContainer extends React.Component<Props, State> {
 
     return (
       <VehicleSection key={plate}>
-        <VehicleHeader plate={plate} state={state} addButton={removeButton} />
+        <VehicleHeader plate={plate} state={state} addButton={removeButton} printable={isPrinting} />
         <ReadsWrapper>
-          {reads.map(this.renderRead)}
+          {reads.map(read => this.renderRead(read, isPrinting))}
         </ReadsWrapper>
       </VehicleSection>
     );
   }
 
-  renderVehiclesAndReads = () => {
+  renderVehiclesAndReads = (isPrinting) => {
     const readsByVehicle = this.groupReadsByVehicle();
-    return readsByVehicle.entrySeq().map(([plate, reads]) => this.renderVehicleGroup(plate, reads));
+    return readsByVehicle.entrySeq().map(([plate, reads]) => this.renderVehicleGroup(plate, reads, isPrinting));
   }
 
   renderHeader = () => {
@@ -320,10 +359,16 @@ class SelectedReportContainer extends React.Component<Props, State> {
     const caseNum = getValue(report, PROPERTY_TYPES.TYPE);
 
     const reportDetails = (
-      <ReportDetails>
-        <div>{name}</div>
-        <span>{caseNum}</span>
-      </ReportDetails>
+      <EvenlySpacedRow>
+        <ReportDetails>
+          <div>{name}</div>
+          <span>{caseNum}</span>
+        </ReportDetails>
+        <ReactToPrint
+            pageStyle={{ padding: '30px' }}
+            trigger={() => <InfoButton>Generate PDF</InfoButton>}
+            content={() => this.reportRef} />
+      </EvenlySpacedRow>
     );
 
     return (
@@ -335,6 +380,28 @@ class SelectedReportContainer extends React.Component<Props, State> {
             mainContent={reportDetails} />
       </Header>
     );
+  }
+
+  renderPrintableReport = () => {
+    const { report } = this.props;
+
+    const name = getValue(report, PROPERTY_TYPES.NAME);
+    const caseNum = getValue(report, PROPERTY_TYPES.TYPE);
+
+    return (
+      <HiddenContent>
+        <PrintableContent
+            ref={(ref) => {
+              this.reportRef = ref
+            }}>
+          <ReportDetails printable>
+            <div>{name}</div>
+            <span>{caseNum}</span>
+          </ReportDetails>
+          {this.renderVehiclesAndReads(true)}
+        </PrintableContent>
+      </HiddenContent>
+    )
   }
 
   render() {
@@ -352,6 +419,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
       <Wrapper>
         {this.renderHeader()}
         {this.renderVehiclesAndReads()}
+        {this.renderPrintableReport()}
       </Wrapper>
     );
   }
