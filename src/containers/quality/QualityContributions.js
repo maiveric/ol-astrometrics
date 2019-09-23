@@ -45,6 +45,7 @@ type Props = {
   isLoadingAgencies :boolean;
   isLoadingDevices :boolean;
   dashboardWindow :string;
+  selectedAgencyId :string;
   counts :Map<*>;
   startDate :Object,
   endDate :Object,
@@ -100,7 +101,7 @@ const ReadBreakdowns = styled.div`
   justify-content: space-between;
 
   section {
-    width: 49%;
+    width: 50%;
     display: flex;
     flex-direction: column;
   }
@@ -152,7 +153,8 @@ class QualityContributions extends React.Component<Props, State> {
       actions,
       isLoadingAgencies,
       agenciesById,
-      agencyCounts
+      agencyCounts,
+      selectedAgencyId
     } = this.props;
 
     const counts = this.sortCountMap(agencyCounts);
@@ -160,25 +162,25 @@ class QualityContributions extends React.Component<Props, State> {
     const getOnClick = key => () => actions.loadQualityDeviceData(key);
 
     return (
-      <>
-        <HeaderLabel>Agency contributions</HeaderLabel>
+      <Table isLoading={isLoadingAgencies}>
+        <tbody>
+          <tr>
+            <StyledHeaderCell>Agency</StyledHeaderCell>
+            <StyledHeaderCell>Count</StyledHeaderCell>
+          </tr>
+          {counts.entrySeq().map(([key, value]) => {
+            const onClick = getOnClick(key);
+            const selected = selectedAgencyId === key;
 
-        <Table isLoading={isLoadingAgencies}>
-          <tbody>
-            <tr>
-              <StyledHeaderCell>Agency</StyledHeaderCell>
-              <StyledHeaderCell>Count</StyledHeaderCell>
-            </tr>
-            {counts.entrySeq().map(([key, value]) => (
+            return (
               <tr key={key}>
-                <StyledCell clickable onClick={getOnClick(key)}>{agenciesById.get(key, 'Unknown')}</StyledCell>
-                <StyledCell clickable onClick={getOnClick(key)}>{value}</StyledCell>
+                <StyledCell clickable light={selected} onClick={onClick}>{agenciesById.get(key, 'Unknown')}</StyledCell>
+                <StyledCell clickable light={selected} onClick={onClick}>{value}</StyledCell>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-
-      </>
+            );
+          })}
+        </tbody>
+      </Table>
     );
   }
 
@@ -193,45 +195,39 @@ class QualityContributions extends React.Component<Props, State> {
     const counts = this.sortCountMap(deviceCounts);
 
     return (
-      <>
-        <HeaderLabel>Device contributions</HeaderLabel>
-
-        <Table light isLoading={isLoadingDevices}>
-          <tbody>
-            <LightRow>
-              <StyledHeaderCell light>Device</StyledHeaderCell>
-              <StyledHeaderCell light>Count</StyledHeaderCell>
+      <Table light isLoading={isLoadingDevices}>
+        <tbody>
+          <LightRow>
+            <StyledHeaderCell light>Device</StyledHeaderCell>
+            <StyledHeaderCell light>Count</StyledHeaderCell>
+          </LightRow>
+          {counts.entrySeq().map(([key, value]) => (
+            <LightRow key={key}>
+              <StyledCell light>{devicesById.get(key, 'Unknown')}</StyledCell>
+              <StyledCell light>{value}</StyledCell>
             </LightRow>
-            {counts.entrySeq().map(([key, value]) => (
-              <LightRow key={key}>
-                <StyledCell light>{devicesById.get(key, 'Unknown')}</StyledCell>
-                <StyledCell light>{value}</StyledCell>
-              </LightRow>
-            ))}
-          </tbody>
-        </Table>
-
-      </>
+          ))}
+        </tbody>
+      </Table>
     );
   }
 
   renderReadBreakdowns = () => {
-    const {
-      isLoadingAgencies,
-      isLoadingDevices,
-      agenciesById,
-      agencyCounts,
-      deviceCounts
-    } = this.props;
+    const { selectedAgencyId } = this.props;
 
     return (
       <ReadBreakdowns>
         <section>
           {this.renderAgencyBreakdown()}
         </section>
-        <section>
-          {this.renderDeviceBreakdown()}
-        </section>
+
+        {
+          selectedAgencyId ? (
+            <section>
+              {this.renderDeviceBreakdown()}
+            </section>
+          ) : null
+        }
       </ReadBreakdowns>
     );
   }
@@ -242,8 +238,7 @@ class QualityContributions extends React.Component<Props, State> {
       actions,
       isLoadingEdm,
       isLoadingResults,
-      dashboardWindow,
-      agenciesById
+      dashboardWindow
     } = this.props;
 
     if (isLoadingEdm || isLoadingResults) {
