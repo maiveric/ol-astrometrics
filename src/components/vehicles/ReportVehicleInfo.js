@@ -13,7 +13,8 @@ import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 type Props = {
   read :Map<*, *>,
   departmentOptions :Map,
-  deviceOptions :Map
+  deviceOptions :Map,
+  printable :boolean
 };
 
 const Card = styled.div`
@@ -73,7 +74,7 @@ const Details = styled.article`
     font-size: 14px;
     line-height: 150%;
     font-weight: 500;
-    color: #ffffff;
+    color: ${props => (props.printable ? 'black' : '#ffffff')};
 
     span {
       color: #807F85;
@@ -84,7 +85,8 @@ const Details = styled.article`
 const ReportVehicleInfo = ({
   read,
   departmentOptions,
-  deviceOptions
+  deviceOptions,
+  printable
 } :Props) => {
 
   const vehicleSrc = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
@@ -120,7 +122,7 @@ const ReportVehicleInfo = ({
         </article>
       </Photos>
 
-      <Details>
+      <Details printable={printable}>
         <article>
           <span>Make/model</span>
           <div>{makeModel}</div>

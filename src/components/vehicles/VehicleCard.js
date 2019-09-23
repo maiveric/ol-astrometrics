@@ -67,9 +67,10 @@ const HeaderRow = styled(BasicRow)`
 
     span {
       padding: 2px 5px;
-      background-color: #98979D;
+      background-color: ${props => (props.printable ? '#ffffff' : '#98979D')};
       border-radius: 5px;
-      color: #070709;
+      border: ${props => (props.printable ? '1px solid black' : 'none')};
+      color: ${props => (props.printable ? 'black' : '#070709')};
       font-size: 11px;
       font-weight: bold;
       display: flex;
@@ -81,7 +82,7 @@ const HeaderRow = styled(BasicRow)`
       padding-left: 8px;
       font-weight: 600;
       font-size: 16px;
-      color: #ffffff;
+      color: ${props => (props.printable ? 'black' : '#ffffff')};
     }
 
   }
@@ -137,9 +138,10 @@ export const VehicleHeader = ({
   plate,
   isHit,
   addButton,
-  noPadding
+  noPadding,
+  printable
 }) => (
-  <HeaderRow noPadding={noPadding}>
+  <HeaderRow noPadding={noPadding} printable={printable}>
     <div>
       <span>{state}</span>
       <div>{plate}</div>
