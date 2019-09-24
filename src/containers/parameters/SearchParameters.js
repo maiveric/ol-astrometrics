@@ -754,19 +754,6 @@ class SearchParameters extends React.Component<Props, State> {
                     </InputGroup>
                   </Row>
 
-                  <Row>
-                    <InputGroup>
-                      <span>Label</span>
-                      <StyledSearchableSelect
-                          value={searchParameters.get(PARAMETERS.LABEL)}
-                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.LABEL, value })}
-                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.LABEL, value: '' })}
-                          options={this.getAsMap(LABELS)}
-                          selectOnly
-                          openAbove
-                          short />
-                    </InputGroup>
-                  </Row>
                 </MenuSection>
 
 
