@@ -21,6 +21,7 @@ import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Slider from '../../components/controls/Slider';
 import DateTimePicker from '../../components/controls/DateTimePicker';
+import drawIcon from '../../assets/svg/draw-icon.svg';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import { getDisplayNameForId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
@@ -561,9 +562,13 @@ class SearchParameters extends React.Component<Props, State> {
               isDrawMode ? (
                 <Row>
                   <HelperText>
-                    {`Start defining multiple search zones by clicking Draw on the top right corner of the map.
-                      Click and release to place a corner of a polygon, and click a placed corner a second time
-                      to complete a polygon. Click then drag any corner to edit.`}
+                    <span>Start defining multiple search zones by clicking the </span>
+                    <img src={drawIcon} />
+                    <span>
+                      {` draw button on the top right corner of the map.
+                        Click and release to place a corner of a polygon, and click a placed corner a second time
+                        to complete a polygon. Click then drag any corner to edit.`}
+                    </span>
                   </HelperText>
                 </Row>
               ) : (
