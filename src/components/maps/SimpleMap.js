@@ -337,24 +337,15 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   onPointClick = (e) => {
-    const { selectEntity, selectedEntityKeyIds } = this.props;
+    const { selectEntity } = this.props;
 
     const { features } = e;
     if (features && features.length > 0) {
       const { properties } = features[0];
       if (properties) {
         const { entityKeyId } = properties;
-        const value = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
-        selectEntity(value);
+        selectEntity(entityKeyId);
       }
-    }
-  }
-
-  onMapClick = () => {
-    const { selectEntity, selectedEntityKeyIds } = this.props;
-
-    if (selectedEntityKeyIds.size) {
-      selectEntity();
     }
   }
 
@@ -421,7 +412,6 @@ class SimpleMap extends React.Component<Props, State> {
             onStyleLoad={(map) => {
               map.on('click', LAYERS.DATA_POINTS, this.onPointClick);
             }}
-            onClick={this.onMapClick}
             containerStyle={{
               height: '100%',
               width: '100%'

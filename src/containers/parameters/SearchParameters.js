@@ -15,7 +15,6 @@ import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
 import { faBell } from '@fortawesome/pro-solid-svg-icons';
 import type { RequestSequence } from 'redux-reqseq';
 
-import Sidebar from '../../components/body/Sidebar';
 import InfoButton from '../../components/buttons/InfoButton';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
@@ -23,7 +22,6 @@ import Slider from '../../components/controls/Slider';
 import DateTimePicker from '../../components/controls/DateTimePicker';
 import drawIcon from '../../assets/svg/draw-icon.svg';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
-import { getDisplayNameForId } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getSearchFields } from './ParametersReducer';
 import {
@@ -32,8 +30,7 @@ import {
   MODELS_BY_MAKE,
   COLORS,
   ACCESSORIES,
-  STYLES,
-  LABELS
+  STYLES
 } from '../../utils/constants/DataConstants';
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import {
@@ -657,7 +654,7 @@ class SearchParameters extends React.Component<Props, State> {
               <InputGroup>
                 <span>Department (optional)</span>
                 <StyledSearchableSelect
-                    value={getDisplayNameForId(agencyOptions, searchParameters.get(PARAMETERS.DEPARTMENT))}
+                    value={searchParameters.get(PARAMETERS.DEPARTMENT)}
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value })}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value: '' })}
                     options={agencyOptions}
@@ -668,7 +665,7 @@ class SearchParameters extends React.Component<Props, State> {
               <InputGroup>
                 <span>Device (optional)</span>
                 <StyledSearchableSelect
-                    value={getDisplayNameForId(deviceOptions, searchParameters.get(PARAMETERS.DEVICE))}
+                    value={searchParameters.get(PARAMETERS.DEVICE)}
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
                     options={deviceOptions}
