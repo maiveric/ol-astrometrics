@@ -58,7 +58,7 @@ const getDataAsMap = (entities) => {
     map = map.set(id, formatNameIdForDisplay(entity));
   });
 
-  return map;
+  return map.sort();
 };
 
 function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, *, *> {
