@@ -21,6 +21,7 @@ import * as Routes from '../../core/router/Routes';
 import { loadApp } from './AppActions';
 import { termsAreAccepted } from '../../utils/CookieUtils';
 import { APP_NAME } from '../../utils/constants/Constants';
+import { STATE, APP } from '../../utils/constants/StateConstants';
 import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
@@ -57,6 +58,7 @@ type Props = {
     loadDepartmentsAndDevices :RequestSequence;
   };
   isLoadingApp :boolean;
+  isAdmin :boolean;
 };
 
 class AppContainer extends Component<Props> {
@@ -69,7 +71,7 @@ class AppContainer extends Component<Props> {
 
   renderAppContent = () => {
 
-    const { isLoadingApp } = this.props;
+    const { isLoadingApp, isAdmin } = this.props;
     if (isLoadingApp) {
       return (
         <Spinner />
@@ -83,8 +85,14 @@ class AppContainer extends Component<Props> {
     return (
       <Switch>
         <Route path={Routes.EXPLORE} component={ExploreContainer} />
-        <Route path={Routes.AUDIT} component={AuditContainer} />
-        <Route path={Routes.QUALITY} component={QualityContainer} />
+        {
+          isAdmin ? (
+            <>
+              <Route path={Routes.AUDIT} component={AuditContainer} />
+              <Route path={Routes.QUALITY} component={QualityContainer} />
+            </>
+          ) : null
+        }
         <Redirect to={Routes.EXPLORE} />
       </Switch>
     );
@@ -109,6 +117,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
   return {
     isLoadingApp: state.getIn(['app', 'isLoadingApp'], false),
+    isAdmin: state.getIn([STATE.APP, APP.IS_ADMIN], false)
   };
 }
 
