@@ -21,7 +21,16 @@ function getDomain() {
   return `${prefix}${domain}`;
 }
 
-const isSafari = () => /constructor/i.test(window.HTMLElement) || (p => p.toString() === '[object SafariRemoteNotification]')(!window.safari || (typeof safari !== 'undefined' && safari.pushNotification));
+const isSafari = () => {
+  let { userAgent } = navigator;
+  userAgent = userAgent.toLowerCase();
+
+  if (userAgent.indexOf('safari') !== -1) {
+    return userAgent.indexOf('chrome') < 0;
+  }
+
+  return false;
+};
 
 const updateCookie = (cookieName, value) => {
   const { hostname } = window.location;
