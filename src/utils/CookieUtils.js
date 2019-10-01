@@ -1,3 +1,4 @@
+import moment from 'moment';
 import cookies from 'js-cookie';
 import { fromJS } from 'immutable';
 import { AuthUtils } from 'lattice-auth';
@@ -20,8 +21,16 @@ function getDomain() {
   return `${prefix}${domain}`;
 }
 
+const isSafari = () => /constructor/i.test(window.HTMLElement) || (p => p.toString() === '[object SafariRemoteNotification]')(!window.safari || (typeof safari !== 'undefined' && safari.pushNotification));
+
 const updateCookie = (cookieName, value) => {
   const { hostname } = window.location;
+
+  if (isSafari()) {
+    const expiration = getAuthTokenExpiration();
+    localStorage.setItem(cookieName, JSON.stringify({ expiration, value }));
+  }
+
   cookies.set(cookieName, value, {
     SameSite: 'strict',
     domain: getDomain(),
@@ -31,17 +40,43 @@ const updateCookie = (cookieName, value) => {
   });
 };
 
+const getCookie = (key) => {
+
+  if (isSafari()) {
+    const object = localStorage.getItem(key);
+    if (!object) {
+      return undefined;
+    }
+
+    const { expiration, value } = JSON.parse(object);
+    if (expiration && moment(expiration).isBefore(moment())) {
+      localStorage.removeItem(key);
+      return undefined;
+    }
+
+    return value;
+  }
+
+  return cookies.get(key);
+};
+
 export const clearCookies = () => {
   const domain = getDomain();
   const path = '/';
 
-  ALL_COOKIES.forEach((cookieName) => {
-    cookies.remove(cookieName, { domain, path });
-  });
+  if (isSafari()) {
+    ALL_COOKIES.forEach((key) => {
+      localStorage.removeItem(key);
+    });
+  }
+  else {
+    ALL_COOKIES.forEach((cookieName) => {
+      cookies.remove(cookieName, { domain, path });
+    });
+  }
 };
 
-
-export const getPreviousLicensePlateSearches = () => fromJS(JSON.parse(cookies.get(LICENSE_PLATE_SEARCHES) || '[]'));
+export const getPreviousLicensePlateSearches = () => fromJS(JSON.parse(getCookie(LICENSE_PLATE_SEARCHES) || '[]'));
 
 export const saveLicensePlateSearch = (plate) => {
   const plateList = getPreviousLicensePlateSearches().unshift(plate);
@@ -49,7 +84,7 @@ export const saveLicensePlateSearch = (plate) => {
 };
 
 export function termsAreAccepted() {
-  return cookies.get(TERMS_ACCEPTED_TOKEN);
+  return getCookie(TERMS_ACCEPTED_TOKEN);
 }
 
 export function acceptTerms() {
