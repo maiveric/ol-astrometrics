@@ -130,19 +130,24 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     return vehicle;
   }
 
+  getLatLong = (entityKeyId) => {
+    const { entitiesById } = this.props;
+
+    return getCoordinates(entitiesById.get(entityKeyId, Map()));
+  }
+
   openGoogleMaps = (e, entityKeyId) => {
     const { entitiesById } = this.props;
 
     e.stopPropagation();
 
-    const [longitude, latitude] = getCoordinates(entitiesById.get(entityKeyId, Map()));
+    const [longitude, latitude] = this.getLatLong(entityKeyId);
     const path = `http://www.google.com/maps/place/${latitude},${longitude}`;
     window.open(path, '_blank');
   }
 
   renderSelectedReadDetails = () => {
     const {
-      actions,
       departmentOptions,
       deviceOptions,
       entitiesById,
@@ -174,6 +179,9 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
     details.Year = read.get(PROPERTY_TYPES.YEAR, List()).join(', ');
     details.Accessories = read.get(PROPERTY_TYPES.ACCESSORIES, List()).join(', ');
+
+    const [longitude, latitude] = this.getLatLong(selectedReadId);
+    details['Lat/Long'] = `${latitude}, ${longitude}`;
 
     const vehicleSrc = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
     const plateSrc = read.getIn([PROPERTY_TYPES.LICENSE_PLATE_IMAGE, 0]);
