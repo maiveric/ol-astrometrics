@@ -12,7 +12,7 @@ declare type RoutingAction = {
 const GO_TO_ROOT :'GO_TO_ROOT' = 'GO_TO_ROOT';
 function goToRoot() :RoutingAction {
   return {
-    path: Routes.ROOT,
+    path: Routes.EXPLORE,
     type: GO_TO_ROOT,
   };
 }
