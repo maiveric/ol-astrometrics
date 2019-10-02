@@ -496,8 +496,9 @@ class SearchParameters extends React.Component<Props, State> {
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.REASON)}
                     searchPlaceholder="Select"
-                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.REASON, value })}
                     options={this.getAsMap(SEARCH_REASONS)}
+                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.REASON, value })}
+                    onClear={() => actions.updateSearchParameters({ field: PARAMETERS.REASON, value: '' })}
                     selectOnly
                     short />
               </InputGroup>
