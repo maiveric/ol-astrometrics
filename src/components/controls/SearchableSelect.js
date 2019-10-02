@@ -59,7 +59,7 @@ const inputStyle = `
     outline: none;
   }
 
-  &:hover {
+  &:hover:enabled {
     background: #4F4E54;
     cursor: pointer;
   }
