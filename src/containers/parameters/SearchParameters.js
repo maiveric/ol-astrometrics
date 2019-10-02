@@ -471,6 +471,15 @@ class SearchParameters extends React.Component<Props, State> {
       deviceOptions
     } = this.props;
 
+    let makeSearchPlaceholder;
+
+    if (!searchParameters.get(PARAMETERS.MAKE)) {
+      makeSearchPlaceholder = 'You must choose a make first.'
+    }
+    else if (!MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)]) {
+      makeSearchPlaceholder = 'No models available.'
+    }
+
     return (
       <SearchParameterWrapper>
         <InnerWrapper>
@@ -709,7 +718,8 @@ class SearchParameters extends React.Component<Props, State> {
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value })}
                           onClear={() => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' })}
                           options={this.getAsMap(MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)] || [])}
-                          disabled={!MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)]}
+                          disabled={!!makeSearchPlaceholder}
+                          searchPlaceholder={makeSearchPlaceholder}
                           openAbove
                           short />
                     </InputGroup>
