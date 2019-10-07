@@ -58,6 +58,7 @@ type Props = {
   isDrawMode :boolean;
   agencyOptions :Map<*>;
   deviceOptions :Map<*>;
+  devicesByAgency :Map<*>;
   isLoadingResults :boolean;
   isLoadingNeighbors :boolean;
   reportVehicles :Set<*>;
@@ -468,17 +469,32 @@ class SearchParameters extends React.Component<Props, State> {
       isDrawMode,
       noAddressResults,
       agencyOptions,
-      deviceOptions
+      deviceOptions,
+      devicesByAgency
     } = this.props;
 
     let makeSearchPlaceholder;
 
     if (!searchParameters.get(PARAMETERS.MAKE)) {
-      makeSearchPlaceholder = 'You must choose a make first.'
+      makeSearchPlaceholder = 'You must choose a make first.';
     }
     else if (!MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)]) {
-      makeSearchPlaceholder = 'No models available.'
+      makeSearchPlaceholder = 'No models available.';
     }
+
+    let filteredDeviceOptions = deviceOptions;
+    const agencyId = searchParameters.get(PARAMETERS.DEPARTMENT);
+    if (agencyId) {
+      const devicesForAgency = devicesByAgency.get(agencyId, List());
+      filteredDeviceOptions = deviceOptions.filter((_, deviceId) => devicesForAgency.includes(deviceId));
+    }
+
+    const onAgencyChange = (value) => {
+      if (value !== agencyId) {
+        actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value });
+        actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' });
+      }
+    };
 
     return (
       <SearchParameterWrapper>
@@ -665,7 +681,7 @@ class SearchParameters extends React.Component<Props, State> {
                 <span>Department (optional)</span>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.DEPARTMENT)}
-                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value })}
+                    onSelect={onAgencyChange}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value: '' })}
                     options={agencyOptions}
                     short />
@@ -678,7 +694,7 @@ class SearchParameters extends React.Component<Props, State> {
                     value={searchParameters.get(PARAMETERS.DEVICE)}
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
-                    options={deviceOptions}
+                    options={filteredDeviceOptions}
                     short />
               </InputGroup>
             </Row>
@@ -907,6 +923,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isTopNav: !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     agencyOptions: params.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: params.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
+    devicesByAgency: params.get(SEARCH_PARAMETERS.DEVICES_BY_AGENCY),
 
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };

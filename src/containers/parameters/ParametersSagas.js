@@ -10,12 +10,17 @@ import {
   select,
   takeEvery
 } from '@redux-saga/core/effects';
-import { DataApi } from 'lattice';
-import { fromJS, OrderedMap } from 'immutable';
+import { DataApi, SearchApi } from 'lattice';
+import {
+  fromJS,
+  List,
+  Map,
+  OrderedMap
+} from 'immutable';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
-import { formatNameIdForDisplay } from '../../utils/DataUtils';
+import { formatNameIdForDisplay, getEntityKeyId } from '../../utils/DataUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   GEOCODE_ADDRESS,
@@ -67,17 +72,52 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
 
     const app = yield select(getAppFromState);
 
+    const agenciesEntitySetId = getEntitySetId(app, APP_TYPES.AGENCIES);
+    const devicesEntitySetId = getEntitySetId(app, APP_TYPES.CAMERAS);
+
     const [departments, devices] = yield all([
-      call(DataApi.getEntitySetData, getEntitySetId(app, APP_TYPES.AGENCIES)),
-      call(DataApi.getEntitySetData, getEntitySetId(app, APP_TYPES.CAMERAS))
+      call(DataApi.getEntitySetData, agenciesEntitySetId),
+      call(DataApi.getEntitySetData, devicesEntitySetId)
     ]);
+
+    const immutableDepartments = fromJS(departments);
+
+    const agencyEntityKeyIds = immutableDepartments.map(getEntityKeyId).toJS();
+
+    let devicesByAgencyEntityKeyId = {};
+    if (agencyEntityKeyIds.length) {
+      devicesByAgencyEntityKeyId = yield call(SearchApi.searchEntityNeighborsWithFilter, agenciesEntitySetId, {
+        entityKeyIds: agencyEntityKeyIds,
+        sourceEntitySetIds: [devicesEntitySetId],
+        destinationEntitySetIds: [devicesEntitySetId]
+      });
+    }
+    devicesByAgencyEntityKeyId = fromJS(devicesByAgencyEntityKeyId);
+
+    let devicesByAgency = Map();
+
+    immutableDepartments.forEach((agency) => {
+      const id = agency.getIn([PROPERTY_TYPES.ID, 0]);
+
+      let deviceIds = List();
+      devicesByAgencyEntityKeyId.get(getEntityKeyId(agency), List()).forEach((deviceNeighbor) => {
+
+        const deviceId = deviceNeighbor.getIn(['neighborDetails', PROPERTY_TYPES.ID, 0]);
+        deviceIds = deviceIds.push(deviceId);
+      });
+
+      devicesByAgency = devicesByAgency.set(id, deviceIds);
+    });
 
     yield put(loadDepartmentsAndDevices.success(action.id, {
       departmentOptions: getDataAsMap(departments),
-      deviceOptions: getDataAsMap(devices)
+      deviceOptions: getDataAsMap(devices),
+      devicesByAgency
     }));
   }
+
   catch (error) {
+    console.error(error)
     yield put(loadDepartmentsAndDevices.failure(action.id, error));
   }
   finally {
