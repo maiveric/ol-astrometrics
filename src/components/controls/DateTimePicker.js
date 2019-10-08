@@ -50,8 +50,15 @@ const styles = {
       transition: 'background-color 0.2s ease-in-out, border-color 0.2s ease-in-out',
       ':hover': {
         backgroundColor: '#4F4E54'
-      },
+      }
     };
+    return { ...base, ...style };
+  },
+  input: (base, state) => {
+    const style = {
+      color: '#ffffff'
+    }
+
     return { ...base, ...style };
   },
   menuPortal: base => ({ ...base, zIndex: 550 }),
@@ -102,11 +109,18 @@ const styles = {
 
 const StyledDateTimePicker = (props) => {
 
+  const { onChange } = props;
+
   const allProps = {
+    timeIsEditable: true,
     dateFormat: 'MM/DD/YYYY',
     timeFormat: 'hh:mm a',
     datePickerSelectProps: { styles },
     timePickerSelectProps: { styles },
+    onChange: (time) => {
+      const submitTime = (time).replace(/['pm','am'].*$/g, '');
+      onChange(submitTime);
+    },
     innerProps: {
       style: { border: 'none' }
     }

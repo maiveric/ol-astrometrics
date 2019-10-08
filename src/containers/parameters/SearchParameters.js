@@ -173,13 +173,6 @@ const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-
-  span {
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 10px;
-  }
 `;
 
 const StyledSearchableSelect = styled(SearchableSelect)`
@@ -328,10 +321,23 @@ const ButtonWrapper = styled.button`
 
 `;
 
+const Label = styled.span`
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 10px;
+`;
+
 const InlineGroup = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+
+  margin-bottom: 10px;
+
+  ${Label} {
+    margin-bottom: 0;
+  }
 `;
 
 const HelperText = styled.span`
@@ -422,9 +428,16 @@ class SearchParameters extends React.Component<Props, State> {
 
   onDateTimeChange = (newDate, field) => {
     const { actions } = this.props;
-    const value = newDate.endsWith('T')
+
+    let value = newDate.endsWith('T')
       ? moment(newDate.slice(0, newDate.length - 1)).toISOString(true)
       : newDate;
+
+    const oneYearAgo = moment().subtract(1, 'year');
+    if (moment(value).isBefore(oneYearAgo)) {
+      value = oneYearAgo.toISOString(true);
+    }
+
     actions.updateSearchParameters({ field, value });
   }
 
@@ -504,20 +517,20 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InputGroup>
-                <span>
+                <Label>
                   Case number
                   <Accent>*</Accent>
-                </span>
+                </Label>
                 {this.renderInput(PARAMETERS.CASE_NUMBER)}
               </InputGroup>
             </Row>
 
             <Row>
               <InputGroup>
-                <span>
+                <Label>
                   Search reason
                   <Accent>*</Accent>
-                </span>
+                </Label>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.REASON)}
                     searchPlaceholder="Select"
@@ -544,7 +557,7 @@ class SearchParameters extends React.Component<Props, State> {
             <Row>
               <InputGroup>
                 <InlineGroup>
-                  <span>Full or partial plate </span>
+                  <Label>Full or partial plate </Label>
                   <HelperText offsetLeft> Minimum 3 characters</HelperText>
                 </InlineGroup>
                 <StyledSearchableSelect
@@ -599,7 +612,7 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Street address</span>
+                      <Label>Street address</Label>
                       <StyledSearchableSelect
                           inputValue={searchParameters.get(PARAMETERS.ADDRESS)}
                           searchPlaceholder="Enter address"
@@ -616,7 +629,7 @@ class SearchParameters extends React.Component<Props, State> {
                   <Row>
                     <InputGroup>
                       <InlineGroup>
-                        <span>Search radius</span>
+                        <Label>Search radius</Label>
                         <HelperText offsetLeft>Maximum 50 miles</HelperText>
                       </InlineGroup>
                       <StyledInputWrapper>
@@ -644,7 +657,7 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InputGroup>
-                <span>Search start</span>
+                <Label>Search start</Label>
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       hideIcon
@@ -659,7 +672,7 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InputGroup>
-                <span>Search end</span>
+                <Label>Search end</Label>
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       hideIcon
@@ -678,7 +691,7 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InputGroup>
-                <span>Department (optional)</span>
+                <Label>Department (optional)</Label>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.DEPARTMENT)}
                     onSelect={onAgencyChange}
@@ -689,7 +702,7 @@ class SearchParameters extends React.Component<Props, State> {
             </Row>
             <Row>
               <InputGroup>
-                <span>Device (optional)</span>
+                <Label>Device (optional)</Label>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.DEVICE)}
                     onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
@@ -715,7 +728,7 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Make</span>
+                      <Label>Make</Label>
                       <StyledSearchableSelect
                           value={searchParameters.get(PARAMETERS.MAKE)}
                           onSelect={value => this.onMakeChange(value)}
@@ -728,7 +741,7 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Model</span>
+                      <Label>Model</Label>
                       <StyledSearchableSelect
                           value={searchParameters.get(PARAMETERS.MODEL)}
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value })}
@@ -743,7 +756,7 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Color</span>
+                      <Label>Color</Label>
                       <StyledSearchableSelect
                           value={searchParameters.get(PARAMETERS.COLOR)}
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value })}
@@ -756,7 +769,7 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Accessories</span>
+                      <Label>Accessories</Label>
                       <StyledSearchableSelect
                           value={searchParameters.get(PARAMETERS.ACCESSORIES)}
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value })}
@@ -772,7 +785,7 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <span>Style</span>
+                      <Label>Style</Label>
                       <StyledSearchableSelect
                           value={searchParameters.get(PARAMETERS.STYLE)}
                           onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value })}
