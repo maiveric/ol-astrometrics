@@ -99,12 +99,7 @@ export const getDateSearchTerm = (
 
 export const getDisplayNameForId = (idToNameMap, id) => idToNameMap.get(id, idToNameMap.get(`${id}`));
 
-export const formatNameIdForDisplay = (entity) => {
-  const id = entity.getIn([PROPERTY_TYPES.ID, 0]);
-  const name = entity.getIn([PROPERTY_TYPES.NAME, 0], '[unknown]');
-
-  return `${name} (${id})`;
-};
+export const formatNameIdForDisplay = entity => entity.getIn([PROPERTY_TYPES.NAME, 0], '[unknown]');
 
 export const countWithLabel = (count, label) => `${count} ${label}${count && count > 1 ? 's' : ''}`;
 

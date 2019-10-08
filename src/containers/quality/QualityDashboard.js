@@ -135,7 +135,7 @@ class QualityDashboard extends React.Component<Props, State> {
     const { counts } = this.props;
 
     return (
-      <BarChart color="#34B88B" resourceType="searches" countsMap={counts} />
+      <BarChart color="#34B88B" resourceType="reads" countsMap={counts} />
     );
   }
 

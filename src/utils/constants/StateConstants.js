@@ -91,6 +91,7 @@ export const SEARCH_PARAMETERS = {
   DONE_LOADING_AGENCIES: 'doneLoadingAgencies',
   AGENCY_OPTIONS: 'agencyOptions',
   DEVICE_OPTIONS: 'deviceOptions',
+  DEVICES_BY_AGENCY: 'devicesByAgency',
   DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions',
   SEARCH_PARAMETERS: 'searchParameters'
 };
