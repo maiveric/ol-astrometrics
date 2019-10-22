@@ -4,10 +4,12 @@
 
 import React from 'react';
 
-import Immutable from 'immutable';
+import { Map } from 'immutable';
 import styled, { css } from 'styled-components';
 import { faTimes } from '@fortawesome/pro-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+import Spinner from '../spinner/Spinner';
 import downArrowIcon from '../../assets/svg/down-arrow.svg';
 
 /*
@@ -41,31 +43,44 @@ const SearchInputWrapper = styled.div`
 `;
 
 const inputStyle = `
-  border: 1px solid #dcdce7;
+  width: 100%;
+
+  background-color: #36353B !important;
+  color: #ffffff;
   border-radius: 3px;
-  color: #135;
-  flex: 1 0 auto;
+  border: none;
+  height: 36px;
+  padding: 0 16px;
   font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 24px;
-  outline: none;
-  padding: 0 45px 0 20px;
+
   &:focus {
-    border-color: #6124e2;
+    border: 1px solid #98979D;
+    background: #4F4E54;
+    outline: none;
   }
+
+  &:hover:enabled {
+    background: #4F4E54;
+    cursor: pointer;
+  }
+
   &::placeholder {
     font-family: 'Open Sans', sans-serif;
     font-size: 14px;
-    color: #8e929b;
+    color: #807F85;
   }
 `;
 
-const SearchInput = styled.input.attrs({
+const SearchInput = styled.input.attrs(_ => ({
   type: 'text'
-})`
+}))`
   ${inputStyle}
-  background-color: ${props => (props.transparent ? '#f9f9fd' : '#ffffff')};
+  background-color: ${(props) => {
+    if (props.disabled) {
+      return '#36353B';
+    }
+    return (props.transparent ? '#f9f9fd' : '#36353B');
+  }};
 `;
 
 const SearchIcon = styled.div`
@@ -73,14 +88,16 @@ const SearchIcon = styled.div`
   color: #687F96;
   position: absolute;
   margin: 0 20px;
-  right: 0
+  right: 0;
+  height: 100%;
+  display: flex;
 `;
 
 
 const SearchButton = styled.button`
   ${inputStyle}
   text-align: left;
-  background-color: ${props => (props.transparent ? '#f9f9fd' : '#ffffff')};
+  background-color: ${props => (props.transparent ? '#f9f9fd' : '#36353B')};
 `;
 
 const CloseIcon = styled.div`
@@ -95,28 +112,39 @@ const CloseIcon = styled.div`
 `;
 
 const DataTableWrapper = styled.div`
-  background-color: #fefefe;
-  border-radius: 5px;
-  border: 1px solid #e1e1eb;
+  background-color: #36353B;
+  border-radius: 3px;
   position: absolute;
-  z-index: 1;
+  z-index: 5;
   width: 100%;
   visibility: ${props => (props.isVisible ? 'visible' : 'hidden')}};
-  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
   margin: ${props => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
   bottom: ${props => (props.openAbove ? '45px' : 'auto')};
 `;
 
+const NoContentWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: ${props => (props.searching ? 50 : 30)}px;
+  font-size: 14px;
+  font-weight: 600;
+  font-style: italic;
+  color: #CAC9CE;
+`;
+
 const SearchOption = styled.div`
-  padding: 10px 20px;
+  padding: 7px 24px;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 150%;
+  font-weight: 400;
 
   &:hover {
-    background-color: #f0f0f7;
+    background-color: #4F4E54;
     cursor: pointer;
-  }
-
-  &:active {
-    background-color: #e4d8ff;
   }
 `;
 
@@ -143,11 +171,16 @@ type Props = {
   onSelect :Function,
   short :?boolean,
   value :?string,
+  inputValue :?string,
   onClear? :?() => void,
   transparent? :boolean,
   openAbove? :boolean,
   selectOnly? :boolean,
-  disabled? :boolean
+  disabled? :boolean,
+  isLoadingResults? :boolean,
+  noResults? :boolean,
+  allowFreeEntry? :boolean,
+  inexactMatchesAllowed? :boolean
 }
 
 type State = {
@@ -159,7 +192,7 @@ type State = {
 class SearchableSelect extends React.Component<Props, State> {
 
   static defaultProps = {
-    options: Immutable.List(),
+    options: Map(),
     className: '',
     maxHeight: -1,
     searchPlaceholder: 'Search...',
@@ -171,6 +204,10 @@ class SearchableSelect extends React.Component<Props, State> {
     openAbove: false,
     selectOnly: false,
     disabled: false,
+    isLoadingResults: false,
+    noResults: false,
+    allowFreeEntry: false,
+    inexactMatchesAllowed: false
   };
 
   constructor(props :Props) {
@@ -178,19 +215,23 @@ class SearchableSelect extends React.Component<Props, State> {
     super(props);
 
     this.state = {
-      filteredTypes: props.options.keySeq(),
+      filteredTypes: props.options,
       isVisibleDataTable: false,
       searchQuery: ''
     };
   }
 
+
   componentWillReceiveProps(nextProps :Props) {
+    const { value, options } = nextProps;
 
     this.setState({
-      filteredTypes: nextProps.options.keySeq(),
+      filteredTypes: this.filterResultsForOptions(value, options),
       searchQuery: ''
     });
   }
+
+  buttonRef = React.createRef();
 
   hideDataTable = () => {
 
@@ -201,99 +242,176 @@ class SearchableSelect extends React.Component<Props, State> {
   }
 
   showDataTable = (e) => {
-    e.stopPropagation()
+    e.stopPropagation();
 
     this.setState({
       isVisibleDataTable: true,
       searchQuery: ''
     });
+
+    if (this.buttonRef && this.buttonRef.focus) {
+      this.buttonRef.focus();
+    }
+
   }
 
-  handleOnSelect = (label :string) => {
+  handleOnSelect = (value :string) => {
+    const { onSelect } = this.props;
 
-    this.props.onSelect(this.props.options.get(label));
+    onSelect(value);
     this.setState({
       searchQuery: ''
     });
   }
 
-  filterResults = (value :string) =>
-    this.props.options.filter((obj, label) => label.toLowerCase().includes(value.toLowerCase()))
+  checkFilter = (label, value) => label.toLowerCase().includes(value.toLowerCase())
+
+  filterResultsForOptions = (value :string, options :Map<*, *>) => {
+    const { inexactMatchesAllowed } = this.props;
+
+    return inexactMatchesAllowed
+      ? options
+      : options.filter((v, key) => this.checkFilter(v, value) || this.checkFilter(key, value));
+  }
+
+  filterResults = (value :string) => {
+    const { options } = this.props;
+    return this.filterResultsForOptions(value, options);
+  }
 
   handleOnChangeSearchQuery = (event :SyntheticInputEvent<*>) => {
     const { onInputChange } = this.props;
 
-    onInputChange(event);
-
     this.setState({
-      filteredTypes: this.filterResults(event.target.value).keySeq(),
+      filteredTypes: this.filterResults(event.target.value),
       searchQuery: event.target.value
     });
+
+    onInputChange(event);
   }
 
   renderTable = () => {
-    const options = this.state.filteredTypes.map(type => (
-      <SearchOption
-          key={type}
-          onMouseDown={() => this.handleOnSelect(type)}>
-        {type}
-      </SearchOption>
-    ));
+    const { filteredTypes } = this.state;
+
+    const options = [];
+
+    filteredTypes.entrySeq().forEach(([value, label]) => {
+      options.push(
+        <SearchOption
+            key={value}
+            onMouseDown={() => this.handleOnSelect(value)}>
+          {label}
+        </SearchOption>
+      );
+    });
+
     return <SearchOptionContainer>{options}</SearchOptionContainer>;
   }
 
+  renderDropdownContents = () => {
+    const { filteredTypes, isVisibleDataTable } = this.state;
+    const {
+      allowFreeEntry,
+      openAbove,
+      isLoadingResults,
+      noResults
+    } = this.props;
+
+    const noFilteredResults = noResults || !filteredTypes.size;
+
+    if (isLoadingResults) {
+      return (
+        <DataTableWrapper isVisible openAbove={openAbove}>
+          <NoContentWrapper searching>
+            <Spinner light />
+          </NoContentWrapper>
+        </DataTableWrapper>
+      );
+    }
+
+    if (isVisibleDataTable) {
+
+      if (noFilteredResults && allowFreeEntry) {
+        return null;
+      }
+
+      return (
+        <DataTableWrapper isVisible={isVisibleDataTable} openAbove={openAbove}>
+          {noFilteredResults ? <NoContentWrapper>No results</NoContentWrapper> : this.renderTable()}
+        </DataTableWrapper>
+      );
+    }
+
+    return null;
+  }
+
+  clearOnDelete = ({ keyCode }) => {
+    if (keyCode === 8) { // backspace
+      this.handleOnSelect('');
+    }
+  }
+
   render() {
-    const { value } = this.props;
+    const {
+      className,
+      disabled,
+      onClear,
+      searchPlaceholder,
+      selectOnly,
+      short,
+      transparent,
+      value,
+      inputValue,
+      options
+    } = this.props;
+    const { isVisibleDataTable, searchQuery } = this.state;
 
     return (
-      <SearchableSelectWrapper isVisibleDataTable={this.state.isVisibleDataTable} className={this.props.className}>
-        <SearchInputWrapper short={this.props.short}>
+      <SearchableSelectWrapper isVisibleDataTable={isVisibleDataTable} className={className}>
+        <SearchInputWrapper short={short}>
           {
-            this.props.selectOnly ? (
+            selectOnly ? (
               <SearchButton
-                  disabled={this.props.disabled}
-                  transparent={this.props.transparent}
+                  onKeyUp={this.clearOnDelete}
+                  ref={(ref) => {
+                    this.buttonRef = ref;
+                  }}
+                  disabled={disabled}
+                  transparent={transparent}
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable}>
-                {value || this.props.searchPlaceholder}
+                {options.get(value, inputValue) || searchPlaceholder}
               </SearchButton>
             ) : (
               <SearchInput
-                  placeholder={this.props.searchPlaceholder}
-                  transparent={this.props.transparent}
-                  value={value}
+                  disabled={disabled}
+                  placeholder={searchPlaceholder}
+                  transparent={transparent}
+                  value={options.get(value, inputValue) || searchQuery}
                   onBlur={this.hideDataTable}
                   onChange={this.handleOnChangeSearchQuery}
                   onClick={this.showDataTable} />
             )
           }
           {
-            (this.props.onClear && value) ? null : (
-              <SearchIcon floatRight={this.props.selectOnly}>
+            (onClear && value) ? null : (
+              <SearchIcon floatRight={selectOnly}>
                 <img src={downArrowIcon} alt="" />
               </SearchIcon>
             )
           }
           {
-            !this.props.onClear || !value
+            !onClear || !value
               ? null
               : (
-                <CloseIcon onClick={this.props.onClear}>
+                <CloseIcon onClick={onClear}>
                   <FontAwesomeIcon icon={faTimes} />
                 </CloseIcon>
               )
           }
         </SearchInputWrapper>
-        {
-          !this.state.isVisibleDataTable
-            ? null
-            : (
-              <DataTableWrapper isVisible={this.state.isVisibleDataTable} openAbove={this.props.openAbove}>
-                {this.renderTable()}
-              </DataTableWrapper>
-            )
-        }
+        {this.renderDropdownContents()}
       </SearchableSelectWrapper>
     );
   }

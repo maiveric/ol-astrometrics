@@ -8,11 +8,12 @@ import styled from 'styled-components';
 const Control = styled.label`
   display: block;
   position: relative;
-  padding: 0 10px 0 20px;
+  padding: 0 10px 0 30px;
+  margin-bottom: 15px;
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: ${props => (props.checked ? '#2e2e34' : '#8e929b')};
+  color: #36353B;
   cursor: ${props => (props.disabled ? 'default' : 'pointer')};
 
   input {
@@ -22,9 +23,9 @@ const Control = styled.label`
   }
 `;
 
-const CheckboxInput = styled.input.attrs({
+const CheckboxInput = styled.input.attrs(_ => ({
   type: 'checkbox'
-})`
+}))`
   position: absolute;
   z-index: -1;
   opacity: 0;
@@ -32,30 +33,30 @@ const CheckboxInput = styled.input.attrs({
 
 const CheckboxIndicator = styled.div`
   position: absolute;
-  top: 0;
+  top: -3px;
   left: 0;
   height: 20px;
   width: 20px;
-  margin-top: -2px;
   border-radius: 2px;
-  background: #E6E6F7;
+  background: #4F4E54;
+  border: 1px solid #807F85;
 
   ${Control}:hover input ~ &,
   ${Control} input:focus & {
-    background: #CCCCCC;
+    background: #36353B;
   }
 
   ${Control} input:checked ~ & {
-    background: #6124e2;
+    background: #CAC9CE;
   }
 
   ${Control}:hover input:not([disabled]):checked ~ &,
   ${Control} input:checked:focus & {
-    background: #6124e2;
+    background: #B1B0B6;
   }
 
   ${Control} input:disabled ~ & {
-    background: #b6bbc6;
+    background: #36353B;
     opacity: 0.6;
     pointer-events: none;
   }
@@ -68,29 +69,28 @@ const CheckboxIndicator = styled.div`
     top: 4px;
     width: 3px;
     height: 8px;
-    border solid: #FFFFFF;
+    border: solid #36353B;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 
-    ${Control} input:disabled ~ &,
     ${Control} input:checked ~ & {
       display: block;
     }
 
     ${Control} & {
-      left: 8px;
+      left: 7px;
       top: 4px;
       width: 5px;
       height: 10px;
-      border: solid #FFFFFF;
+      border: solid #36353B;
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
     }
-  }
-`;
 
-const CheckboxLabel = styled.span`
-  margin-left: 5px;
+    ${Control} input:disabled ~ & {
+      border-color: transparent;
+    }
+  }
 `;
 
 type Props = {
@@ -112,8 +112,7 @@ const StyledCheckbox = ({
   disabled,
   dataSection
 } :Props) => (
-  <Control disabled={disabled} checked={checked}>
-    <CheckboxLabel>{label}</CheckboxLabel>
+  <Control disabled={disabled} checked={checked}>{label}
     <CheckboxInput
         data-section={dataSection}
         name={name}

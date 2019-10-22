@@ -4,183 +4,248 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Map } from 'immutable';
+import moment from 'moment';
+import { List, Map } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-light-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
+import { faVideo } from '@fortawesome/pro-solid-svg-icons';
 
+import SubtleButton from '../buttons/SubtleButton';
+import { countWithLabel } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 type Props = {
   vehicle :Map<*, *>,
-  count :number,
+  records :List<*>,
   isUnselected :boolean,
-  onClick: () => void
+  onClick :() => void,
+  timestampDesc? :boolean,
+  isInReport :boolean,
+  toggleReport :() => void,
+  departmentOptions :Map,
+  deviceOptions :Map
 };
 
 const Card = styled.div`
-  background-color: #ffffff;
-  padding: 15px;
-  border-radius: 5px;
-  margin: 10px 0;
+  background-color: #36353B;
+  border-radius: 3px;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   width: 100%;
   opacity: ${props => (props.isUnselected ? 0.75 : 1)};
+  margin-bottom: 16px;
 
   &:hover {
     cursor: pointer;
   }
 `;
 
-const Photos = styled.div`
-  width: 100px;
-  display: flex;
-  flex-direction: column;
+const Section = styled.div`
+  padding: 16px;
 `;
 
-const Details = styled.div`
-  display: flex;
-  flex-direction: column;
+const BasicRow = styled.div`
   width: 100%;
-  font-size: 14px;
-  color: #000000;
-`;
-
-const DetailsHeader = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  width: 100%;
-  margin-bottom: 15px;
+  align-items: center;
+`;
 
-  section {
-    display: flex;
-    flex-direction: column;
+const HeaderRow = styled(BasicRow)`
+  padding: ${props => (props.noPadding ? 0 : 16)}px;
+  border-bottom: 1px solid #1F1E24;
 
-    span {
-      font-size: 14px;
-      font-weight: 300;
-      margin-bottom: 5px;
-    }
-
-    span:last-child {
-      font-size: 15px;
-      font-weight: bold;
-      letter-spacing: 2px;
-    }
-  }
-
-  button {
-    border-radius: 3px;
-    background-color: #f0f0f7;
-    height: 30px;
-    padding: 0 10px;
-    border: none;
-    color: #b7bbc6;
+  div:first-child {
+    width: fit-content;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
 
     span {
-      color: #414345;
-      margin-left: 5px;
-      font-size: 12px;
-      font-weight: 400;
-    }
-
-    &:hover {
-      background-color: #dcdce7;
-      cursor: pointer;
-    }
-
-    &:focus {
-      outline: none;
-    }
-  }
-`;
-
-const DetailsBody = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-
-  section {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-
-    span {
-      width: 100px;
-      color: rgb(145, 145, 145);
-      font-weight: 300;
+      padding: 2px 5px;
+      background-color: ${props => (props.printable ? '#ffffff' : '#98979D')};
+      border-radius: 5px;
+      border: ${props => (props.printable ? '1px solid black' : 'none')};
+      color: ${props => (props.printable ? 'black' : '#070709')};
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      max-height: 21px;
     }
 
     div {
+      padding-left: 8px;
       font-weight: 600;
+      font-size: 16px;
+      color: ${props => (props.printable ? 'black' : '#ffffff')};
     }
+
   }
 
-  section:not(:last-child) {
-    border-bottom: 1px solid rgb(220, 220, 230);
-    padding-bottom: 6px;
-    margin-bottom: 6px;
+  button {
+    width: fit-content;
+    padding: 0;
   }
 `;
 
+const Photos = styled(BasicRow)`
+  padding-bottom: 16px;
+  align-items: flex-start;
+`;
+
+const Img = styled.img.attrs(_ => ({
+  alt: ''
+}))`
+  max-height: 100%;
+  max-width: 48%;
+  top: 0;
+`;
+
+const ReadDetails = styled(BasicRow)`
+  color: #CAC9CE;
+  font-size: 12px;
+  justify-content: flex-start;
+
+  span {
+    padding-left: 10px;
+  }
+`;
+
+const HitType = styled.div`
+  padding-left: 8px;
+  color: #EE5345 !important;
+`;
+
+const AddToReportButton = styled(SubtleButton)`
+  background-color: ${props => (props.isInReport ? '#CAC9CE' : 'transparent')};
+  color: ${props => (props.isInReport ? '#36353B' : '#ffffff')};
+  border-radius: 50%;
+  height: 24px !important;
+  width: 24px !important;
+
+  &:hover {
+    background-color: ${props => (props.isInReport ? '#CAC9CE' : '#4F4E54')} !important;
+  }
+`;
+
+export const VehicleHeader = ({
+  state,
+  plate,
+  isHit,
+  addButton,
+  noPadding,
+  printable
+}) => (
+  <HeaderRow noPadding={noPadding} printable={printable}>
+    <div>
+      <span>{state}</span>
+      <div>{plate}</div>
+      {
+        isHit ? (
+          <HitType>
+            <FontAwesomeIcon icon={faExclamationTriangle} />
+          </HitType>
+        ) : null
+      }
+    </div>
+
+    {addButton}
+  </HeaderRow>
+);
+
+export const VehicleImageRow = ({
+  plateSrc,
+  vehicleSrc
+}) => (
+  <Photos>
+    { plateSrc ? <Img src={plateSrc} /> : null }
+    { plateSrc ? <Img src={vehicleSrc} /> : null }
+  </Photos>
+);
+
 const VehicleCard = ({
   vehicle,
-  count,
+  records,
   onClick,
-  isUnselected
+  isUnselected,
+  isInReport,
+  timestampDesc,
+  toggleReport
 } :Props) => {
 
-  const make = vehicle.getIn([PROPERTY_TYPES.MAKE, 0], '');
-  const model = vehicle.getIn([PROPERTY_TYPES.MODEL, 0], '');
-  const year = vehicle.getIn([PROPERTY_TYPES.YEAR, 0], '');
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
-  const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'California');
+  const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'CA');
 
-  const addToReport = (e) => {
+  const vehicleImages = records.flatMap(record => record.get(PROPERTY_TYPES.VEHICLE_IMAGE, List()));
+  const plateImages = records.flatMap(record => record.get(PROPERTY_TYPES.LICENSE_PLATE_IMAGE, List()));
+
+  const onToggleReport = (e) => {
     e.stopPropagation();
-    console.log('add to report!')
-  }
+    toggleReport();
+  };
+
+  const getUniqueValues = (fqn) => {
+    const allValues = records.flatMap(record => record.get(fqn, List()));
+    return allValues.filter((val, index) => allValues.indexOf(val) === index);
+  };
+
+  let timestamp;
+  records
+    .flatMap(record => record.get(PROPERTY_TYPES.TIMESTAMP, List()))
+    .map(dt => moment(dt))
+    .filter(dt => dt.isValid())
+    .forEach((dt) => {
+      if (!timestamp) {
+        timestamp = dt;
+      }
+      else {
+        const shouldReplace = timestampDesc ? dt.isAfter(timestamp) : dt.isBefore(timestamp);
+        if (shouldReplace) {
+          timestamp = dt;
+        }
+      }
+    });
+
+  const numReadsText = countWithLabel(records.size, 'read');
+  const timestampLabel = timestampDesc ? 'Latest' : 'Earliest';
+  const timestampStr = timestamp ? `${timestampLabel} on ${timestamp.format('MM/DD/YY hh:mm A')}` : '';
+
+  const hitTypes = getUniqueValues(PROPERTY_TYPES.HIT_TYPE);
+
+
+  const addButton = (
+    <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
+      <FontAwesomeIcon icon={faPlus} />
+    </AddToReportButton>
+  );
 
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
-      <Photos>
 
-      </Photos>
-      <Details>
-        <DetailsHeader>
-          <section>
-            <span>{state}</span>
-            <span>{plate}</span>
-          </section>
-          <button onClick={addToReport}>
-            <FontAwesomeIcon icon={faPlus} />
-            <span>Add to report</span>
-          </button>
-        </DetailsHeader>
-        <DetailsBody>
-          <section>
-            <span>Make / Model</span>
-            <div>{`${make} ${model}`}</div>
-          </section>
-          <section>
-            <span>Timestamp</span>
-            <div>12/13/18 01:23 AM</div>
-          </section>
-          <section>
-            <span>Dept / Device</span>
-            <div>OPD / Device name</div>
-          </section>
-        </DetailsBody>
-      </Details>
+      <VehicleHeader state={state} plate={plate} isHit={!!hitTypes.size} addButton={addButton} />
+
+      <Section>
+
+        <VehicleImageRow plateSrc={plateImages.get(0)} vehicleSrc={vehicleImages.get(0)} />
+
+        <ReadDetails>
+          <FontAwesomeIcon icon={faVideo} />
+          <span>{numReadsText}</span>
+          <span>{timestampStr}</span>
+        </ReadDetails>
+
+      </Section>
     </Card>
   );
-}
+};
+
+VehicleCard.defaultProps = {
+  timestampDesc: false
+};
 
 export default VehicleCard;

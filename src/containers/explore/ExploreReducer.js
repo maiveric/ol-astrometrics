@@ -2,6 +2,7 @@
  * @flow
  */
 
+import moment from 'moment';
 import {
   List,
   Map,
@@ -9,76 +10,46 @@ import {
   fromJS
 } from 'immutable';
 
-import { EXPLORE, PARAMETERS } from '../../utils/constants/StateConstants';
+import { EXPLORE } from '../../utils/constants/StateConstants';
+import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
-  EDIT_SEARCH_PARAMETERS,
-  SELECT_ADDRESS,
   SELECT_ENTITY,
-  SET_DRAW_MODE,
+  SELECT_READS_FOR_REPORT,
+  DESELECT_READS_FOR_REPORT,
+  SET_FILTER,
   UNMOUNT_EXPLORE,
-  UPDATE_SEARCH_PARAMETERS,
   executeSearch,
-  geocodeAddress,
-  loadEntityNeighbors
+  loadEntityNeighbors,
 } from './ExploreActionFactory';
 
+import { EDIT_SEARCH_PARAMETERS } from '../parameters/ParametersActionFactory';
+
 const {
-  DISPLAY_FULL_SEARCH_OPTIONS,
-  DRAW_MODE,
   ENTITY_NEIGHBORS_BY_ID,
   ENTITIES_BY_ID,
+  FILTER,
   IS_LOADING_ENTITY_NEIGHBORS,
   IS_SEARCHING_DATA,
-  SEARCH_PARAMETERS,
+  READ_IDS_TO_ADD_TO_REPORT,
+  SEARCH_DATE_TIME,
   SELECTED_ENTITY_KEY_IDS,
-  ADDRESS_SEARCH_RESULTS,
+  SELECTED_READ_ID,
   SEARCH_RESULTS,
-  TOTAL_RESULTS
+  TOTAL_RESULTS,
 } = EXPLORE;
 
-const {
-  CASE_NUMBER,
-  REASON,
-  PLATE,
-  ADDRESS,
-  LATITUDE,
-  LONGITUDE,
-  RADIUS,
-  SEARCH_ZONES,
-  START,
-  END,
-  DEPARTMENT,
-  DEVICE
-} = PARAMETERS;
-
-const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
-  [CASE_NUMBER]: '',
-  [REASON]: '',
-  [PLATE]: '',
-  [ADDRESS]: '',
-  [LATITUDE]: '',
-  [LONGITUDE]: '',
-  [RADIUS]: '',
-  [SEARCH_ZONES]: [],
-  [START]: '',
-  [END]: '',
-  [DEPARTMENT]: '',
-  [DEVICE]: ''
-});
-
 const INITIAL_STATE :Map<> = fromJS({
-  [DISPLAY_FULL_SEARCH_OPTIONS]: true,
-  [DRAW_MODE]: false,
   [ENTITY_NEIGHBORS_BY_ID]: Map(),
   [ENTITIES_BY_ID]: Map(),
+  [FILTER]: '',
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
   [IS_SEARCHING_DATA]: false,
-  [SEARCH_PARAMETERS]: INITIAL_SEARCH_PARAMETERS,
-  [ADDRESS_SEARCH_RESULTS]: List(),
+  [READ_IDS_TO_ADD_TO_REPORT]: Set(),
   [SEARCH_RESULTS]: List(),
   [SELECTED_ENTITY_KEY_IDS]: Set(),
+  [SELECTED_READ_ID]: undefined,
   [TOTAL_RESULTS]: 0
 });
 
@@ -111,12 +82,6 @@ const updateEntitiesIdForNeighbors = (initEntitiesById, neighborLists) => {
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
 
-    case geocodeAddress.case(action.type): {
-      return geocodeAddress.reducer(state, action, {
-        SUCCESS: () => state.set(ADDRESS_SEARCH_RESULTS, fromJS(action.value))
-      });
-    }
-
     case loadEntityNeighbors.case(action.type): {
       return loadEntityNeighbors.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, true),
@@ -138,8 +103,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         REQUEST: () => state
           .set(IS_SEARCHING_DATA, true)
           .set(SEARCH_RESULTS, List())
-          .set(TOTAL_RESULTS, 0)
-          .set(DISPLAY_FULL_SEARCH_OPTIONS, false),
+          .set(SEARCH_DATE_TIME, moment().toISOString(true))
+          .set(TOTAL_RESULTS, 0),
         SUCCESS: () => {
           const { hits, numHits } = action.value;
           const results = fromJS(hits);
@@ -157,56 +122,75 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case EDIT_SEARCH_PARAMETERS:
-      return state.set(DISPLAY_FULL_SEARCH_OPTIONS, action.value);
-
-    case SELECT_ADDRESS:
-      return state
-        .setIn([SEARCH_PARAMETERS, LATITUDE], action.value.get('lat'))
-        .setIn([SEARCH_PARAMETERS, LONGITUDE], action.value.get('lon'))
-        .setIn([SEARCH_PARAMETERS, ADDRESS], action.value.get('display_name'));
+    case EDIT_SEARCH_PARAMETERS: {
+      if (action.value) {
+        return state
+          .set(IS_SEARCHING_DATA, false)
+          .set(SEARCH_RESULTS, List())
+          .set(TOTAL_RESULTS, 0);
+      }
+      return state;
+    }
 
     case SELECT_ENTITY: {
       let selectedEntityKeyIds = Set();
 
-      if (action.value) {
-        selectedEntityKeyIds = selectedEntityKeyIds.add(action.value);
-        let idsToMatch = Set().add(action.value);
-        if (state.get(ENTITY_NEIGHBORS_BY_ID).has(action.value)) {
-          state.getIn([ENTITY_NEIGHBORS_BY_ID, action.value], List()).forEach((neighborObj) => {
-            const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails', Map()));
+      const { data, vehiclesEntitySetId } = action.value;
+      let selectedReadId = data;
+
+      if (data) {
+        let idsToMatch = Set.of(data);
+
+        state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
+          if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
+            const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
             if (entityKeyId) {
-              selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
               idsToMatch = idsToMatch.add(entityKeyId);
             }
-          });
-        }
+          }
+        });
 
         state.get(ENTITY_NEIGHBORS_BY_ID).entrySeq().forEach(([entityKeyId, neighborList]) => {
           neighborList.forEach((neighbor) => {
-            if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails', Map())))) {
+            if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails') || Map()))) {
               selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
             }
           });
         });
+
+        if (selectedEntityKeyIds.size && !selectedEntityKeyIds.has(selectedReadId)) {
+          selectedReadId = selectedEntityKeyIds.first();
+        }
       }
 
-      return state.set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds);
+      let newState = state
+        .set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds)
+        .set(SELECTED_READ_ID, selectedReadId);
+
+      if (!selectedReadId) {
+        newState = newState.set(READ_IDS_TO_ADD_TO_REPORT, Set());
+      }
+
+      return newState;
     }
 
-    case SET_DRAW_MODE:
-      return state.set(DRAW_MODE, action.value);
+    case SELECT_READS_FOR_REPORT:
+      return state.set(READ_IDS_TO_ADD_TO_REPORT, state.get(READ_IDS_TO_ADD_TO_REPORT).union(action.value));
 
-    case UPDATE_SEARCH_PARAMETERS:
-      return state.setIn([SEARCH_PARAMETERS, action.value.field], action.value.value);
+    case DESELECT_READS_FOR_REPORT:
+      return state.set(READ_IDS_TO_ADD_TO_REPORT, state.get(READ_IDS_TO_ADD_TO_REPORT).subtract(action.value));
+
+    case SET_FILTER:
+      return state.set(FILTER, action.value);
 
     case CLEAR_EXPLORE_SEARCH_RESULTS:
     case UNMOUNT_EXPLORE:
       return state
-        .set(DISPLAY_FULL_SEARCH_OPTIONS, true)
         .set(IS_LOADING_ENTITY_NEIGHBORS, false)
         .set(IS_SEARCHING_DATA, false)
         .set(SEARCH_RESULTS, List())
+        .set(SELECTED_ENTITY_KEY_IDS, Set())
+        .set(SELECTED_READ_ID, undefined)
         .set(TOTAL_RESULTS, 0);
 
     default:

@@ -8,23 +8,24 @@ import styled from 'styled-components';
 import { Map } from 'immutable';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Redirect, Route, Switch } from 'react-router';
+import type { RequestSequence } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
+import AuditContainer from '../audit/AuditContainer';
+import QualityContainer from '../quality/QualityContainer';
+import EulaContainer from '../eula/EulaContainer';
 import ExploreContainer from '../explore/ExploreContainer';
-import MapContainer from '../map/MapContainer';
 import Spinner from '../../components/spinner/Spinner';
 import * as Routes from '../../core/router/Routes';
 import { loadApp } from './AppActions';
+import { termsAreAccepted } from '../../utils/CookieUtils';
 import { APP_NAME } from '../../utils/constants/Constants';
-import {
-  APP_CONTAINER_MAX_WIDTH,
-  APP_CONTAINER_WIDTH,
-  APP_CONTENT_PADDING
-} from '../../core/style/Sizes';
+import { STATE, APP } from '../../utils/constants/StateConstants';
+import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 
 // TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
-const APP_CONTENT_BG :string = '#f8f8fb';
+const APP_CONTENT_BG :string = '#1F1E24';
 
 const AppContainerWrapper = styled.div`
   display: flex;
@@ -32,7 +33,7 @@ const AppContainerWrapper = styled.div`
   height: 100%;
   margin: 0;
   min-width: ${APP_CONTAINER_WIDTH}px;
-  padding: 0;
+  padding: ${HEADER_HEIGHT}px 0 0 0;
 `;
 
 const AppContentOuterWrapper = styled.main`
@@ -54,8 +55,10 @@ const AppContentInnerWrapper = styled.div`
 type Props = {
   actions :{
     loadApp :RequestSequence;
+    loadDepartmentsAndDevices :RequestSequence;
   };
   isLoadingApp :boolean;
+  isAdmin :boolean;
 };
 
 class AppContainer extends Component<Props> {
@@ -68,16 +71,28 @@ class AppContainer extends Component<Props> {
 
   renderAppContent = () => {
 
-    const { isLoadingApp } = this.props;
+    const { isLoadingApp, isAdmin } = this.props;
     if (isLoadingApp) {
       return (
         <Spinner />
       );
     }
 
+    if (!termsAreAccepted()) {
+      return <EulaContainer />;
+    }
+
     return (
       <Switch>
         <Route path={Routes.EXPLORE} component={ExploreContainer} />
+        {
+          isAdmin ? (
+            <>
+              <Route path={Routes.AUDIT} component={AuditContainer} />
+              <Route path={Routes.QUALITY} component={QualityContainer} />
+            </>
+          ) : null
+        }
         <Redirect to={Routes.EXPLORE} />
       </Switch>
     );
@@ -102,6 +117,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
   return {
     isLoadingApp: state.getIn(['app', 'isLoadingApp'], false),
+    isAdmin: state.getIn([STATE.APP, APP.IS_ADMIN], false)
   };
 }
 
@@ -112,4 +128,4 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AppContainer);
+export default connect<*, *, *, *, *, *>(mapStateToProps, mapDispatchToProps)(AppContainer);
