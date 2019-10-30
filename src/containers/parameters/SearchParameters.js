@@ -27,7 +27,6 @@ import { getSearchFields } from './ParametersReducer';
 import {
   SEARCH_REASONS,
   MAKES,
-  MODELS_BY_MAKE,
   COLORS,
   ACCESSORIES,
   STYLES
@@ -486,15 +485,6 @@ class SearchParameters extends React.Component<Props, State> {
       devicesByAgency
     } = this.props;
 
-    let makeSearchPlaceholder;
-
-    if (!searchParameters.get(PARAMETERS.MAKE)) {
-      makeSearchPlaceholder = 'You must choose a make first.';
-    }
-    else if (!MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)]) {
-      makeSearchPlaceholder = 'No models available.';
-    }
-
     let filteredDeviceOptions = deviceOptions;
     const agencyId = searchParameters.get(PARAMETERS.DEPARTMENT);
     if (agencyId) {
@@ -741,21 +731,6 @@ class SearchParameters extends React.Component<Props, State> {
 
                   <Row>
                     <InputGroup>
-                      <Label>Model</Label>
-                      <StyledSearchableSelect
-                          value={searchParameters.get(PARAMETERS.MODEL)}
-                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value })}
-                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' })}
-                          options={this.getAsMap(MODELS_BY_MAKE[searchParameters.get(PARAMETERS.MAKE)] || [])}
-                          disabled={!!makeSearchPlaceholder}
-                          searchPlaceholder={makeSearchPlaceholder}
-                          openAbove
-                          short />
-                    </InputGroup>
-                  </Row>
-
-                  <Row>
-                    <InputGroup>
                       <Label>Color</Label>
                       <StyledSearchableSelect
                           value={searchParameters.get(PARAMETERS.COLOR)}
@@ -813,7 +788,6 @@ class SearchParameters extends React.Component<Props, State> {
   onMakeChange = (value) => {
     const { actions } = this.props;
     actions.updateSearchParameters({ field: PARAMETERS.MAKE, value });
-    actions.updateSearchParameters({ field: PARAMETERS.MODEL, value: '' });
   }
 
   toggleAdditionalDetails = () => {
