@@ -43,9 +43,7 @@ type Props = {
   reportEntityKeyIds :Set,
   deviceOptions :Map,
   actions :{
-    selectEntity :(entityKeyId :string) => void,
-    addVehicleToReport :(entityKeyId :string) => void,
-    removeVehicleFromReport :(entityKeyId :string) => void
+    selectEntity :(entityKeyId :string) => void
   }
 };
 
@@ -65,6 +63,10 @@ const FlexRow = styled.div`
   display: flex;
   align-items: center;
   font-size: 14px;
+`;
+
+const SelectedPaddedSection = styled(PaddedSection)`
+  background-color: #121117;
 `;
 
 const SelectedRead = styled(PaddedSection)`
@@ -252,14 +254,17 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     return idAndTimestamp.map(([entityKeyId, timestamp]) => {
 
       const isInReport = readIdsForReport.has(entityKeyId);
+      const isSelected = entityKeyId === selectedReadId;
 
       const reportTooltip = this.getReportsForRead(entityKeyId)
 
       const onCheck = isInReport ? actions.deselectReadsForReport : actions.selectReadsForReport;
 
+      const WrapperComponent = isSelected ? SelectedPaddedSection : PaddedSection;
+
       return (
         <Fragment key={entityKeyId}>
-          <PaddedSection borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
+          <WrapperComponent borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
             <Row>
               <FlexRow>
                 <Checkbox checked={isInReport} onChange={() => onCheck(Set.of(entityKeyId))} />
@@ -270,9 +275,9 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
                 <FontAwesomeIcon icon={faMap} />
               </RoundButton>
             </Row>
-          </PaddedSection>
+          </WrapperComponent>
           {
-            entityKeyId === selectedReadId ? this.renderSelectedReadDetails() : null
+            isSelected ? this.renderSelectedReadDetails() : null
           }
         </Fragment>
       );

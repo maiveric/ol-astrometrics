@@ -11,8 +11,6 @@ import {
 import { REPORT } from '../../utils/constants/StateConstants';
 import { CLEAR_EXPLORE_SEARCH_RESULTS, UNMOUNT_EXPLORE } from '../explore/ExploreActionFactory';
 import {
-  ADD_VEHICLE_TO_REPORT,
-  REMOVE_VEHICLE_FROM_REPORT,
   TOGGLE_ADD_READS_TO_REPORT_MODAL,
   TOGGLE_REPORT_MODAL,
   TOGGLE_RENAME_REPORT_MODAL,
@@ -108,12 +106,6 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         .set(IS_REMOVING_ENTIRE_VEHICLE, !!action.value.isVehicle)
         .set(READS_TO_DELETE, action.value.entityKeyIds);
     }
-
-    case ADD_VEHICLE_TO_REPORT:
-      return state.set(VEHICLE_ENTITY_KEY_IDS, state.get(VEHICLE_ENTITY_KEY_IDS).add(action.value));
-
-    case REMOVE_VEHICLE_FROM_REPORT:
-      return state.set(VEHICLE_ENTITY_KEY_IDS, state.get(VEHICLE_ENTITY_KEY_IDS).delete(action.value));
 
     case CLEAR_EXPLORE_SEARCH_RESULTS:
     case UNMOUNT_EXPLORE:
