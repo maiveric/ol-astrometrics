@@ -58,18 +58,21 @@ const renderBarChartTooltip = (resourceType, { label, payload }) => {
 const StyledBarChart = ({
   resourceType,
   countsMap,
-  color
+  color,
+  yAxisWide
 } :Props) => {
 
   const data = countsMap
     .entrySeq()
     .sort(([date1], [date2]) => (date1 > date2 ? 1 : -1))
     .map(([date, count]) => ({ date, count }));
+
+  const yAxisWidth = yAxisWide ? { width: 100 } : {};
   return (
     <BarChartWrapper>
       <BarChart width={1100} height={400} data={data.toJS()}>
         <CartesianGrid vertical={false} stroke="#4F4E54" />
-        <YAxis type="number" tickLine={false} tick={{ fill: '#ffffff' }} tickMargin={16} />
+        <YAxis type="number" tickLine={false} tick={{ fill: '#ffffff' }} tickMargin={16} {...yAxisWidth} />
         <XAxis type="category" tickLine={false} dataKey="date" domain={['dataMin', 'dataMax']} allowDecimals={false} tick={{ fill: '#ffffff' }} tickMargin={16} />
         <Tooltip cursor={{ fill: 'transparent' }} content={payloadData => renderBarChartTooltip(resourceType, payloadData)} />
         <Bar dataKey="count" fill={color} />
