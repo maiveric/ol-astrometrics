@@ -17,12 +17,7 @@ import FilterIcon from '../../components/icons/FilterIcon';
 import Spinner from '../../components/spinner/Spinner';
 import Pagination from '../../components/pagination/Pagination';
 import VehicleCard from '../../components/vehicles/VehicleCard';
-import {
-  STATE,
-  EXPLORE,
-  REPORT,
-  SEARCH_PARAMETERS
-} from '../../utils/constants/StateConstants';
+import { STATE, EXPLORE, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, countWithLabel } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
@@ -40,17 +35,14 @@ type Props = {
   selectedReadId :string;
   neighborsById :List<*>;
   filter :string;
-  reportVehicles :List<*>;
   departmentOptions :Map;
   deviceOptions :Map;
   vehiclesEntitySetId :string;
   actions :{
-    addVehicleToReport :RequestSequence;
     editSearchParameters :RequestSequence;
     executeSearch :RequestSequence;
     geocodeAddress :RequestSequence;
     loadDataModel :RequestSequence;
-    removeVehicleFromReport :RequestSequence;
     selectAddress :RequestSequence;
     selectEntity :RequestSequence;
     setFilter :RequestSequence;
@@ -281,20 +273,11 @@ class Sidebar extends React.Component<Props, State> {
   }
 
   renderVehicles = (vehiclePage, recordsByVehicleId) => {
-    const {
-      actions,
-      departmentOptions,
-      deviceOptions,
-      reportVehicles
-    } = this.props;
+    const { departmentOptions, deviceOptions } = this.props;
     const { sort } = this.state;
 
     return vehiclePage.map((vehicle) => {
       const entityKeyId = getEntityKeyId(vehicle);
-      const isInReport = reportVehicles.has(entityKeyId);
-      const toggleReport = isInReport
-        ? () => actions.removeVehicleFromReport(entityKeyId)
-        : () => actions.addVehicleToReport(entityKeyId);
       return (
         <VehicleCard
             key={entityKeyId}
@@ -303,8 +286,6 @@ class Sidebar extends React.Component<Props, State> {
             vehicle={vehicle}
             departmentOptions={departmentOptions}
             deviceOptions={deviceOptions}
-            isInReport={isInReport}
-            toggleReport={toggleReport}
             records={recordsByVehicleId.get(entityKeyId, List())}
             count={recordsByVehicleId.get(entityKeyId).size}
             timestampDesc={sort !== SORT_TYPE.OLDEST} />
@@ -367,8 +348,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     geocodedAddresses: explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS),
     filter: explore.get(EXPLORE.FILTER),
     departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
-    deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
-    reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
+    deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS)
   };
 }
 

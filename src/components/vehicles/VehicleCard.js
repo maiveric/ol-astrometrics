@@ -7,11 +7,9 @@ import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-light-svg-icons';
 import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
 import { faVideo } from '@fortawesome/pro-solid-svg-icons';
 
-import SubtleButton from '../buttons/SubtleButton';
 import { countWithLabel } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
@@ -21,8 +19,6 @@ type Props = {
   isUnselected :boolean,
   onClick :() => void,
   timestampDesc? :boolean,
-  isInReport :boolean,
-  toggleReport :() => void,
   departmentOptions :Map,
   deviceOptions :Map
 };
@@ -121,23 +117,10 @@ const HitType = styled.div`
   color: #EE5345 !important;
 `;
 
-const AddToReportButton = styled(SubtleButton)`
-  background-color: ${props => (props.isInReport ? '#CAC9CE' : 'transparent')};
-  color: ${props => (props.isInReport ? '#36353B' : '#ffffff')};
-  border-radius: 50%;
-  height: 24px !important;
-  width: 24px !important;
-
-  &:hover {
-    background-color: ${props => (props.isInReport ? '#CAC9CE' : '#4F4E54')} !important;
-  }
-`;
-
 export const VehicleHeader = ({
   state,
   plate,
   isHit,
-  addButton,
   noPadding,
   printable
 }) => (
@@ -153,8 +136,6 @@ export const VehicleHeader = ({
         ) : null
       }
     </div>
-
-    {addButton}
   </HeaderRow>
 );
 
@@ -173,9 +154,7 @@ const VehicleCard = ({
   records,
   onClick,
   isUnselected,
-  isInReport,
-  timestampDesc,
-  toggleReport
+  timestampDesc
 } :Props) => {
 
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
@@ -183,11 +162,6 @@ const VehicleCard = ({
 
   const vehicleImages = records.flatMap(record => record.get(PROPERTY_TYPES.VEHICLE_IMAGE, List()));
   const plateImages = records.flatMap(record => record.get(PROPERTY_TYPES.LICENSE_PLATE_IMAGE, List()));
-
-  const onToggleReport = (e) => {
-    e.stopPropagation();
-    toggleReport();
-  };
 
   const getUniqueValues = (fqn) => {
     const allValues = records.flatMap(record => record.get(fqn, List()));
@@ -217,17 +191,10 @@ const VehicleCard = ({
 
   const hitTypes = getUniqueValues(PROPERTY_TYPES.HIT_TYPE);
 
-
-  const addButton = (
-    <AddToReportButton onClick={onToggleReport} isInReport={isInReport}>
-      <FontAwesomeIcon icon={faPlus} />
-    </AddToReportButton>
-  );
-
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
 
-      <VehicleHeader state={state} plate={plate} isHit={!!hitTypes.size} addButton={addButton} />
+      <VehicleHeader state={state} plate={plate} isHit={!!hitTypes.size} />
 
       <Section>
 
