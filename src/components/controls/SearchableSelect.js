@@ -264,7 +264,10 @@ class SearchableSelect extends React.Component<Props, State> {
     });
   }
 
-  checkFilter = (label, value) => label.toLowerCase().includes(value.toLowerCase())
+  checkFilter = (label, value) => {
+    if (label === undefined || value === undefined) return false;
+    return label.toLowerCase().includes(value.toLowerCase());
+  }
 
   filterResultsForOptions = (value :string, options :Map<*, *>) => {
     const { inexactMatchesAllowed } = this.props;
