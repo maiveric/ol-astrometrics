@@ -139,7 +139,7 @@ const getSearchRequest = (
       constraints: [{
         type: 'advanced',
         searchFields: [{
-          searchTerm: searchParameters.get(PARAMETERS.DEPARTMENT_ID),
+          searchTerm: searchParameters.get(PARAMETERS.DEPARTMENT),
           property: getPropertyTypeId(PROPERTY_TYPES.AGENCY_NAME),
           exact: true
         }]

@@ -17,9 +17,6 @@ const loadDepartmentsAndDevices :RequestSequence = newRequestSequence(LOAD_DEPAR
 const SELECT_ADDRESS :string = 'SELECT_ADDRESS';
 const selectAddress :RequestSequence = newRequestSequence(SELECT_ADDRESS);
 
-const SELECT_AGENCY :string = 'SELECT_AGENCY';
-const selectAgency :RequestSequence = newRequestSequence(SELECT_AGENCY);
-
 const SET_DRAW_MODE :string = 'SET_DRAW_MODE';
 const setDrawMode :RequestSequence = newRequestSequence(SET_DRAW_MODE);
 
@@ -31,14 +28,12 @@ export {
   GEOCODE_ADDRESS,
   LOAD_DEPARTMENTS_AND_DEVICES,
   SELECT_ADDRESS,
-  SELECT_AGENCY,
   SET_DRAW_MODE,
   UPDATE_SEARCH_PARAMETERS,
   editSearchParameters,
   geocodeAddress,
   loadDepartmentsAndDevices,
   selectAddress,
-  selectAgency,
   setDrawMode,
   updateSearchParameters
 };

@@ -128,7 +128,6 @@ export const PARAMETERS = {
   START: 'start',
   END: 'end',
   DEPARTMENT: 'department',
-  DEPARTMENT_ID: 'departmentId',
   DEVICE: 'device',
   MAKE: 'make',
   MODEL: 'model',
