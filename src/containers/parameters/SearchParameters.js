@@ -70,7 +70,6 @@ type Props = {
     exportReport :RequestSequence;
     geocodeAddress :RequestSequence;
     selectAddress :RequestSequence;
-    selectAgency :RequestSequence;
     setDrawMode :RequestSequence;
     toggleAlertModal :RequestSequence;
     updateSearchParameters :RequestSequence;
