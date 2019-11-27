@@ -50,7 +50,6 @@ const {
   START,
   END,
   DEPARTMENT,
-  DEPARTMENT_ID,
   DEVICE,
   MAKE,
   MODEL,
@@ -73,7 +72,6 @@ const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
   [START]: moment().subtract(1, 'year').toISOString(true),
   [END]: moment().toISOString(true),
   [DEPARTMENT]: '',
-  [DEPARTMENT_ID]: '',
   [DEVICE]: '',
   [MAKE]: '',
   [MODEL]: '',
@@ -133,11 +131,6 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         .setIn([SEARCH_PARAMETERS, LATITUDE], action.value.get('lat'))
         .setIn([SEARCH_PARAMETERS, LONGITUDE], action.value.get('lon'))
         .setIn([SEARCH_PARAMETERS, ADDRESS], action.value.get('display_name'));
-
-    case SELECT_AGENCY:
-      return state
-        .setIn([SEARCH_PARAMETERS, DEPARTMENT], action.value.title)
-        .setIn([SEARCH_PARAMETERS, DEPARTMENT_ID], action.value.id);
 
     case SET_DRAW_MODE:
       return state.set(DRAW_MODE, action.value);
