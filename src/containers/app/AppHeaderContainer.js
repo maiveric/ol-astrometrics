@@ -174,7 +174,7 @@ class AppHeaderContainer extends Component<Props> {
 
     return (
       <LeftSideContentWrapper>
-        <LogoTitleWrapperLink to={Routes.ROOT}>
+        <LogoTitleWrapperLink to={Routes.MAP_ROUTE}>
           <AstrometricsIcon />
           <AppTitle>
             Astrometrics
