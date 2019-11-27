@@ -212,7 +212,6 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
   selectEntity = (e, data) => {
     const { actions, vehiclesEntitySetId } = this.props;
-    e.stopPropagation();
     actions.selectEntity({ data, vehiclesEntitySetId });
   }
 
@@ -258,7 +257,19 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
       const reportTooltip = this.getReportsForRead(entityKeyId)
 
-      const onCheck = isInReport ? actions.deselectReadsForReport : actions.selectReadsForReport;
+      const getOnChange = (entityKeyId, ignoreIfSelected) => {
+        if (ignoreIfSelected && isSelected) {
+          return;
+        }
+
+        const idSet = Set.of(entityKeyId);
+        if (isInReport) {
+          actions.deselectReadsForReport(idSet);
+        }
+        else {
+          actions.selectReadsForReport(idSet);
+        }
+      }
 
       const WrapperComponent = isSelected ? SelectedPaddedSection : PaddedSection;
 
@@ -267,7 +278,10 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
           <WrapperComponent borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
             <Row>
               <FlexRow>
-                <Checkbox checked={isInReport} onChange={() => onCheck(Set.of(entityKeyId))} />
+                <Checkbox
+                    checked={isInReport}
+                    onClick={() => getOnChange(entityKeyId, true)}
+                    onChange={() => getOnChange(entityKeyId)} />
                 <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
                 {reportTooltip}
               </FlexRow>
