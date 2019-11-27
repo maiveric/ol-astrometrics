@@ -86,8 +86,8 @@ class DrawComponent extends React.Component<Props, State> {
       <DrawControl
           ref={(drawControl) => {
             this.drawControl = drawControl;
-            const draw = drawControl ? drawControl.draw : null;
-            actions.setDrawControl(draw);
+            const draw = drawControl ? drawControl.draw : undefined;
+            actions.setDrawControl({ draw });
           }}
           onDrawCreate={this.handleUpdate}
           onDrawDelete={this.handleUpdate}

@@ -52,7 +52,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
 
     case SET_DRAW_CONTROL:
-      return state.set(DRAW_CONTROL, action.value);
+      return state.set(DRAW_CONTROL, action.value.draw);
 
     case EXECUTE_SEARCH:
     case DISCARD_DRAW_ZONES: {
