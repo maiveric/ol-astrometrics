@@ -114,7 +114,7 @@ const LogoutButton = styled(Button)`
 `;
 
 const SupportLink = styled.a.attrs(_ => ({
-  href: 'https://support.openlattice.com/servicedesk/customer/portal/1/user/login?destination=portal%2F1'
+  href: 'mailto:support@openlattice.com'
 }))`
   text-decoration: none;
   border: none;
