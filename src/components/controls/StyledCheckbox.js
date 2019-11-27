@@ -99,6 +99,7 @@ type Props = {
   value :string,
   checked :boolean,
   onChange :(event :Object) => void,
+  onClick? :(event :Object) => void,
   disabled? :boolean,
   dataSection? :?string
 };
@@ -109,10 +110,11 @@ const StyledCheckbox = ({
   value,
   checked,
   onChange,
+  onClick,
   disabled,
   dataSection
 } :Props) => (
-  <Control disabled={disabled} checked={checked}>{label}
+  <Control disabled={disabled} checked={checked} onClick={onClick}>{label}
     <CheckboxInput
         data-section={dataSection}
         name={name}
@@ -126,7 +128,8 @@ const StyledCheckbox = ({
 
 StyledCheckbox.defaultProps = {
   disabled: false,
-  dataSection: ''
+  dataSection: '',
+  onClick: () => {}
 };
 
 export default StyledCheckbox;
