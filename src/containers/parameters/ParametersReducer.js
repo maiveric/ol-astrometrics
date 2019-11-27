@@ -189,11 +189,11 @@ export function getSearchFields(search :Map<*, *>) {
 
 
   // Additional optional search types
-  if (search.get(DEPARTMENT_ID, '').length) {
+  if ((search.get(DEPARTMENT) || '').length) {
     searchFields.push(SEARCH_TYPES.DEPARTMENT);
   }
 
-  if (search.get(DEVICE, '').length) {
+  if ((search.get(DEVICE) || '').length) {
     searchFields.push(SEARCH_TYPES.DEVICE);
   }
 
