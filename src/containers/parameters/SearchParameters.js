@@ -472,7 +472,6 @@ class SearchParameters extends React.Component<Props, State> {
   }
 
   renderFullSearchParameters() {
-    const { isExpanded } = this.state;
     const {
       actions,
       searchParameters,
@@ -701,81 +700,7 @@ class SearchParameters extends React.Component<Props, State> {
               </InputGroup>
             </Row>
 
-            <Row>
-              <ButtonWrapper fitContent onClick={this.toggleAdditionalDetails}>
-                <span>Additional details</span>
-                <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
-              </ButtonWrapper>
-            </Row>
-
           </MenuSection>
-
-          {
-            isExpanded ? (
-              <>
-                <MenuSection>
-
-                  <Row>
-                    <InputGroup>
-                      <Label>Make</Label>
-                      <StyledSearchableSelect
-                          value={searchParameters.get(PARAMETERS.MAKE)}
-                          onSelect={value => this.onMakeChange(value)}
-                          onClear={() => this.onMakeChange('')}
-                          options={this.getAsMap(MAKES)}
-                          openAbove
-                          short />
-                    </InputGroup>
-                  </Row>
-
-                  <Row>
-                    <InputGroup>
-                      <Label>Color</Label>
-                      <StyledSearchableSelect
-                          value={searchParameters.get(PARAMETERS.COLOR)}
-                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value })}
-                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value: '' })}
-                          options={this.getAsMap(COLORS)}
-                          openAbove
-                          short />
-                    </InputGroup>
-                  </Row>
-
-                  <Row>
-                    <InputGroup>
-                      <Label>Accessories</Label>
-                      <StyledSearchableSelect
-                          value={searchParameters.get(PARAMETERS.ACCESSORIES)}
-                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value })}
-                          onInputChange={({ target }) => {
-                            actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: target.value });
-                          }}
-                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: '' })}
-                          options={this.getAsMap(ACCESSORIES)}
-                          openAbove
-                          short />
-                    </InputGroup>
-                  </Row>
-
-                  <Row>
-                    <InputGroup>
-                      <Label>Style</Label>
-                      <StyledSearchableSelect
-                          value={searchParameters.get(PARAMETERS.STYLE)}
-                          onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value })}
-                          onClear={() => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value: '' })}
-                          options={this.getAsMap(STYLES)}
-                          openAbove
-                          short />
-                    </InputGroup>
-                  </Row>
-
-                </MenuSection>
-
-
-              </>
-            ) : null
-          }
 
           {this.renderSearchButton()}
 
@@ -807,6 +732,80 @@ class SearchParameters extends React.Component<Props, State> {
       <SearchButtonWrapper>
         <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
       </SearchButtonWrapper>
+    );
+  }
+
+  //* This is not currently used, but leaving the code here for future use */
+  renderAdditionalDetails = () => {
+    const { isExpanded } = this.state;
+    const { actions, searchParameters } = this.props;
+
+    if (!isExpanded) {
+      return null;
+    }
+
+    return (
+      <>
+        <MenuSection>
+
+          <Row>
+            <InputGroup>
+              <Label>Make</Label>
+              <StyledSearchableSelect
+                  value={searchParameters.get(PARAMETERS.MAKE)}
+                  onSelect={value => this.onMakeChange(value)}
+                  onClear={() => this.onMakeChange('')}
+                  options={this.getAsMap(MAKES)}
+                  openAbove
+                  short />
+            </InputGroup>
+          </Row>
+
+          <Row>
+            <InputGroup>
+              <Label>Color</Label>
+              <StyledSearchableSelect
+                  value={searchParameters.get(PARAMETERS.COLOR)}
+                  onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value })}
+                  onClear={() => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value: '' })}
+                  options={this.getAsMap(COLORS)}
+                  openAbove
+                  short />
+            </InputGroup>
+          </Row>
+
+          <Row>
+            <InputGroup>
+              <Label>Accessories</Label>
+              <StyledSearchableSelect
+                  value={searchParameters.get(PARAMETERS.ACCESSORIES)}
+                  onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value })}
+                  onInputChange={({ target }) => {
+                    actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: target.value });
+                  }}
+                  onClear={() => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: '' })}
+                  options={this.getAsMap(ACCESSORIES)}
+                  openAbove
+                  short />
+            </InputGroup>
+          </Row>
+
+          <Row>
+            <InputGroup>
+              <Label>Style</Label>
+              <StyledSearchableSelect
+                  value={searchParameters.get(PARAMETERS.STYLE)}
+                  onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value })}
+                  onClear={() => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value: '' })}
+                  options={this.getAsMap(STYLES)}
+                  openAbove
+                  short />
+            </InputGroup>
+          </Row>
+
+        </MenuSection>
+
+      </>
     );
   }
 
