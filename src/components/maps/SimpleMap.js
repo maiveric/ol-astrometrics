@@ -82,7 +82,8 @@ const Pin = styled.div`
 
 const MapComponent = reactMapboxGl({
   accessToken: __MAPBOX_TOKEN__,
-  logoPosition: 'top-right'
+  logoPosition: 'top-right',
+  dragRotate: false
 });
 
 class SimpleMap extends React.Component<Props, State> {
