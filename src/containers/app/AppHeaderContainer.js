@@ -102,6 +102,7 @@ const LogoutButton = styled.button`
 
   &:hover {
     background: #4F4E54;
+    cursor: pointer;
   }
 
   &:active {
