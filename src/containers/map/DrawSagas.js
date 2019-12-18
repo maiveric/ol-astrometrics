@@ -12,7 +12,7 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { Map, fromJS } from 'immutable';
-import { AppApi, EntityDataModelApi, SearchApi } from 'lattice';
+import { SearchApi } from 'lattice';
 import { AuthUtils } from 'lattice-auth';
 import type { SequenceAction } from 'redux-reqseq';
 

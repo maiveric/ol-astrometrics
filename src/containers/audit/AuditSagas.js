@@ -4,17 +4,16 @@
 
 import moment from 'moment';
 import {
-  all,
   call,
   put,
   select,
   takeEvery
 } from '@redux-saga/core/effects';
 import { List, Map, fromJS } from 'immutable';
-import { AppApi, PrincipalsApi, SearchApi } from 'lattice';
+import { PrincipalsApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
-import { getFqnString, getEntityKeyId, getDateSearchTerm } from '../../utils/DataUtils';
+import { getEntityKeyId, getDateSearchTerm } from '../../utils/DataUtils';
 import {
   getAppFromState,
   getAuditFromState,
