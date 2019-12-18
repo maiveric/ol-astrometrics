@@ -8,7 +8,6 @@ import Select from 'react-select';
 import styled from 'styled-components';
 import { Map } from 'immutable';
 import { AuthActions, AuthUtils } from 'lattice-auth';
-import { Button, Colors } from 'lattice-ui-kit';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
@@ -25,11 +24,8 @@ import { orgSelectStyles } from '../../core/style/OrgSelectStyles';
 
 const { logout } = AuthActions;
 
-// TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
-const APP_HEADER_BORDER :string = '#36353B';
-
 const AppHeaderOuterWrapper = styled.header`
-  border-bottom: 1px solid ${APP_HEADER_BORDER};
+  border-bottom: 1px solid #36353b;
   display: flex;
   flex: 0 0 auto;
   justify-content: center;
@@ -88,7 +84,7 @@ const AppTitle = styled.h1`
   margin: 0 0 0 23px;
 `;
 
-const LogoutButton = styled(Button)`
+const LogoutButton = styled.button`
   font-size: 12px;
   line-height: 16px;
   margin-left: 30px;
