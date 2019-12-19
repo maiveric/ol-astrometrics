@@ -16,7 +16,7 @@ import {
   OrderedMap,
   fromJS
 } from 'immutable';
-import { DataApi, PrincipalsApi, SearchApi } from 'lattice';
+import { DataApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { getSearchTerm, getEntityKeyId, getDateSearchTerm } from '../../utils/DataUtils';

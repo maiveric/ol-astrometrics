@@ -9,7 +9,6 @@ import {
   Constants,
   DataApi,
   EntityDataModelApi,
-  SearchApi,
   Models
 } from 'lattice';
 import { AuthUtils } from 'lattice-auth';
