@@ -8,13 +8,18 @@ import reactMapboxGl, {
 } from 'react-mapbox-gl';
 import { List, Map, Set } from 'immutable';
 
+import LatLongPin from './LatLongPin';
+import SearchRadius from './SearchRadius';
 import DrawComponent from '../../containers/map/DrawComponent';
-import mapMarker from '../../assets/images/map-marker.png';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
-import { HEATMAP_PAINT, MAP_STYLE } from '../../utils/constants/MapConstants';
+import { MAP_STYLE, LAYERS } from '../../utils/constants/MapConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
-import { SEARCH_ZONE_COLORS, SEARCH_DOT_COLOR } from '../../utils/constants/Colors';
 import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
+import {
+  SEARCH_ZONE_COLORS_DARK,
+  SEARCH_ZONE_COLORS_LIGHT,
+  SEARCH_DOT_COLOR
+} from '../../utils/constants/Colors';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
@@ -27,21 +32,16 @@ const COORDS = {
 
 const DEFAULT_COORDS = COORDS.BAY_AREA;
 
-const LAYERS = {
-  ALL_SOURCE_FEATURES: 'allsourcefeatures',
-  SELECTED_SOURCE_FEATURES: 'selectedsourcefeatures',
-  SELECTED_READ: 'selectedread',
-  SEARCH_RADIUS: 'searchradius',
-  DATA_POINTS: 'datapoints'
-};
-
 type Props = {
   drawMode :boolean,
   entities :List<Map<*, *>>,
   heatmap? :boolean,
+  isMapStyleLoading :boolean,
+  mapMode :string,
   searchParameters :Map<*, *>,
   selectedEntityKeyIds :Set<*>,
   selectedReadId :string,
+  setMapStyleLoaded :RequestSequence,
   setSearchZones :(searchZones :number[][]) => void,
   selectEntity :(entityKeyId :string) => void
 };
@@ -60,26 +60,6 @@ const Wrapper = styled.div`
   right: 0;
 `;
 
-const Pin = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  div:first-child {
-    height: 12px;
-    width: 12px;
-    border-radius: 50%;
-    background-color: white;
-    margin-bottom: -5px;
-  }
-
-  div:last-child {
-    width: 2px;
-    background-color: white;
-    height: 16px;
-  }
-`;
-
 const MapComponent = reactMapboxGl({
   accessToken: __MAPBOX_TOKEN__,
   logoPosition: 'top-right',
@@ -87,6 +67,13 @@ const MapComponent = reactMapboxGl({
 });
 
 class SimpleMap extends React.Component<Props, State> {
+  //
+  // shouldComponentUpdate(nextProps) {
+  //   if (nextProps.isMapStyleLoading) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   static defaultProps = {
     heatmap: false
@@ -152,67 +139,41 @@ class SimpleMap extends React.Component<Props, State> {
     )).toArray();
   }
 
-  metersToPixelsAtMaxZoom = (meters, latitude) => meters / 0.075 / Math.cos(latitude * Math.PI / 180);
-
-  milesToPixelsAtMaxZoom = (miles, latitude) => this.metersToPixelsAtMaxZoom(miles * 1609.34, latitude);
-
   renderLatLong = () => {
-    const { searchParameters } = this.props;
-
-    const latitude = searchParameters.get(PARAMETERS.LATITUDE);
-    const longitude = searchParameters.get(PARAMETERS.LONGITUDE);
-
-    if (!latitude || !longitude) {
-      return null;
-    }
+    const { mapMode, searchParameters, isMapStyleLoading } = this.props;
 
     return (
-      <Marker coordinates={[longitude, latitude]} anchor="bottom">
-        <Pin>
-          <div />
-          <div />
-        </Pin>
-      </Marker>
+      <LatLongPin
+          mapMode={mapMode}
+          searchParameters={searchParameters}
+          isMapStyleLoading={isMapStyleLoading} />
     );
   }
 
   renderSearchAreaLayer = () => {
-    const { entities, searchParameters } = this.props;
-    const radius = searchParameters.get(PARAMETERS.RADIUS);
-    const latitude = searchParameters.get(PARAMETERS.LATITUDE);
-    const longitude = searchParameters.get(PARAMETERS.LONGITUDE);
+    const {
+      entities,
+      isMapStyleLoading,
+      mapMode,
+      searchParameters
+    } = this.props;
 
-    if (radius && latitude && longitude) {
-      return (
-        <Layer
-            type="circle"
-            id={LAYERS.SEARCH_RADIUS}
-            paint={{
-              'circle-opacity': entities.size ? 0.1 : 0.3,
-              'circle-color': SEARCH_ZONE_COLORS[0],
-              'circle-stroke-color': SEARCH_ZONE_COLORS[0],
-              'circle-stroke-width': 1,
-              'circle-radius': {
-                stops: [
-                  [0, 0],
-                  [20, this.milesToPixelsAtMaxZoom(radius, latitude)]
-                ],
-                base: 2
-              },
-            }}>
-          <Feature coordinates={[longitude, latitude]} />
-        </Layer>
-      );
-    }
-
-    return null;
+    return (
+      <SearchRadius
+          entityCount={entities.size}
+          mapMode={mapMode}
+          searchParameters={searchParameters}
+          isMapStyleLoading={isMapStyleLoading} />
+    );
   }
 
   renderSearchZones = () => {
-    const { entities, searchParameters } = this.props;
+    const { entities, mapMode, searchParameters } = this.props;
+
+    const colors = mapMode === MAP_STYLE.LIGHT ? SEARCH_ZONE_COLORS_LIGHT : SEARCH_ZONE_COLORS_DARK;
 
     return searchParameters.get(PARAMETERS.SEARCH_ZONES, []).map((zone, index) => {
-      const color = SEARCH_ZONE_COLORS[index % SEARCH_ZONE_COLORS.length];
+      const color = colors[index % colors.length];
 
       return (
         <GeoJSONLayer
@@ -389,7 +350,7 @@ class SimpleMap extends React.Component<Props, State> {
   }
 
   render() {
-    const { searchParameters } = this.props;
+    const { mapMode, searchParameters, setMapStyleLoaded } = this.props;
     const { fitToBounds } = this.state;
 
     const searchFields = getSearchFields(searchParameters);
@@ -409,9 +370,10 @@ class SimpleMap extends React.Component<Props, State> {
     return (
       <Wrapper>
         <MapComponent
-            style={MAP_STYLE.DARK}
+            style={mapMode}
             onStyleLoad={(map) => {
               map.on('click', LAYERS.DATA_POINTS, this.onPointClick);
+              setMapStyleLoaded();
             }}
             containerStyle={{
               height: '100%',
