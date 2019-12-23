@@ -29,6 +29,12 @@ const unmountExplore :RequestSequence = newRequestSequence(UNMOUNT_EXPLORE);
 export const SELECT_READS_FOR_REPORT :string = 'SELECT_READS_FOR_REPORT';
 export const selectReadsForReport :RequestSequence = newRequestSequence(SELECT_READS_FOR_REPORT);
 
+export const SET_MAP_MODE :string = 'SET_MAP_MODE';
+export const setMapMode :RequestSequence = newRequestSequence(SET_MAP_MODE);
+
+export const SET_MAP_STYLE_LOADED :string = 'SET_MAP_STYLE_LOADED';
+export const setMapStyleLoaded :RequestSequence = newRequestSequence(SET_MAP_STYLE_LOADED);
+
 export const DESELECT_READS_FOR_REPORT :string = 'DESELECT_READS_FOR_REPORT';
 export const deselectReadsForReport :RequestSequence = newRequestSequence(DESELECT_READS_FOR_REPORT);
 

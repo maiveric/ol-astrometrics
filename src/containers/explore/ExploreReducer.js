@@ -12,6 +12,7 @@ import {
 
 import { EXPLORE } from '../../utils/constants/StateConstants';
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
+import { MAP_STYLE } from '../../utils/constants/MapConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
@@ -19,6 +20,8 @@ import {
   SELECT_READS_FOR_REPORT,
   DESELECT_READS_FOR_REPORT,
   SET_FILTER,
+  SET_MAP_MODE,
+  SET_MAP_STYLE_LOADED,
   UNMOUNT_EXPLORE,
   executeSearch,
   loadEntityNeighbors,
@@ -31,7 +34,9 @@ const {
   ENTITIES_BY_ID,
   FILTER,
   IS_LOADING_ENTITY_NEIGHBORS,
+  IS_MAP_STYLE_LOADING,
   IS_SEARCHING_DATA,
+  MAP_MODE,
   READ_IDS_TO_ADD_TO_REPORT,
   SEARCH_DATE_TIME,
   SELECTED_ENTITY_KEY_IDS,
@@ -45,7 +50,9 @@ const INITIAL_STATE :Map<> = fromJS({
   [ENTITIES_BY_ID]: Map(),
   [FILTER]: '',
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
+  [IS_MAP_STYLE_LOADING]: true,
   [IS_SEARCHING_DATA]: false,
+  [MAP_MODE]: MAP_STYLE.DARK,
   [READ_IDS_TO_ADD_TO_REPORT]: Set(),
   [SEARCH_RESULTS]: List(),
   [SELECTED_ENTITY_KEY_IDS]: Set(),
@@ -182,6 +189,12 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case SET_FILTER:
       return state.set(FILTER, action.value);
+
+    case SET_MAP_MODE:
+      return state.set(MAP_MODE, action.value).set(IS_MAP_STYLE_LOADING, true);
+
+    case SET_MAP_STYLE_LOADED:
+      return state.set(IS_MAP_STYLE_LOADING, false);
 
     case CLEAR_EXPLORE_SEARCH_RESULTS:
     case UNMOUNT_EXPLORE:

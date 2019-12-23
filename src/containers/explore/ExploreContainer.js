@@ -65,6 +65,7 @@ type Props = {
   isRemovingEntireVehicle :boolean;
   drawMode :boolean;
   displayFullSearchOptions :boolean;
+  mapMode :string;
   results :List<*>;
   selectedEntityKeyIds :Set<*>;
   selectedReadId :string;
@@ -82,7 +83,7 @@ type Props = {
     updateSearchParameters :({ field :string, value :string }) => void;
     toggleAlertModal :(modalOpen :boolean) => void;
     selectEntity :RequestSequence;
-    laodSavedMaps :RequestSequence;
+    setMapStyleLoaded :RequestSequence;
   }
 };
 
@@ -247,6 +248,8 @@ class ExploreContainer extends React.Component<Props, State> {
       actions,
       drawMode,
       filter,
+      isMapStyleLoading,
+      mapMode,
       results,
       searchParameters,
       selectedEntityKeyIds,
@@ -265,9 +268,12 @@ class ExploreContainer extends React.Component<Props, State> {
             setDrawMode={actions.setDrawMode}
             setSearchZones={this.setSearchZones}
             entities={entities}
+            isMapStyleLoading={isMapStyleLoading}
             selectEntity={this.selectEntity}
             selectedEntityKeyIds={selectedEntityKeyIds}
             selectedReadId={selectedReadId}
+            setMapStyleLoaded={actions.setMapStyleLoaded}
+            mapMode={mapMode}
             heatmap />
         {drawMode ? <SavedMapNavBar /> : null}
       </>
@@ -351,6 +357,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
     vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     filter: explore.get(EXPLORE.FILTER),
+    isMapStyleLoading: explore.get(EXPLORE.IS_MAP_STYLE_LOADING),
+    mapMode: explore.get(EXPLORE.MAP_MODE),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),

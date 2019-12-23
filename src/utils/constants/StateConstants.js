@@ -73,13 +73,15 @@ export const EXPLORE = {
   FILTER: 'filter',
   IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
   SEARCH_DATE_TIME: 'searchDateTime',
+  IS_MAP_STYLE_LOADING: 'isMapStyleLoading',
   IS_SEARCHING_DATA: 'isSearchingData',
   SEARCH_RESULTS: 'searchResults',
   TOTAL_RESULTS: 'numResults',
   SELECTED_ENTITY_KEY_IDS: 'selectedEntityKeyIds',
   SELECTED_READ_ID: 'selectedReadId',
 
-  READ_IDS_TO_ADD_TO_REPORT: 'readIdsToAddToReport'
+  READ_IDS_TO_ADD_TO_REPORT: 'readIdsToAddToReport',
+  MAP_MODE: 'mapMode'
 };
 
 export const SEARCH_PARAMETERS = {

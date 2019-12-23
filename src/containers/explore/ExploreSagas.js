@@ -6,6 +6,7 @@ import moment from 'moment';
 import {
   call,
   put,
+  select,
   take,
   takeEvery
 } from '@redux-saga/core/effects';
@@ -16,15 +17,22 @@ import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig'
 import { getSearchFields } from '../parameters/ParametersReducer';
 import { getDateSearchTerm } from '../../utils/DataUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
-import { EXPLORE, PARAMETERS, SEARCH_PARAMETERS } from '../../utils/constants/StateConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { submit } from '../submit/SubmitActionFactory';
 import {
+  STATE,
+  EXPLORE,
+  PARAMETERS,
+  SEARCH_PARAMETERS
+} from '../../utils/constants/StateConstants';
+import {
   EXECUTE_SEARCH,
   LOAD_ENTITY_NEIGHBORS,
+  SET_MAP_MODE,
   executeSearch,
-  loadEntityNeighbors
+  loadEntityNeighbors,
+  setMapMode
 } from './ExploreActionFactory';
 
 const { OPENLATTICE_ID_FQN } = Constants;
