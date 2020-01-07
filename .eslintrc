@@ -6,8 +6,10 @@
   ],
   "plugins": [
     "flowtype",
+    "import",
     "jest",
-    "react"
+    "react",
+    "react-hooks"
   ],
   "env": {
     "browser": true,
@@ -111,6 +113,15 @@
 
     "jsx-a11y/href-no-hash": "off",
 
+    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/rules-of-hooks": "error",
+
+    "react/default-props-match-prop-types": [
+      "error",
+      {
+        "allowRequiredDefaults": true
+      }
+    ],
     "react/forbid-prop-types": "warn",
     "react/jsx-closing-bracket-location": [
       "error",
@@ -129,12 +140,15 @@
     "react/jsx-one-expression-per-line": "warn",
     "react/no-did-update-set-state": "warn",
     "react/prefer-stateless-function": "warn",
+    "react/prop-types": "warn",
     "react/require-default-props": [
       "error",
       {
-        "forbidDefaultForRequired": false,
+        "forbidDefaultForRequired": false
       }
     ],
-    "react/sort-comp": "off"
+    "react/sort-comp": "off",
+    "react/state-in-constructor": ["warn", "always"],
+    "react/static-property-placement": ["error", "static public field"]
   }
 }

@@ -15,7 +15,6 @@ import {
   SAVED_MAP
 } from '../../utils/constants/StateConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { SEARCH_ZONE_COLORS } from '../../utils/constants/Colors';
 import * as DrawActionFactory from './DrawActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';

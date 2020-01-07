@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom';
 
 import LatticeAuth from 'lattice-auth';
 import { ConnectedRouter } from 'connected-react-router/immutable';
-import { Colors } from 'lattice-ui-kit';
 import { normalize } from 'polished';
 import { Provider } from 'react-redux';
 import { createGlobalStyle } from 'styled-components';
@@ -22,7 +21,6 @@ declare var __AUTH0_CLIENT_ID__ :string;
 declare var __AUTH0_DOMAIN__ :string;
 
 const { AuthRoute, AuthUtils } = LatticeAuth;
-const { NEUTRALS, WHITE } = Colors;
 
 /* eslint-disable */
 // TODO: move into core/styles

@@ -24,9 +24,6 @@ import { APP_NAME } from '../../utils/constants/Constants';
 import { STATE, APP } from '../../utils/constants/StateConstants';
 import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 
-// TODO: this should come from lattice-ui-kit, maybe after the next release. current version v0.1.1
-const APP_CONTENT_BG :string = '#1F1E24';
-
 const AppContainerWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -37,7 +34,7 @@ const AppContainerWrapper = styled.div`
 `;
 
 const AppContentOuterWrapper = styled.main`
-  background-color: ${APP_CONTENT_BG};
+  background-color: #1f1e24;
   display: flex;
   flex: 1 0 auto;
   justify-content: center;

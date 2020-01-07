@@ -1,7 +1,15 @@
 export const MAP_STYLE = {
   DEFAULT: 'mapbox://styles/mapbox/streets-v9',
   DARK: 'mapbox://styles/mapbox/dark-v9',
-  LIGHT: 'mapbox://styles/mapbox/light-v9'
+  LIGHT: 'mapbox://styles/mapbox/light-v10'
+};
+
+export const LAYERS = {
+  ALL_SOURCE_FEATURES: 'allsourcefeatures',
+  SELECTED_SOURCE_FEATURES: 'selectedsourcefeatures',
+  SELECTED_READ: 'selectedread',
+  SEARCH_RADIUS: 'searchradius',
+  DATA_POINTS: 'datapoints'
 };
 
 export const HEATMAP_PAINT = {

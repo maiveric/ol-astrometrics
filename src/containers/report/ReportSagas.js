@@ -13,7 +13,7 @@ import {
   select
 } from '@redux-saga/core/effects';
 import { Map, List, fromJS } from 'immutable';
-import { DataApi, SearchApi } from 'lattice';
+import { SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
