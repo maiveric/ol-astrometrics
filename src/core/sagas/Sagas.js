@@ -16,16 +16,21 @@ import * as QualitySagas from '../../containers/quality/QualitySagas';
 import * as ReportSagas from '../../containers/report/ReportSagas';
 import * as RoutingSagas from '../router/RoutingSagas';
 import * as SubmitSagas from '../../containers/submit/SubmitSagas';
+import { logoutWatcher } from '../auth/AuthSagas';
 
 export default function* sagas() :Generator<*, *, *> {
 
   yield all([
+    /*
+     * NOTE: we're using a custom logout watcher "logoutWatcher" to handle the conditional redirect
+     */
+    fork(logoutWatcher),
+
     /* "lattice-auth" sagas */
     fork(AuthSagas.watchAuthAttempt),
     fork(AuthSagas.watchAuthSuccess),
     fork(AuthSagas.watchAuthFailure),
     fork(AuthSagas.watchAuthExpired),
-    fork(AuthSagas.watchLogout),
 
     /* AlertSagas */
     fork(AlertSagas.createAlertWatcher),
@@ -81,6 +86,6 @@ export default function* sagas() :Generator<*, *, *> {
     fork(SubmitSagas.deleteEntitiesWatcher),
     fork(SubmitSagas.partialReplaceEntityWatcher),
     fork(SubmitSagas.replaceEntityWatcher),
-    fork(SubmitSagas.submitWatcher)
+    fork(SubmitSagas.submitWatcher),
   ]);
 }
