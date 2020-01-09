@@ -98,7 +98,7 @@ const getPlateFromSearch = (search, platePTId) => {
   }
 
   return licensePlate;
-}
+};
 
 function* getUsersById() {
   try {

@@ -17,7 +17,7 @@ function* logoutWatcher() :Generator<*, *, *> {
     const userInfo :{ id ?:string } = AuthUtils.getUserInfo() || { id: '' };
     AuthUtils.clearAuthInfo();
     if (userInfo.id && userInfo.id.startsWith('samlp|NCRIC')) {
-      window.location.replace('https://secureauth.ncric.ca.gov/secureauth20');
+      window.location.replace('https://sso.ncric.ca.gov');
     }
     else {
       yield put(push(ROOT));
