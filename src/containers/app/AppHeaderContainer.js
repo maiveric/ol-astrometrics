@@ -6,30 +6,31 @@ import React, { Component } from 'react';
 
 import Select from 'react-select';
 import styled from 'styled-components';
-import { Map } from 'immutable';
+import { List, Map } from 'immutable';
 import { AuthActions, AuthUtils } from 'lattice-auth';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
+import { bindActionCreators } from 'redux';
 
 import AppNavigationContainer from './AppNavigationContainer';
+import { switchOrganization } from './AppActions';
+
 import AstrometricsIcon from '../../components/icons/AstrometricsIcon';
 import UsernameAndIcon from '../../components/icons/UsernameAndIcon';
 import * as Routes from '../../core/router/Routes';
-import { STATE, APP } from '../../utils/constants/StateConstants';
-import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
-import { switchOrganization } from './AppActions';
 import { orgSelectStyles } from '../../core/style/OrgSelectStyles';
+import { APP_CONTAINER_WIDTH } from '../../core/style/Sizes';
+import { APP, STATE } from '../../utils/constants/StateConstants';
 
 const { logout } = AuthActions;
 
 const AppHeaderOuterWrapper = styled.header`
+  background-color: #121117;
   border-bottom: 1px solid #36353b;
   display: flex;
   flex: 0 0 auto;
   justify-content: center;
-  background-color: #121117;
   position: fixed;
   top: 0;
   width: 100%;
@@ -77,7 +78,7 @@ const LogoTitleWrapperLink = styled(Link)`
 `;
 
 const AppTitle = styled.h1`
-  color: #ffffff;
+  color: #fff;
   font-size: 14px;
   font-weight: 600;
   line-height: 17px;
@@ -85,43 +86,39 @@ const AppTitle = styled.h1`
 `;
 
 const LogoutButton = styled.button`
+  background: #36353b;
+  border-radius: 3px;
+  border: none;
+  color: #fff;
   font-size: 12px;
-  line-height: 16px;
+  font-weight: 500;
+  line-height: 150%;
   margin-left: 30px;
   padding: 7px 29px;
-  background: #36353B;
-  border-radius: 3px;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 150%;
-  border: none;
-
   text-align: center;
 
-  color: #FFFFFF;
-
   &:hover {
-    background: #4F4E54;
+    background: #4f4e54;
     cursor: pointer;
   }
 
   &:active {
-    background: #4F4E54;
+    background: #4f4e54;
   }
 `;
 
-const SupportLink = styled.a.attrs(_ => ({
+const SupportLink = styled.a.attrs(() => ({
   href: 'mailto:support@openlattice.com'
 }))`
-  text-decoration: none;
-  border: none;
   border-radius: 3px;
-  color: #ffffff;
+  border: none;
+  color: #fff;
   font-family: 'Open Sans', sans-serif;
-  font-weight: 500;
   font-size: 12px;
+  font-weight: 500;
   line-height: 150%;
   margin-left: 30px;
+  text-decoration: none;
 `;
 
 const OrgSelect = styled.div`
@@ -133,6 +130,11 @@ type Props = {
     logout :() => void;
     switchOrganization :(orgId :string) => Object;
   };
+  app :Map;
+  isAdmin :boolean;
+  loading :boolean;
+  organizations :List;
+  selectedOrg :UUID;
 };
 
 class AppHeaderContainer extends Component<Props> {
@@ -155,7 +157,7 @@ class AppHeaderContainer extends Component<Props> {
 
     return (
       <Select
-          value={organizations.find(option => option.value === selectedOrg)}
+          value={organizations.find((option) => option.value === selectedOrg)}
           isClearable={false}
           isLoading={loading}
           isMulti={false}
@@ -185,6 +187,13 @@ class AppHeaderContainer extends Component<Props> {
   renderRightSideContent = () => {
 
     const { actions } = this.props;
+
+    let logoutText :string = 'Logout';
+    const userInfo :{ id ?:string } = AuthUtils.getUserInfo() || { id: '' };
+    if (userInfo.id && userInfo.id.startsWith('samlp|NCRIC')) {
+      logoutText = 'Back to NCRIC';
+    }
+
     return (
       <RightSideContentWrapper>
         <OrgSelect>{ this.renderOrgSelector() }</OrgSelect>
@@ -193,7 +202,7 @@ class AppHeaderContainer extends Component<Props> {
           Support
         </SupportLink>
         <LogoutButton onClick={actions.logout}>
-          Log Out
+          {logoutText}
         </LogoutButton>
       </RightSideContentWrapper>
     );
@@ -224,10 +233,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
   return {
     app,
     organizations,
-    selectedOrg: app.get(APP.SELECTED_ORG_ID, ''),
-    loading: app.get(APP.LOADING, false),
     isAdmin: app.get(APP.IS_ADMIN, false),
-    isLoadingApp: state.getIn(['app', 'isLoadingApp'], false),
+    loading: app.get(APP.LOADING, false),
+    selectedOrg: app.get(APP.SELECTED_ORG_ID, ''),
   };
 }
 
