@@ -166,12 +166,12 @@ class AuditDashboard extends React.Component<Props, State> {
       .map(search => search.get(AUDIT_EVENT.DATE_TIME))
       .filter(dateTime => dateTime.isSameOrAfter(lastValidMoment))
       .forEach((dateTime) => {
-        const dateTimeStr = dateTime.format(formatter);
+        const dateTimeStr = dateTime.toISOString(true);
         counts = counts.set(dateTimeStr, counts.get(dateTimeStr) + 1);
       });
 
     return (
-      <BarChart color="#816DF0" resourceType="searches" countsMap={counts} />
+      <BarChart color="#816DF0" resourceType="searches" countsMap={counts} formatter={formatter} />
     );
 
   }

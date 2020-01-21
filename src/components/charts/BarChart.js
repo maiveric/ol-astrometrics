@@ -1,4 +1,5 @@
 import React from 'react';
+import moment from 'moment';
 import styled from 'styled-components';
 import { Map } from 'immutable';
 import {
@@ -59,13 +60,14 @@ const StyledBarChart = ({
   resourceType,
   countsMap,
   color,
-  yAxisWide
+  yAxisWide,
+  formatter
 } :Props) => {
 
   const data = countsMap
     .entrySeq()
-    .sort(([date1], [date2]) => (date1 > date2 ? 1 : -1))
-    .map(([date, count]) => ({ date, count }));
+    .sort(([date1], [date2]) => (moment(date1).isAfter(date2) ? 1 : -1))
+    .map(([date, count]) => ({ date: moment(date).format(formatter), count }));
 
   const yAxisWidth = yAxisWide ? { width: 100 } : {};
   return (
