@@ -30,7 +30,8 @@ import {
   AUDIT,
   QUALITY,
   EDM,
-  DASHBOARD_WINDOWS
+  DASHBOARD_WINDOWS,
+  DATE_FORMATS
 } from '../../utils/constants/StateConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
@@ -132,10 +133,12 @@ class QualityDashboard extends React.Component<Props, State> {
   }
 
   renderReadsOverTime = () => {
-    const { counts } = this.props;
+    const { counts, dashboardWindow } = this.props;
+
+    const formatter = DATE_FORMATS[dashboardWindow]
 
     return (
-      <BarChart color="#34B88B" resourceType="reads" countsMap={counts} yAxisWide />
+      <BarChart color="#34B88B" resourceType="reads" countsMap={counts} formatter={formatter} yAxisWide />
     );
   }
 

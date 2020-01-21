@@ -47,7 +47,6 @@ function* executeSearchesForWindow(range, readsEntitySetId, dateTimePTId) {
   const labels = [];
   const requests = [];
 
-  const formatter = DATE_FORMATS[range];
   const increment = range === DASHBOARD_WINDOWS.YEAR ? 'month' : 'day';
 
   let curr = moment().subtract(1, range).add(1, increment);
@@ -56,7 +55,7 @@ function* executeSearchesForWindow(range, readsEntitySetId, dateTimePTId) {
 
     const start = curr.startOf(increment).toISOString(true);
     const end = curr.endOf(increment).toISOString(true);
-    labels.push(curr.format(formatter));
+    labels.push(curr.toISOString(true));
 
     requests.push(call(SearchApi.searchEntitySetData, readsEntitySetId, {
       start: 0,
