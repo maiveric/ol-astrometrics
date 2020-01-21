@@ -30,7 +30,8 @@ import {
   AUDIT,
   QUALITY,
   EDM,
-  DASHBOARD_WINDOWS
+  DASHBOARD_WINDOWS,
+  DATE_FORMATS
 } from '../../utils/constants/StateConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
@@ -133,14 +134,6 @@ class QualityContributions extends React.Component<Props, State> {
     super(props);
     this.state = {
     };
-  }
-
-  renderReadsOverTime = () => {
-    const { counts } = this.props;
-
-    return (
-      <BarChart color="#34B88B" resourceType="searches" countsMap={counts} />
-    );
   }
 
   sortCountMap = countMap => countMap.sort((v1, v2) => (v1 > v2 ? -1 : 1));
