@@ -11,9 +11,10 @@ import {
 } from 'immutable';
 
 import { EXPLORE } from '../../utils/constants/StateConstants';
-import { APP_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { MAP_STYLE } from '../../utils/constants/MapConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
+import { getPlate } from '../../utils/VehicleUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
   SELECT_ENTITY,
@@ -59,6 +60,50 @@ const INITIAL_STATE :Map<> = fromJS({
   [SELECTED_READ_ID]: undefined,
   [TOTAL_RESULTS]: 0
 });
+
+const getSelectedDataFromNeighbors = (state, data, vehiclesEntitySetId) => {
+  const readEntityKeyId = data;
+
+  let selectedEntityKeyIds = Set();
+  let idsToMatch = Set.of(readEntityKeyId);
+  let selectedReadId = readEntityKeyId;
+
+  state.getIn([ENTITY_NEIGHBORS_BY_ID, readEntityKeyId], List()).forEach((neighborObj) => {
+    if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
+      const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
+      if (entityKeyId) {
+        idsToMatch = idsToMatch.add(entityKeyId);
+      }
+    }
+  });
+
+  state.get(ENTITY_NEIGHBORS_BY_ID).entrySeq().forEach(([entityKeyId, neighborList]) => {
+    neighborList.forEach((neighbor) => {
+      if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails') || Map()))) {
+        selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
+      }
+    });
+  });
+
+  if (selectedEntityKeyIds.size && !selectedEntityKeyIds.has(selectedReadId)) {
+    selectedReadId = selectedEntityKeyIds.first();
+  }
+
+  return { selectedEntityKeyIds, selectedReadId };
+}
+
+const getSeletedDataFromSearchResults = (state, data) => {
+  let selectedEntityKeyIds = Set();
+  const plate = data;
+
+  state.get(SEARCH_RESULTS).filter((result) => getPlate(result) === plate).forEach(result => {
+    selectedEntityKeyIds = selectedEntityKeyIds.add(getEntityKeyId(result));
+  });
+
+  const selectedReadId = selectedEntityKeyIds.first();
+
+  return { selectedEntityKeyIds, selectedReadId };
+}
 
 const updateEntitiesIdForNeighbors = (initEntitiesById, neighborLists) => {
   let entitiesById = initEntitiesById;
@@ -113,16 +158,34 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           .set(SEARCH_DATE_TIME, moment().toISOString(true))
           .set(TOTAL_RESULTS, 0),
         SUCCESS: () => {
-          const { hits, numHits } = action.value;
-          const results = fromJS(hits);
+          const { results, vehicleEntitySetId } = action.value;
+          const { hits, numHits } = results;
+          const reads = fromJS(hits);
           let entitiesById = state.get(ENTITIES_BY_ID);
-          results.forEach((result) => {
+          reads.forEach((result) => {
             entitiesById = entitiesById.set(getEntityKeyId(result), result);
           });
+
+          let neighborsById = Map();
+          reads.forEach((result) => {
+            const plate = getPlate(result);
+            neighborsById = neighborsById.set(getEntityKeyId(result), fromJS([{
+              'neighborEntitySet': {
+                'id': vehicleEntitySetId
+              },
+              'neighborDetails': {
+                [PROPERTY_TYPES.PLATE]: [plate],
+                [PROPERTY_TYPES.ID]: [plate],
+                'openlattice.@id': [plate],
+                isIntermediate: true
+              }
+            }]));
+          });
           return state
-            .set(SEARCH_RESULTS, results)
+            .set(SEARCH_RESULTS, reads)
             .set(ENTITIES_BY_ID, entitiesById)
-            .set(TOTAL_RESULTS, numHits);
+            .set(TOTAL_RESULTS, numHits)
+            .set(ENTITY_NEIGHBORS_BY_ID, neighborsById);
         },
         FAILURE: () => state.set(SEARCH_RESULTS, List()).set(TOTAL_RESULTS, 0),
         FINALLY: () => state.set(IS_SEARCHING_DATA, false)
@@ -140,34 +203,15 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     }
 
     case SELECT_ENTITY: {
-      let selectedEntityKeyIds = Set();
+      const { data, vehiclesEntitySetId, isIntermediate } = action.value;
 
-      const { data, vehiclesEntitySetId } = action.value;
-      let selectedReadId = data;
+      let selectedEntityKeyIds = Set();
+      let selectedReadId = undefined;
 
       if (data) {
-        let idsToMatch = Set.of(data);
-
-        state.getIn([ENTITY_NEIGHBORS_BY_ID, data], List()).forEach((neighborObj) => {
-          if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
-            const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
-            if (entityKeyId) {
-              idsToMatch = idsToMatch.add(entityKeyId);
-            }
-          }
-        });
-
-        state.get(ENTITY_NEIGHBORS_BY_ID).entrySeq().forEach(([entityKeyId, neighborList]) => {
-          neighborList.forEach((neighbor) => {
-            if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails') || Map()))) {
-              selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
-            }
-          });
-        });
-
-        if (selectedEntityKeyIds.size && !selectedEntityKeyIds.has(selectedReadId)) {
-          selectedReadId = selectedEntityKeyIds.first();
-        }
+        ({ selectedEntityKeyIds, selectedReadId } = isIntermediate
+          ? getSeletedDataFromSearchResults(state, data, vehiclesEntitySetId)
+          : getSelectedDataFromNeighbors(state, data, vehiclesEntitySetId))
       }
 
       let newState = state
