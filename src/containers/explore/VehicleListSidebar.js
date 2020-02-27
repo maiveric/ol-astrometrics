@@ -5,7 +5,12 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import { List, Map, Set } from 'immutable';
+import {
+  List,
+  Map,
+  Set,
+  fromJS
+} from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -21,7 +26,12 @@ import { STATE, EXPLORE, SEARCH_PARAMETERS } from '../../utils/constants/StateCo
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, countWithLabel } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
-import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
+import {
+  getVehicleList,
+  getRecordsByVehicleId,
+  getFilteredVehicles,
+  getPlate
+} from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
@@ -184,10 +194,10 @@ class Sidebar extends React.Component<Props, State> {
     return { vehicles, recordsByVehicleId };
   }
 
-  onVehicleClick = (entityKeyId) => {
+  onVehicleClick = (entityKeyId, isIntermediate) => {
     const { actions, selectedEntityKeyIds, vehiclesEntitySetId } = this.props;
     const data = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
-    actions.selectEntity({ data, vehiclesEntitySetId });
+    actions.selectEntity({ data, vehiclesEntitySetId, isIntermediate });
   }
 
   sortVehicles = (vehicles, recordsByVehicleId) => {
@@ -239,21 +249,6 @@ class Sidebar extends React.Component<Props, State> {
     }
   }
 
-  vehicleIsUnselected = (records) => {
-    const { selectedReadId } = this.props;
-    if (selectedReadId) {
-      let unselected = true;
-      records.forEach((record) => {
-        if (selectedReadId === getEntityKeyId(record)) {
-          unselected = false;
-        }
-      });
-      return unselected;
-    }
-
-    return false;
-  }
-
   renderHeader = (numVehicles) => {
     const { actions, results } = this.props;
 
@@ -273,16 +268,19 @@ class Sidebar extends React.Component<Props, State> {
   }
 
   renderVehicles = (vehiclePage, recordsByVehicleId) => {
-    const { departmentOptions, deviceOptions } = this.props;
+    const { departmentOptions, deviceOptions, selectedReadPlate } = this.props;
     const { sort } = this.state;
 
     return vehiclePage.map((vehicle) => {
       const entityKeyId = getEntityKeyId(vehicle);
+      const plate = getPlate(vehicle);
+      const isIntermediate = vehicle.get('isIntermediate');
+
       return (
         <VehicleCard
             key={entityKeyId}
-            isUnselected={this.vehicleIsUnselected(recordsByVehicleId.get(entityKeyId, List()))}
-            onClick={() => this.onVehicleClick(entityKeyId)}
+            isUnselected={plate !== selectedReadPlate}
+            onClick={() => this.onVehicleClick(entityKeyId, isIntermediate)}
             vehicle={vehicle}
             departmentOptions={departmentOptions}
             deviceOptions={deviceOptions}
@@ -294,10 +292,10 @@ class Sidebar extends React.Component<Props, State> {
   }
 
   render() {
-    const { isLoadingResults, isLoadingNeighbors } = this.props;
+    const { isLoadingResults } = this.props;
     const { page } = this.state;
 
-    if (isLoadingResults || isLoadingNeighbors) {
+    if (isLoadingResults) {
       return <ScrollableSidebar><Spinner /></ScrollableSidebar>;
     }
 
@@ -334,13 +332,20 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const report = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
+
+  const selectedReadId = explore.get(EXPLORE.SELECTED_READ_ID);
+  const results = explore.get(EXPLORE.SEARCH_RESULTS);
+
+  const selectedReadPlate = results.filter(read => getEntityKeyId(read) === selectedReadId).map(getPlate).first();
+
   return {
     recordEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
-    results: explore.get(EXPLORE.SEARCH_RESULTS),
+    results,
+    selectedReadId,
+    selectedReadPlate,
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
-    selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
     isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),

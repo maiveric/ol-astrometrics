@@ -38,3 +38,5 @@ export const getFilteredVehicles = (vehicleList, recordsByVehicleId, filter) => 
     return shouldInclude;
   });
 };
+
+export const getPlate = (record) => record.getIn([PROPERTY_TYPES.PLATE, 0], '');

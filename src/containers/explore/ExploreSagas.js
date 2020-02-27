@@ -15,9 +15,10 @@ import type { RequestSequence, SequenceAction } from 'redux-reqseq';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
+import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
 import { getDateSearchTerm } from '../../utils/DataUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { submit } from '../submit/SubmitActionFactory';
 import {
@@ -286,7 +287,9 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
     if (logSearchResponseAction.type === submit.SUCCESS) {
       const results = yield call(SearchApi.executeSearch, searchRequest);
 
-      yield put(executeSearch.success(action.id, results));
+      const app = yield select(getAppFromState);
+      const vehicleEntitySetId = getEntitySetId(app, APP_TYPES.CARS);
+      yield put(executeSearch.success(action.id, { results, vehicleEntitySetId }));
 
       yield put(loadEntityNeighbors({
         entitySetId,
