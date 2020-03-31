@@ -20,7 +20,7 @@ import {
 import type { SequenceAction } from 'redux-reqseq';
 
 import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
-import { formatNameIdForDisplay, getEntityKeyId } from '../../utils/DataUtils';
+import { formatNameIdForDisplay, formatDescriptionIdForDisplay, getEntityKeyId } from '../../utils/DataUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   GEOCODE_ADDRESS,
@@ -55,12 +55,13 @@ export function* geocodeAddressWatcher() :Generator<*, *, *> {
   yield takeEvery(GEOCODE_ADDRESS, geocodeAddressWorker);
 }
 
-const getDataAsMap = (entities) => {
+const getDataAsMap = (entities, useDescription) => {
+  const formatter = useDescription ? formatDescriptionIdForDisplay : formatNameIdForDisplay;
   let map = OrderedMap();
 
   fromJS(entities).forEach((entity) => {
     const id = entity.getIn([PROPERTY_TYPES.ID, 0]);
-    map = map.set(id, formatNameIdForDisplay(entity));
+    map = map.set(id, formatter(entity));
   });
 
   return map.sort();
@@ -111,7 +112,7 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
 
     yield put(loadDepartmentsAndDevices.success(action.id, {
       departmentOptions: getDataAsMap(departments),
-      deviceOptions: getDataAsMap(devices),
+      deviceOptions: getDataAsMap(devices, true),
       devicesByAgency
     }));
   }
