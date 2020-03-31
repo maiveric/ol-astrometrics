@@ -101,6 +101,9 @@ export const getDisplayNameForId = (idToNameMap, id) => idToNameMap.get(id, idTo
 
 export const formatNameIdForDisplay = entity => entity.getIn([PROPERTY_TYPES.NAME, 0], '[unknown]');
 
+export const formatDescriptionIdForDisplay = entity => entity
+  .getIn([PROPERTY_TYPES.DESCRIPTION, 0], formatNameIdForDisplay(entity));
+
 export const countWithLabel = (count, label) => `${count} ${label}${count && count > 1 ? 's' : ''}`;
 
 export const getValue = (entity, fqn, defaultValue) => {
