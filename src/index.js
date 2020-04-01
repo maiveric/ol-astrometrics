@@ -11,6 +11,7 @@ import { normalize } from 'polished';
 import { Provider } from 'react-redux';
 import { createGlobalStyle } from 'styled-components';
 
+import UnderMaintenance from './components/maintenance/UnderMaintenance';
 import AppContainer from './containers/app/AppContainer';
 import initializeReduxStore from './core/redux/ReduxStore';
 import initializeRouterHistory from './core/router/RouterHistory';
@@ -73,8 +74,18 @@ LatticeAuth.configure({
 const routerHistory = initializeRouterHistory();
 const reduxStore = initializeReduxStore(routerHistory);
 
+const IS_UNDER_MAINTENANCE = true;
+
 const APP_ROOT_NODE = document.getElementById('app');
-if (APP_ROOT_NODE) {
+
+if (IS_UNDER_MAINTENANCE) {
+  ReactDOM.render(
+    <UnderMaintenance />,
+    APP_ROOT_NODE
+  );
+}
+
+else if (APP_ROOT_NODE) {
   ReactDOM.render(
     <Provider store={reduxStore}>
       <>
