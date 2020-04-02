@@ -74,7 +74,7 @@ LatticeAuth.configure({
 const routerHistory = initializeRouterHistory();
 const reduxStore = initializeReduxStore(routerHistory);
 
-const IS_UNDER_MAINTENANCE = true;
+const IS_UNDER_MAINTENANCE = false;
 
 const APP_ROOT_NODE = document.getElementById('app');
 
