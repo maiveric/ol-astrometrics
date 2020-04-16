@@ -79,7 +79,7 @@ type Props = {
 const SearchParameterWrapper = styled.div`
   width: ${SIDEBAR_WIDTH}px;
   height: 100%;
-  position: fixed;
+  position: relative;
   z-index: 2;
   background-color: #1F1E24;
   display: flex;
@@ -91,6 +91,7 @@ const SearchParameterWrapper = styled.div`
 
 const MenuSection = styled.div`
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -103,7 +104,7 @@ const InnerWrapper = styled.div`
   position: absolute;
   top: 0;
   width: ${SIDEBAR_WIDTH}px;
-  height: calc(100% - 120px);
+  height: calc(100% - 68px);
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
