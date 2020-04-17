@@ -310,7 +310,6 @@ class ExploreContainer extends React.Component<Props, State> {
         <Sidebar>
           {sidebarContent}
         </Sidebar>
-        <SearchParameters />
       </LeftSidebar>
     );
 
