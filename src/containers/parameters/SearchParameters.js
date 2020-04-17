@@ -10,7 +10,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { List, Map, OrderedMap } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/pro-light-svg-icons';
 import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
 import { faBell } from '@fortawesome/pro-solid-svg-icons';
 import type { RequestSequence } from 'redux-reqseq';
@@ -128,7 +127,7 @@ type State = {
 };
 
 const Row = styled.div`
-  width: ${props => (props.width || '100')}%;
+  width: ${(props) => (props.width || '100')}%;
   margin: 5px 0;
   display: flex;
   flex-direction: row;
@@ -235,10 +234,10 @@ const TopNavBar = styled(SearchParameterWrapper)`
 const TopNavSection = styled.section`
   display: flex;
   flex-direction: row;
-  justify-content: ${props => (props.distribute ? 'space-evenly' : 'flex-start')};
+  justify-content: ${(props) => (props.distribute ? 'space-evenly' : 'flex-start')};
   align-items: center;
-  width: ${props => (props.width || '100%')};
-  min-width: ${props => (props.distribute ? props.width : 'auto')};
+  width: ${(props) => (props.width || '100%')};
+  min-width: ${(props) => (props.distribute ? props.width : 'auto')};
 `;
 
 const TopNavButtonGroup = styled.div`
@@ -345,7 +344,7 @@ const HelperText = styled.span`
   line-height: 150%;
   color: #807F85 !important;
 
-  padding-left: ${props => (props.offsetLeft ? 8 : 0)}px;
+  padding-left: ${(props) => (props.offsetLeft ? 8 : 0)}px;
 `;
 
 const Accent = styled.span`
@@ -356,7 +355,8 @@ const SearchButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
   position: fixed;
-  bottom: 16px;
+  bottom: 0px;
+  padding: 16px 32px;
   left: 0;
   width: ${SIDEBAR_WIDTH}px;
 `;
@@ -694,7 +694,7 @@ class SearchParameters extends React.Component<Props, State> {
                 <Label>Device (optional)</Label>
                 <StyledSearchableSelect
                     value={searchParameters.get(PARAMETERS.DEVICE)}
-                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
+                    onSelect={(value) => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
                     options={filteredDeviceOptions}
                     short />
@@ -702,7 +702,6 @@ class SearchParameters extends React.Component<Props, State> {
             </Row>
 
           </MenuSection>
-
           {this.renderSearchButton()}
 
         </InnerWrapper>
@@ -731,7 +730,7 @@ class SearchParameters extends React.Component<Props, State> {
 
     return (
       <SearchButtonWrapper>
-        <InfoButton onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
+        <InfoButton fullSize onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
       </SearchButtonWrapper>
     );
   }
