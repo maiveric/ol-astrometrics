@@ -1,5 +1,5 @@
-import moment from 'moment';
 import cookies from 'js-cookie';
+import moment from 'moment';
 import { fromJS } from 'immutable';
 import { AuthUtils } from 'lattice-auth';
 
@@ -41,7 +41,7 @@ const updateCookie = (cookieName, value) => {
   }
 
   cookies.set(cookieName, value, {
-    SameSite: 'strict',
+    SameSite: 'lax',
     domain: getDomain(),
     expires: new Date(getAuthTokenExpiration()),
     path: '/',
