@@ -346,7 +346,7 @@ class SimpleMap extends React.Component<Props, State> {
         {this.renderSelectedFeatures()}
         {this.renderSelectedReadFeature()}
       </>
-    )
+    );
   }
 
   render() {
@@ -373,6 +373,12 @@ class SimpleMap extends React.Component<Props, State> {
             style={mapMode}
             onStyleLoad={(map) => {
               map.on('click', LAYERS.DATA_POINTS, this.onPointClick);
+              map.on('mouseenter', LAYERS.DATA_POINTS, () => {
+                map.getCanvas().style.cursor = 'pointer';
+              });
+              map.on('mouseleave', LAYERS.DATA_POINTS, () => {
+                map.getCanvas().style.cursor = '';
+              });
               setMapStyleLoaded();
             }}
             containerStyle={{
