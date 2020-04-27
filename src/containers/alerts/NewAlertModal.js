@@ -28,7 +28,7 @@ import {
 } from '../../utils/constants/StateConstants';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getSearchTerm } from '../../utils/DataUtils';
+import { getSearchTerm, getDateSearchTerm } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from './AlertActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
@@ -203,13 +203,16 @@ class NewAlertModal extends React.Component<Props, State> {
       plate,
       expirationDate,
       readsEntitySetId,
-      platePropertyTypeId
+      platePropertyTypeId,
+      timestampPropertyTypeId
     } = this.props;
 
     const expirationMoment = moment(expirationDate);
     if (!expirationMoment.isValid()) {
       return;
     }
+
+    const createDate = moment().toISOString(true);
 
     const constraints = {
       entitySetIds: [readsEntitySetId],
@@ -220,6 +223,13 @@ class NewAlertModal extends React.Component<Props, State> {
           constraints: [{
             type: 'simple',
             searchTerm: getSearchTerm(platePropertyTypeId, plate)
+          }]
+        },
+        {
+          constraints: [{
+            type: 'simple',
+            fuzzy: false,
+            searchTerm: getDateSearchTerm(timestampPropertyTypeId, createDate, '*')
           }]
         }
       ]
@@ -233,7 +243,7 @@ class NewAlertModal extends React.Component<Props, State> {
         caseNum,
         searchReason,
         licensePlate: plate,
-        createDate: moment().toISOString(true)
+        createDate
       }
     };
 
@@ -366,6 +376,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     expirationDate: alerts.get(ALERTS.EXPIRATION),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
+    timestampPropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.TIMESTAMP, 'id']),
     isSubmitting: submit.get(SUBMIT.SUBMITTING)
   };
 }
