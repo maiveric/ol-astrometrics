@@ -12,6 +12,7 @@ import { faVideo } from '@fortawesome/pro-solid-svg-icons';
 
 import { countWithLabel } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { SIDEBAR_WIDTH, HEADER_HEIGHT, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 
 type Props = {
   vehicle :Map<*, *>,
@@ -94,12 +95,36 @@ const Photos = styled(BasicRow)`
   align-items: flex-start;
 `;
 
+const ImageTooltip = styled.img.attrs(_ => ({
+  alt: ''
+}))`
+  visibility: hidden;
+  position: fixed;
+  left: ${SIDEBAR_WIDTH}px;
+  top: ${HEADER_HEIGHT + INNER_NAV_BAR_HEIGHT}px;
+  max-height: calc(100vh - ${HEADER_HEIGHT + INNER_NAV_BAR_HEIGHT}px);
+  max-width: calc(100vw - ${SIDEBAR_WIDTH}px);
+  display: none;
+`;
+
+const HoverableImage = styled.div`
+  max-height: 100%;
+  max-width: 48%;
+  top: 0;
+  z-index: 100;
+  &:hover {
+    ${ImageTooltip} {
+      visibility: visible;
+      display: unset;
+    }
+  }
+`;
+
 const Img = styled.img.attrs(_ => ({
   alt: ''
 }))`
   max-height: 100%;
-  max-width: 48%;
-  top: 0;
+  max-width: 100%;
 `;
 
 const ReadDetails = styled(BasicRow)`
@@ -139,13 +164,26 @@ export const VehicleHeader = ({
   </HeaderRow>
 );
 
+const VehicleImage = ({ src }) => {
+  if (!src) {
+    return null;
+  }
+
+  return (
+    <HoverableImage>
+      <Img src={src} />
+      <ImageTooltip src={src} />
+    </HoverableImage>
+  );
+};
+
 export const VehicleImageRow = ({
   plateSrc,
   vehicleSrc
 }) => (
   <Photos>
-    { plateSrc ? <Img src={plateSrc} /> : null }
-    { plateSrc ? <Img src={vehicleSrc} /> : null }
+    <VehicleImage src={plateSrc} />
+    <VehicleImage src={vehicleSrc} />
   </Photos>
 );
 
