@@ -187,6 +187,12 @@ class NewAlertModal extends React.Component<Props, State> {
     };
   }
 
+  getOnClear = (field) => {
+    const { actions } = this.props;
+    const value = '';
+    return () => actions.setAlertValue({ field, value });
+  }
+
   getAsMap = (valueList) => {
     let options = OrderedMap();
     valueList.forEach((value) => {
@@ -300,8 +306,9 @@ class NewAlertModal extends React.Component<Props, State> {
             <StyledSearchableSelect
                 value={searchReason}
                 searchPlaceholder="Select"
-                onSelect={this.getOnChange(ALERTS.SEARCH_REASON, true)}
                 options={this.getAsMap(SEARCH_REASONS)}
+                onSelect={this.getOnChange(ALERTS.SEARCH_REASON, true)}
+                onClear={this.getOnClear(ALERTS.SEARCH_REASON)}
                 selectOnly
                 transparent
                 short />
