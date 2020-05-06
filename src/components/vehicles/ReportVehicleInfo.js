@@ -123,14 +123,20 @@ const ReportVehicleInfo = ({
       </Photos>
 
       <Details printable={printable}>
-        <article>
-          <span>Make/model</span>
-          <div>{makeModel}</div>
-        </article>
-        <article>
-          <span>Color</span>
-          <div>{color}</div>
-        </article>
+        {
+          printable ? null : (
+            <>
+              <article>
+                <span>Make/model</span>
+                <div>{makeModel}</div>
+              </article>
+              <article>
+                <span>Color</span>
+                <div>{color}</div>
+              </article>
+            </>
+          )
+        }
         <article>
           <span>Department</span>
           <div>{department}</div>
