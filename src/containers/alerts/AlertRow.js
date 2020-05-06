@@ -102,9 +102,7 @@ const AlertHeaderRow = styled.div`
   }
 `;
 
-const Icon = styled(FontAwesomeIcon).attrs(props => ({
-  icon: props.expanded ? faChevronUp : faChevronDown
-}))`
+const Icon = styled(FontAwesomeIcon)`
   color: #CAC9CE;
 `;
 
@@ -200,6 +198,8 @@ class AlertRow extends React.Component<Props, State> {
 
     const alertMetadata = alert.get('alertMetadata', Map());
 
+    const icon = expanded ? faChevronUp : faChevronDown;
+
     return (
       <Alert expired={expired}>
         <AlertHeaderRow>
@@ -211,7 +211,7 @@ class AlertRow extends React.Component<Props, State> {
           <div>
             {expired ? null : <SubtleButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire</SubtleButton>}
             <SubtleButton noHover onClick={() => this.setState({ expanded: !expanded })}>
-              <Icon expanded={`${expanded}`} />
+              <Icon icon={icon} />
             </SubtleButton>
           </div>
         </AlertHeaderRow>
