@@ -108,17 +108,18 @@ const ReportVehicleInfo = ({
   const device = getDisplayNameForId(deviceOptions, getValue(read, PROPERTY_TYPES.CAMERA_ID));
 
   const [long, lat] = getCoordinates(read);
+  const mapImgSrc = getMapImgUrlAtSize(lat, long, 200, 150);
 
   return (
     <Card>
 
       <Photos>
         <article>
-          <img src={getMapImgUrlAtSize(lat, long, 200, 150)} />
+          {mapImgSrc && <img src={mapImgSrc} />}
         </article>
         <article>
-          <img src={plateSrc} />
-          <img src={vehicleSrc} />
+          {plateSrc && <img src={plateSrc} />}
+          {vehicleSrc && <img src={vehicleSrc} />}
         </article>
       </Photos>
 
