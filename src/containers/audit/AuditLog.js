@@ -152,6 +152,8 @@ class AuditLog extends React.Component<Props, State> {
     return options;
   }
 
+  formatISODate = (date) => date.format('YYYY-MM-DD');
+
   renderFilters = () => {
     const {
       actions,
@@ -181,11 +183,11 @@ class AuditLog extends React.Component<Props, State> {
               <DoubleInputSection>
 
                 <article>
-                  <StyledDatePicker onChange={actions.updateAuditStart} value={startDate} />
+                  <StyledDatePicker onChange={actions.updateAuditStart} value={this.formatISODate(startDate)} />
                 </article>
 
                 <article>
-                  <StyledDatePicker onChange={actions.updateAuditEnd} value={endDate} />
+                  <StyledDatePicker onChange={actions.updateAuditEnd} value={this.formatISODate(endDate)} />
                 </article>
 
               </DoubleInputSection>
