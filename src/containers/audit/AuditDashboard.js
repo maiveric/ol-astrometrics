@@ -11,7 +11,6 @@ import { bindActionCreators } from 'redux';
 import {
   withRouter
 } from 'react-router';
-import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import StyledInput from '../../components/controls/StyledInput';

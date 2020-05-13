@@ -10,14 +10,10 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { AuthUtils } from 'lattice-auth';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 
 import AlertRow from './AlertRow';
 import Spinner from '../../components/spinner/Spinner';
-import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
 import {
   STATE,
   ALERTS,
@@ -26,10 +22,6 @@ import {
   SUBMIT
 } from '../../utils/constants/StateConstants';
 import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from './AlertActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 

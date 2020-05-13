@@ -9,30 +9,20 @@ import { List, Map, OrderedMap } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
-import { DateTimePicker } from '@atlaskit/datetime-picker';
 
 import ReportRow from './ReportRow';
 import SelectedReportContainer from './SelectedReportContainer';
 import Spinner from '../../components/spinner/Spinner';
-import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
 import {
   STATE,
-  ALERTS,
   REPORT,
-  EDM,
   PARAMETERS,
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
 import { SIDEBAR_WIDTH, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getSearchTerm } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
+import { getEntityKeyId } from '../../utils/DataUtils';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
@@ -88,14 +78,6 @@ const FormContainer = styled.div`
   flex-direction: column;
   align-items: flex-start;
   padding: 20px 0;
-`;
-
-const SpinnerWrapper = styled.div`
-  margin: 30px;
-  padding: 30px;
-  position: relative;
-  width: 100%;
-  height: 100%;
 `;
 
 const Row = styled.div`

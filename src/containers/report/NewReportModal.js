@@ -5,32 +5,24 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import { List, Map, OrderedMap } from 'immutable';
+import { Map, OrderedMap } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
 
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
 import NewReportConfig from '../../config/formconfig/NewReportConfig';
-import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 import {
   STATE,
-  EDM,
   PARAMETERS,
   REPORT,
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getSearchTerm } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 

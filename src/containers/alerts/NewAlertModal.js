@@ -328,10 +328,7 @@ class NewAlertModal extends React.Component<Props, State> {
               <DateTimePickerWrapper>
                 <StyledDatePicker
                     onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
-                    value={expirationDate}
-                    datePickerSelectProps={{
-                      placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
-                    }} />
+                    value={expirationDate} />
               </DateTimePickerWrapper>
             </SectionRow>
 
