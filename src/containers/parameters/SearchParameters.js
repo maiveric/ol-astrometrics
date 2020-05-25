@@ -428,9 +428,7 @@ class SearchParameters extends React.Component<Props, State> {
   onDateTimeChange = (newDate, field) => {
     const { actions } = this.props;
 
-    let value = newDate.endsWith('T')
-      ? moment(newDate.slice(0, newDate.length - 1)).toISOString(true)
-      : newDate;
+    let value = newDate;
 
     const oneYearAgo = moment().subtract(1, 'year');
     if (moment(value).isBefore(oneYearAgo)) {
@@ -649,12 +647,8 @@ class SearchParameters extends React.Component<Props, State> {
                 <Label>Search start</Label>
                 <DateTimePickerWrapper>
                   <DateTimePicker
-                      hideIcon
-                      onChange={value => this.onDateTimeChange(value, PARAMETERS.START)}
-                      value={searchParameters.get(PARAMETERS.START)}
-                      datePickerSelectProps={{
-                        placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
-                      }} />
+                      onChange={(value) => this.onDateTimeChange(value, PARAMETERS.START)}
+                      value={searchParameters.get(PARAMETERS.START)} />
                 </DateTimePickerWrapper>
               </InputGroup>
             </Row>
@@ -664,12 +658,8 @@ class SearchParameters extends React.Component<Props, State> {
                 <Label>Search end</Label>
                 <DateTimePickerWrapper>
                   <DateTimePicker
-                      hideIcon
-                      onChange={value => this.onDateTimeChange(value, PARAMETERS.END)}
-                      value={searchParameters.get(PARAMETERS.END)}
-                      datePickerSelectProps={{
-                        placeholder: `e.g. ${moment().format('MM/DD/YYYY')}`,
-                      }} />
+                      onChange={(value) => this.onDateTimeChange(value, PARAMETERS.END)}
+                      value={searchParameters.get(PARAMETERS.END)} />
                 </DateTimePickerWrapper>
               </InputGroup>
             </Row>

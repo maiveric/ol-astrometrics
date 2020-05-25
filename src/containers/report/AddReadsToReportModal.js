@@ -9,23 +9,18 @@ import { Set, Map, OrderedMap } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-light-svg-icons';
 
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
 import NewReportConfig from '../../config/formconfig/NewReportConfig';
 import { ReportHeaderRow } from './ReportRow';
-import { StyledDatePicker } from '../../components/controls/DateTimePicker';
 import { VehicleHeader } from '../../components/vehicles/VehicleCard';
 import {
   STATE,
-  EDM,
   EXPLORE,
   PARAMETERS,
   REPORT,
@@ -33,9 +28,8 @@ import {
   SUBMIT
 } from '../../utils/constants/StateConstants';
 import { ID_FIELDS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
