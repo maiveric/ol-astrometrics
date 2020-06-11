@@ -15,7 +15,7 @@ const StyledDateTimePicker = (props) => {
   return (
     <ThemeProvider theme={darkTheme}>
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
-        <DateTimePicker {...props} onChange={onChange} value={value} />
+        <DateTimePicker {...props} onChange={onChange} value={value} variant="dialog" />
       </MuiPickersUtilsProvider>
     </ThemeProvider>
   );
@@ -26,7 +26,7 @@ export const StyledDatePicker = (props) => {
   return (
     <ThemeProvider theme={darkTheme}>
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
-        <DatePicker {...props} />
+        <DatePicker {...props} variant="dialog" />
       </MuiPickersUtilsProvider>
     </ThemeProvider>
   );
