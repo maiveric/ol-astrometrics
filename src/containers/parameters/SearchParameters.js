@@ -291,36 +291,6 @@ const TopNavLargeButton = styled.button`
   }
 `;
 
-const ButtonWrapper = styled.button`
-  background: transparent;
-  border: none;
-  width: 100%;
-  margin-top: 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  color: #ffffff;
-
-  span {
-    margin-right: 10px;
-  }
-
-  &:hover:not(:disabled) {
-    cursor: pointer;
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-
-  &:disabled {
-    color: gray;
-  }
-
-`;
-
 const Label = styled.span`
   color: #ffffff;
   font-size: 12px;
