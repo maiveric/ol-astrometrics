@@ -3,47 +3,49 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
+
 import moment from 'moment';
-import { withRouter } from 'react-router';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { List, Map, OrderedMap } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import styled from 'styled-components';
 import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
 import { faBell } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { List, Map, OrderedMap } from 'immutable';
+import { DateTimePicker } from 'lattice-ui-kit';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+import { bindActionCreators } from 'redux';
 import type { RequestSequence } from 'redux-reqseq';
 
-import InfoButton from '../../components/buttons/InfoButton';
+import * as ParametersActionFactory from './ParametersActionFactory';
+import { getSearchFields } from './ParametersReducer';
+
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
+import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Slider from '../../components/controls/Slider';
-import DateTimePicker from '../../components/controls/DateTimePicker';
 import drawIcon from '../../assets/svg/draw-icon.svg';
-import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
+import * as AlertActionFactory from '../alerts/AlertActionFactory';
+import * as ExploreActionFactory from '../explore/ExploreActionFactory';
+import * as ReportActionFactory from '../report/ReportActionFactory';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { getEntitySetId } from '../../utils/AppUtils';
-import { getSearchFields } from './ParametersReducer';
+import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
 import {
-  SEARCH_REASONS,
-  MAKES,
-  COLORS,
   ACCESSORIES,
+  COLORS,
+  MAKES,
+  SEARCH_REASONS,
   STYLES
 } from '../../utils/constants/DataConstants';
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   EDM,
-  STATE,
   EXPLORE,
   PARAMETERS,
   REPORT,
-  SEARCH_PARAMETERS
+  SEARCH_PARAMETERS,
+  STATE
 } from '../../utils/constants/StateConstants';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
-import * as AlertActionFactory from '../alerts/AlertActionFactory';
-import * as ExploreActionFactory from '../explore/ExploreActionFactory';
-import * as ReportActionFactory from '../report/ReportActionFactory';
-import * as ParametersActionFactory from './ParametersActionFactory';
 
 type Props = {
   isTopNav :boolean;

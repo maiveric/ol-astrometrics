@@ -6,23 +6,30 @@ import React, { Component } from 'react';
 
 import styled from 'styled-components';
 import { Map } from 'immutable';
+import {
+  LatticeLuxonUtils,
+  MuiPickersUtilsProvider,
+  ThemeProvider,
+  darkTheme,
+} from 'lattice-ui-kit';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import { Redirect, Route, Switch } from 'react-router';
+import { bindActionCreators } from 'redux';
 import type { RequestSequence } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
+import { loadApp } from './AppActions';
+
 import AuditContainer from '../audit/AuditContainer';
-import QualityContainer from '../quality/QualityContainer';
 import EulaContainer from '../eula/EulaContainer';
 import ExploreContainer from '../explore/ExploreContainer';
+import QualityContainer from '../quality/QualityContainer';
 import Spinner from '../../components/spinner/Spinner';
 import * as Routes from '../../core/router/Routes';
-import { loadApp } from './AppActions';
+import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 import { termsAreAccepted } from '../../utils/CookieUtils';
 import { APP_NAME } from '../../utils/constants/Constants';
-import { STATE, APP } from '../../utils/constants/StateConstants';
-import { APP_CONTAINER_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
+import { APP, STATE } from '../../utils/constants/StateConstants';
 
 const AppContainerWrapper = styled.div`
   display: flex;
@@ -98,14 +105,18 @@ class AppContainer extends Component<Props> {
   render() {
 
     return (
-      <AppContainerWrapper>
-        <AppHeaderContainer />
-        <AppContentOuterWrapper>
-          <AppContentInnerWrapper>
-            { this.renderAppContent() }
-          </AppContentInnerWrapper>
-        </AppContentOuterWrapper>
-      </AppContainerWrapper>
+      <ThemeProvider theme={darkTheme}>
+        <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
+          <AppContainerWrapper>
+            <AppHeaderContainer />
+            <AppContentOuterWrapper>
+              <AppContentInnerWrapper>
+                { this.renderAppContent() }
+              </AppContentInnerWrapper>
+            </AppContentOuterWrapper>
+          </AppContainerWrapper>
+      </MuiPickersUtilsProvider>
+      </ThemeProvider>
     );
   }
 }
