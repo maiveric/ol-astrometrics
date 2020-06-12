@@ -612,7 +612,7 @@ class SearchParameters extends React.Component<Props, State> {
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       minDate={moment().subtract(1, 'year').add(1, 'day').toISOString()}
-                      maxDate={moment().toISOString()}
+                      disableFuture
                       onChange={(value) => this.onDateTimeChange(value, PARAMETERS.START)}
                       value={searchParameters.get(PARAMETERS.START)} />
                 </DateTimePickerWrapper>
@@ -625,7 +625,7 @@ class SearchParameters extends React.Component<Props, State> {
                 <DateTimePickerWrapper>
                   <DateTimePicker
                       minDate={moment().subtract(1, 'year').add(1, 'day').toISOString()}
-                      maxDate={moment().toISOString()}
+                      disableFuture
                       onChange={(value) => this.onDateTimeChange(value, PARAMETERS.END)}
                       value={searchParameters.get(PARAMETERS.END)} />
                 </DateTimePickerWrapper>
