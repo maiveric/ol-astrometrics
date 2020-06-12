@@ -834,7 +834,6 @@ class SearchParameters extends React.Component<Props, State> {
   render() {
     const { isTopNav, searchParameters } = this.props;
 
-    console.log('rendered', searchParameters.get(PARAMETERS.START));
     return isTopNav ? null : this.renderFullSearchParameters();
   }
 }
