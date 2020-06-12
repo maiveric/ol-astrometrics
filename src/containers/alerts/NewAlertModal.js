@@ -3,35 +3,36 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
-import moment from 'moment';
-import { List, Map, OrderedMap } from 'immutable';
-import { withRouter } from 'react-router';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
 
+import moment from 'moment';
+import styled from 'styled-components';
+import { Map, OrderedMap } from 'immutable';
+import { AuthUtils } from 'lattice-auth';
+import { DateTimePicker } from 'lattice-ui-kit';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+import { bindActionCreators } from 'redux';
+
+import * as AlertActionFactory from './AlertActionFactory';
+
+import InfoButton from '../../components/buttons/InfoButton';
+import SearchableSelect from '../../components/controls/SearchableSelect';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
-import SearchableSelect from '../../components/controls/SearchableSelect';
 import SubtleButton from '../../components/buttons/SubtleButton';
-import InfoButton from '../../components/buttons/InfoButton';
-import SecondaryButton from '../../components/buttons/SecondaryButton';
-import { StyledDatePicker } from '../../components/controls/DateTimePicker';
+import * as SubmitActionFactory from '../submit/SubmitActionFactory';
+import { getEntitySetId } from '../../utils/AppUtils';
+import { getDateSearchTerm, getSearchTerm } from '../../utils/DataUtils';
+import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
-  STATE,
   ALERTS,
   EDM,
   PARAMETERS,
   SEARCH_PARAMETERS,
+  STATE,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getSearchTerm, getDateSearchTerm } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
-import * as AlertActionFactory from './AlertActionFactory';
-import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
   isLoadingAlerts :boolean,
@@ -76,7 +77,6 @@ const SubHeader = styled.div`
   font-weight: 500;
   line-height: 150%;
 `;
-
 
 const DateTimePickerWrapper = styled.div`
   width: 100%;
@@ -326,7 +326,8 @@ class NewAlertModal extends React.Component<Props, State> {
               <InputHeader>Alert expiration date and time</InputHeader>
               <Accent>*</Accent>
               <DateTimePickerWrapper>
-                <StyledDatePicker
+                <DateTimePicker
+                    minDate={moment().add(1, 'day').toISOString()}
                     onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
                     value={expirationDate} />
               </DateTimePickerWrapper>
