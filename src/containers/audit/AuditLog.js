@@ -4,6 +4,7 @@
 
 import React from 'react';
 
+import moment from 'moment';
 import styled, { css } from 'styled-components';
 import { List, Map, OrderedMap } from 'immutable';
 import { DateTimePicker } from 'lattice-ui-kit';
@@ -184,11 +185,16 @@ class AuditLog extends React.Component<Props, State> {
               <DoubleInputSection>
 
                 <article>
-                  <DateTimePicker onChange={actions.updateAuditStart} value={this.formatISODate(startDate)} />
+                  <DateTimePicker
+                      onChange={actions.updateAuditStart}
+                      value={this.formatISODate(startDate)} />
                 </article>
 
                 <article>
-                  <DateTimePicker onChange={actions.updateAuditEnd} value={this.formatISODate(endDate)} />
+                  <DateTimePicker
+                      maxDate={moment().toISOString()}
+                      onChange={actions.updateAuditEnd}
+                      value={this.formatISODate(endDate)} />
                 </article>
 
               </DoubleInputSection>

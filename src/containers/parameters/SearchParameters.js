@@ -397,16 +397,8 @@ class SearchParameters extends React.Component<Props, State> {
     return options;
   }
 
-  onDateTimeChange = (newDate, field) => {
+  onDateTimeChange = (value, field) => {
     const { actions } = this.props;
-
-    let value = newDate;
-
-    const oneYearAgo = moment().subtract(1, 'year');
-    if (moment(value).isBefore(oneYearAgo)) {
-      value = oneYearAgo.toISOString(true);
-    }
-
     actions.updateSearchParameters({ field, value });
   }
 
@@ -619,6 +611,8 @@ class SearchParameters extends React.Component<Props, State> {
                 <Label>Search start</Label>
                 <DateTimePickerWrapper>
                   <DateTimePicker
+                      minDate={moment().subtract(1, 'year').add(1, 'day').toISOString()}
+                      maxDate={moment().toISOString()}
                       onChange={(value) => this.onDateTimeChange(value, PARAMETERS.START)}
                       value={searchParameters.get(PARAMETERS.START)} />
                 </DateTimePickerWrapper>
@@ -630,6 +624,8 @@ class SearchParameters extends React.Component<Props, State> {
                 <Label>Search end</Label>
                 <DateTimePickerWrapper>
                   <DateTimePicker
+                      minDate={moment().subtract(1, 'year').add(1, 'day').toISOString()}
+                      maxDate={moment().toISOString()}
                       onChange={(value) => this.onDateTimeChange(value, PARAMETERS.END)}
                       value={searchParameters.get(PARAMETERS.END)} />
                 </DateTimePickerWrapper>
@@ -836,8 +832,9 @@ class SearchParameters extends React.Component<Props, State> {
   }
 
   render() {
-    const { isTopNav } = this.props;
+    const { isTopNav, searchParameters } = this.props;
 
+    console.log('rendered', searchParameters.get(PARAMETERS.START));
     return isTopNav ? null : this.renderFullSearchParameters();
   }
 }

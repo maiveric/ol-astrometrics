@@ -327,6 +327,7 @@ class NewAlertModal extends React.Component<Props, State> {
               <Accent>*</Accent>
               <DateTimePickerWrapper>
                 <DateTimePicker
+                    minDate={moment().add(1, 'day').toISOString()}
                     onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
                     value={expirationDate} />
               </DateTimePickerWrapper>

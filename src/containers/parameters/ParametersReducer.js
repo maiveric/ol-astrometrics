@@ -5,7 +5,6 @@
 import moment from 'moment';
 import { List, Map, fromJS } from 'immutable';
 
-import { SEARCH_PARAMETERS as SEARCH_PARAMETERS_FIELDS, PARAMETERS } from '../../utils/constants/StateConstants';
 import {
   EDIT_SEARCH_PARAMETERS,
   SELECT_ADDRESS,
@@ -16,13 +15,13 @@ import {
   loadDepartmentsAndDevices
 } from './ParametersActionFactory';
 
+import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
+import { PARAMETERS, SEARCH_PARAMETERS as SEARCH_PARAMETERS_FIELDS } from '../../utils/constants/StateConstants';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
   EXECUTE_SEARCH,
   UNMOUNT_EXPLORE
 } from '../explore/ExploreActionFactory';
-
-import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 
 const {
   DISPLAY_FULL_SEARCH_OPTIONS,
@@ -69,7 +68,7 @@ const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
   [LONGITUDE]: '',
   [RADIUS]: 10,
   [SEARCH_ZONES]: [],
-  [START]: moment().subtract(1, 'year').toISOString(true),
+  [START]: moment().subtract(1, 'year').add(1, 'day').toISOString(true),
   [END]: moment().toISOString(true),
   [DEPARTMENT]: '',
   [DEVICE]: '',
