@@ -192,7 +192,7 @@ class AuditLog extends React.Component<Props, State> {
 
                 <article>
                   <DateTimePicker
-                      maxDate={moment().toISOString()}
+                      disableFuture
                       onChange={actions.updateAuditEnd}
                       value={this.formatISODate(endDate)} />
                 </article>
