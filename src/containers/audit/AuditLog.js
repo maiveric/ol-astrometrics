@@ -3,31 +3,33 @@
  */
 
 import React from 'react';
+
+import moment from 'moment';
 import styled, { css } from 'styled-components';
 import { List, Map, OrderedMap } from 'immutable';
+import { DateTimePicker } from 'lattice-ui-kit';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import {
   withRouter
 } from 'react-router';
-import { StyledDatePicker } from '../../components/controls/DateTimePicker';
+import { bindActionCreators } from 'redux';
 
-import SearchableSelect from '../../components/controls/SearchableSelect';
-import StyledInput from '../../components/controls/StyledInput';
+import * as AuditActionFactory from './AuditActionFactory';
+
 import BasicButton from '../../components/buttons/BasicButton';
 import InfoButton from '../../components/buttons/InfoButton';
+import SearchableSelect from '../../components/controls/SearchableSelect';
 import Spinner from '../../components/spinner/Spinner';
-import { Table, Cell, HeaderCell } from '../../components/body/Table';
+import StyledInput from '../../components/controls/StyledInput';
+import * as EdmActionFactory from '../edm/EdmActionFactory';
+import { Cell, HeaderCell, Table } from '../../components/body/Table';
+import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import {
-  STATE,
   AUDIT,
   AUDIT_EVENT,
-  EDM
+  EDM,
+  STATE
 } from '../../utils/constants/StateConstants';
-import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import * as Routes from '../../core/router/Routes';
-import * as AuditActionFactory from './AuditActionFactory';
-import * as EdmActionFactory from '../edm/EdmActionFactory';
 
 type Props = {
   edmLoaded :boolean;
@@ -183,11 +185,16 @@ class AuditLog extends React.Component<Props, State> {
               <DoubleInputSection>
 
                 <article>
-                  <StyledDatePicker onChange={actions.updateAuditStart} value={this.formatISODate(startDate)} />
+                  <DateTimePicker
+                      onChange={actions.updateAuditStart}
+                      value={this.formatISODate(startDate)} />
                 </article>
 
                 <article>
-                  <StyledDatePicker onChange={actions.updateAuditEnd} value={this.formatISODate(endDate)} />
+                  <DateTimePicker
+                      maxDate={moment().toISOString()}
+                      onChange={actions.updateAuditEnd}
+                      value={this.formatISODate(endDate)} />
                 </article>
 
               </DoubleInputSection>
