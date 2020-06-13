@@ -25,7 +25,7 @@ function* createAlertWorker(action :SequenceAction) :Generator<*, *, *> {
     yield put(loadAlerts());
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(createAlert.failure(action.id, error));
   }
   finally {

@@ -24,7 +24,8 @@ const {
   PLATE,
   EXPIRATION,
   CASE_NUMBER,
-  SEARCH_REASON
+  SEARCH_REASON,
+  ADDITIONAL_EMAILS
 } = ALERTS;
 
 const INITIAL_STATE :Map<> = fromJS({
@@ -34,7 +35,8 @@ const INITIAL_STATE :Map<> = fromJS({
   [PLATE]: '',
   [EXPIRATION]: '',
   [CASE_NUMBER]: '',
-  [SEARCH_REASON]: ''
+  [SEARCH_REASON]: '',
+  [ADDITIONAL_EMAILS]: ''
 });
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {

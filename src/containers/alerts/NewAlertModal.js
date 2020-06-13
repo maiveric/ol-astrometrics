@@ -18,7 +18,7 @@ import * as AlertActionFactory from './AlertActionFactory';
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Spinner from '../../components/spinner/Spinner';
-import StyledInput from '../../components/controls/StyledInput';
+import StyledInput, { StyledTextArea } from '../../components/controls/StyledInput';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 import { getEntitySetId } from '../../utils/AppUtils';
@@ -41,8 +41,10 @@ type Props = {
   searchReason :string,
   plate :string,
   expirationDate :string,
+  additionalEmails :string,
   readsEntitySetId :string,
   platePropertyTypeId :string,
+  timestampPropertyTypeId :string,
   parameters :Map,
   actions :{
     loadAlerts :(edm :Map) => void,
@@ -113,10 +115,23 @@ const SpinnerWrapper = styled.div`
   height: 100%;
 `;
 
+const InputHeaderSection = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+`;
+
 const InputHeader = styled.span`
   font-size: 12px;
   font-weight: 500;
-  margin: 20px 0 8px 0;
+  margin: ${(props) => (props.minPadding ? 10 : 20)}px 0 8px 0;
+`;
+
+const InputHeaderSubtitle = styled(InputHeader)`
+  margin-left: 10px;
+  color: #807F85;
+  font-weight: normal;
 `;
 
 const StyledSearchableSelect = styled(SearchableSelect)`
@@ -124,8 +139,8 @@ const StyledSearchableSelect = styled(SearchableSelect)`
 `;
 
 const SectionRow = styled.div`
-  width: ${props => (props.rowCount ? ((100 / props.rowCount) - 1) : 100)}%;
-  padding-bottom: 32px;
+  width: ${(props) => (props.rowCount ? ((100 / props.rowCount) - 1) : 100)}%;
+  padding-bottom: ${(props) => (props.paddingBottom || 32)}px;
 `;
 
 const Row = styled.div`
@@ -208,6 +223,7 @@ class NewAlertModal extends React.Component<Props, State> {
       searchReason,
       plate,
       expirationDate,
+      additionalEmails,
       readsEntitySetId,
       platePropertyTypeId,
       timestampPropertyTypeId
@@ -241,6 +257,12 @@ class NewAlertModal extends React.Component<Props, State> {
       ]
     };
 
+    let emails = additionalEmails
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => !!e);
+    emails = emails.filter((email, idx) => emails.indexOf(email) === idx);
+
     const alert = {
       expiration: expirationMoment.toISOString(true),
       type: 'ALPR_ALERT',
@@ -250,7 +272,8 @@ class NewAlertModal extends React.Component<Props, State> {
         searchReason,
         licensePlate: plate,
         createDate
-      }
+      },
+      emails
     };
 
     actions.createAlert(alert);
@@ -268,6 +291,7 @@ class NewAlertModal extends React.Component<Props, State> {
       searchReason,
       plate,
       expirationDate,
+      additionalEmails,
       isLoadingAlerts,
       isSubmitting
     } = this.props;
@@ -338,14 +362,22 @@ class NewAlertModal extends React.Component<Props, State> {
 
         <Section>
 
-          <SectionRow>
+          <SectionRow paddingBottom={22}>
             <EvenlySpacedRow>
               <SubHeader>Email alerts</SubHeader>
             </EvenlySpacedRow>
           </SectionRow>
 
+          <SectionRow paddingBottom={1}>
+            <InputHeader minPadding>{`Alerts will be sent to ${this.getEmail()}`}</InputHeader>
+          </SectionRow>
+
           <SectionRow>
-            <InputHeader>{`Sending alerts to ${this.getEmail()}`}</InputHeader>
+            <InputHeaderSection>
+              <InputHeader minPadding>Additional emails</InputHeader>
+              <InputHeaderSubtitle minPadding>Separate emails with commas</InputHeaderSubtitle>
+            </InputHeaderSection>
+            <StyledTextArea value={additionalEmails} onChange={this.getOnChange(ALERTS.ADDITIONAL_EMAILS)} />
           </SectionRow>
 
         </Section>
@@ -379,6 +411,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     searchReason: alerts.get(ALERTS.SEARCH_REASON),
     plate: alerts.get(ALERTS.PLATE),
     expirationDate: alerts.get(ALERTS.EXPIRATION),
+    additionalEmails: alerts.get(ALERTS.ADDITIONAL_EMAILS),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
     timestampPropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.TIMESTAMP, 'id']),

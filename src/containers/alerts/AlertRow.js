@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import { Map } from 'immutable';
+import { List, Map } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -146,6 +146,10 @@ class AlertRow extends React.Component<Props, State> {
     const { email } = AuthUtils.getUserInfo();
 
     const alertMetadata = alert.get('alertMetadata', Map());
+
+    const emailArray = alert.get('emails', List()).toJS();
+    emailArray.unshift(email);
+
     let expiration = moment(alert.get('expiration', ''));
     let createDate = moment(alertMetadata.get('createDate', ''));
 
@@ -173,7 +177,7 @@ class AlertRow extends React.Component<Props, State> {
         <InfoRow>
           <InfoGroup>
             <span>Email alert</span>
-            <div>{email}</div>
+            <div>{emailArray.join(', ')}</div>
           </InfoGroup>
         </InfoRow>
       </>
