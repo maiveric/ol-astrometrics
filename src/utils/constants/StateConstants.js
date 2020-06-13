@@ -51,7 +51,8 @@ export const ALERTS = {
   PLATE: 'plate',
   EXPIRATION: 'expiration',
   CASE_NUMBER: 'caseNumber',
-  SEARCH_REASON: 'searchReason'
+  SEARCH_REASON: 'searchReason',
+  ADDITIONAL_EMAILS: 'additionalEmails'
 };
 
 export const EDM = {

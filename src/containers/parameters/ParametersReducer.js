@@ -80,19 +80,21 @@ const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
   [LABEL]: ''
 });
 
-const INITIAL_STATE :Map<> = fromJS({
-  [DISPLAY_FULL_SEARCH_OPTIONS]: true,
-  [DRAW_MODE]: false,
-  [SEARCH_PARAMETERS]: INITIAL_SEARCH_PARAMETERS,
-  [IS_LOADING_ADDRESSES]: false,
-  [DONE_LOADING_ADDRESSES]: false,
-  [ADDRESS_SEARCH_RESULTS]: List(),
-  [IS_LOADING_AGENCIES]: false,
-  [DONE_LOADING_AGENCIES]: false,
-  [AGENCY_OPTIONS]: Map(),
-  [DEVICE_OPTIONS]: Map(),
-  [DEVICES_BY_AGENCY]: Map()
-});
+// const INITIAL_STATE :Map<> = fromJS({
+//   [DISPLAY_FULL_SEARCH_OPTIONS]: true,
+//   [DRAW_MODE]: false,
+//   [SEARCH_PARAMETERS]: INITIAL_SEARCH_PARAMETERS,
+//   [IS_LOADING_ADDRESSES]: false,
+//   [DONE_LOADING_ADDRESSES]: false,
+//   [ADDRESS_SEARCH_RESULTS]: List(),
+//   [IS_LOADING_AGENCIES]: false,
+//   [DONE_LOADING_AGENCIES]: false,
+//   [AGENCY_OPTIONS]: Map(),
+//   [DEVICE_OPTIONS]: Map(),
+//   [DEVICES_BY_AGENCY]: Map()
+// });
+
+const INITIAL_STATE = fromJS(JSON.parse('{"devicesByAgency":{},"displayFullSearchOptions":true,"drawMode":false,"doneLoadingAddresses":true,"deviceOptions":{},"isLoadingAddresses":false,"searchParameters":{"start":"2012-01-01T10:58-0700","color":"","reason":"Locate Stolen, Wanted, or Suspect Vehicles","model":"","latitude":"37.4863239","departmentId":"","make":"","longitude":"-122.2325233","accessories":"","style":"","radius":"50","department":"","label":"","address":"Redwood City, San Mateo County, California, United States of America","device":"","plate":"1319724","caseNumber":"TESTING","end":"2019-09-10T10:58:10.985-07:00","searchZones":[]},"isLoadingAgencies":false,"agencyOptions":{},"addressSearchResults":[{"boundingbox":["37.447637","37.569534","-122.288383","-122.139775"],"display_name":"Redwood City, San Mateo County, California, United States of America","lon":"-122.2325233","osm_type":"relation","osm_id":112309,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright","place_id":42760405,"importance":0.685450296760682,"class":"place","icon":"/nominatim/images/mapicons/poi_place_city.p.20.png","type":"city","lat":"37.4863239"},{"boundingbox":["37.4808284","37.4908284","-122.2367222","-122.2267222"],"display_name":"Redwood City, James Avenue, Redwood City, San Mateo County, California, 94063, United States of America","lon":"-122.2317222","osm_type":"node","osm_id":6111971160,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright","place_id":11327587,"importance":0.347489186851341,"class":"railway","icon":"/nominatim/images/mapicons/transport_train_station2.p.20.png","type":"station","lat":"37.4858284"},{"boundingbox":["37.4853668","37.4854668","-122.2309257","-122.2308257"],"display_name":"Redwood City, Winslow Street, Redwood City, San Mateo County, California, 94063, United States of America","lon":"-122.2308757","osm_type":"node","osm_id":6138188707,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright","place_id":10512713,"importance":0.201,"class":"railway","type":"stop","lat":"37.4854168"},{"boundingbox":["37.4861314","37.4862314","-122.2320381","-122.2319381"],"display_name":"Redwood City, Broadway, Redwood City, San Mateo County, California, 94063, United States of America","lon":"-122.2319881","osm_type":"node","osm_id":6138188706,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. https://osm.org/copyright","place_id":11355868,"importance":0.201,"class":"railway","type":"stop","lat":"37.4861814"}],"doneLoadingAgencies":false}'));
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {

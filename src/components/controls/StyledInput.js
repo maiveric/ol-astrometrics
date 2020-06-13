@@ -1,7 +1,7 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
-const StyledInput = styled.input`
+const inputStyle = css`
   display: flex;
   flex: 0 1 auto;
   width: 100%;
@@ -34,5 +34,8 @@ const StyledInput = styled.input`
     cursor: default;
   }
 `;
+
+const StyledInput = styled.input`${inputStyle}`;
+export const StyledTextArea = styled.textarea`${inputStyle}`;
 
 export default StyledInput;
