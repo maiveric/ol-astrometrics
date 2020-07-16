@@ -64,6 +64,7 @@ const GlobalStyle = createGlobalStyle`
 LatticeAuth.configure({
   auth0ClientId: __AUTH0_CLIENT_ID__,
   auth0Domain: __AUTH0_DOMAIN__,
+  auth0Lock: { allowSignUp: false },
   authToken: AuthUtils.getAuthToken(),
 });
 
@@ -77,14 +78,12 @@ const reduxStore = initializeReduxStore(routerHistory);
 const IS_UNDER_MAINTENANCE = false;
 
 const APP_ROOT_NODE = document.getElementById('app');
-
-if (IS_UNDER_MAINTENANCE) {
+if (APP_ROOT_NODE && IS_UNDER_MAINTENANCE) {
   ReactDOM.render(
     <UnderMaintenance />,
     APP_ROOT_NODE
   );
 }
-
 else if (APP_ROOT_NODE) {
   ReactDOM.render(
     <Provider store={reduxStore}>
