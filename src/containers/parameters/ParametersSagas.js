@@ -3,6 +3,7 @@
  */
 
 import axios from 'axios';
+import qs from 'query-string';
 import {
   all,
   call,
@@ -29,19 +30,46 @@ import {
   loadDepartmentsAndDevices
 } from './ParametersActionFactory';
 
-const GEOCODER_URL_PREFIX = 'https://osm.openlattice.com/nominatim/search/';
-const GEOCODER_URL_SUFFIX = '?format=json';
+declare var __MAPBOX_TOKEN__;
+
+const SACRAMENTO_LAT_LONG = '-121.4944,38.5816';
+const GEOCODING_API = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 
 function* geocodeAddressWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
     yield put(geocodeAddress.request(action.id));
 
-    const response = yield call(axios, {
+    if (!action.value) {
+      yield put(geocodeAddress.success(action.id, []));
+    }
+
+    const params = {
+      access_token: __MAPBOX_TOKEN__,
+      autocomplete: true,
+      proximity: SACRAMENTO_LAT_LONG
+    };
+
+    const queryString = qs.stringify(params);
+
+    const { data: suggestions } = yield call(axios, {
       method: 'get',
-      url: `${GEOCODER_URL_PREFIX}${window.encodeURI(action.value)}${GEOCODER_URL_SUFFIX}`
+      url: `${GEOCODING_API}/${window.encodeURI(action.value)}.json?${queryString}`,
     });
 
-    yield put(geocodeAddress.success(action.id, response.data));
+    const formattedSuggestions = suggestions.features.map((sugg) => {
+      const { place_name, geometry } = sugg;
+      const { coordinates } = geometry;
+      const [lon, lat] = coordinates;
+      return {
+        ...sugg,
+        label: place_name,
+        value: place_name,
+        lon,
+        lat
+      };
+    });
+
+    yield put(geocodeAddress.success(action.id, formattedSuggestions));
   }
   catch (error) {
     yield put(geocodeAddress.failure(action.id, error));
@@ -118,7 +146,7 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
   }
 
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(loadDepartmentsAndDevices.failure(action.id, error));
   }
   finally {

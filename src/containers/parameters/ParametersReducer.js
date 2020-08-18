@@ -16,6 +16,7 @@ import {
 } from './ParametersActionFactory';
 
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
+import { DISPLAY_NAME, LATITUDE_FIELD, LONGITUDE_FIELD } from '../../utils/constants/GeocodingConstants';
 import { PARAMETERS, SEARCH_PARAMETERS as SEARCH_PARAMETERS_FIELDS } from '../../utils/constants/StateConstants';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
@@ -127,9 +128,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case SELECT_ADDRESS:
       return state
-        .setIn([SEARCH_PARAMETERS, LATITUDE], action.value.get('lat'))
-        .setIn([SEARCH_PARAMETERS, LONGITUDE], action.value.get('lon'))
-        .setIn([SEARCH_PARAMETERS, ADDRESS], action.value.get('display_name'));
+        .setIn([SEARCH_PARAMETERS, LATITUDE], action.value.get(LATITUDE_FIELD))
+        .setIn([SEARCH_PARAMETERS, LONGITUDE], action.value.get(LONGITUDE_FIELD))
+        .setIn([SEARCH_PARAMETERS, ADDRESS], action.value.get(DISPLAY_NAME));
 
     case SET_DRAW_MODE:
       return state.set(DRAW_MODE, action.value);

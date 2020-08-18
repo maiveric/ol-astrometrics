@@ -38,6 +38,7 @@ import {
   STYLES
 } from '../../utils/constants/DataConstants';
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
+import { DISPLAY_NAME } from '../../utils/constants/GeocodingConstants';
 import {
   EDM,
   EXPLORE,
@@ -391,7 +392,7 @@ class SearchParameters extends React.Component<Props, State> {
     const { geocodedAddresses } = this.props;
     let options = OrderedMap();
     geocodedAddresses.forEach((addr) => {
-      options = options.set(addr, addr.get('display_name'));
+      options = options.set(addr, addr.get(DISPLAY_NAME));
     });
 
     return options;
