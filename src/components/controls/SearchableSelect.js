@@ -38,7 +38,7 @@ const SearchInputWrapper = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
-  height: ${props => (props.short ? '39px' : '45px')};
+  height: ${(props) => (props.short ? '39px' : '45px')};
   position: relative;
 `;
 
@@ -71,7 +71,7 @@ const inputStyle = `
   }
 `;
 
-const SearchInput = styled.input.attrs(_ => ({
+const SearchInput = styled.input.attrs((_) => ({
   type: 'text'
 }))`
   ${inputStyle}
@@ -79,7 +79,7 @@ const SearchInput = styled.input.attrs(_ => ({
     if (props.disabled) {
       return '#36353B';
     }
-    return (props.transparent ? '#f9f9fd' : '#36353B');
+    return ((props).transparent ? '#f9f9fd' : '#36353B');
   }};
 `;
 
@@ -93,11 +93,10 @@ const SearchIcon = styled.div`
   display: flex;
 `;
 
-
 const SearchButton = styled.button`
   ${inputStyle}
   text-align: left;
-  background-color: ${props => (props.transparent ? '#f9f9fd' : '#36353B')};
+  background-color: ${(props) => (props.transparent ? '#f9f9fd' : '#36353B')};
 `;
 
 const CloseIcon = styled.div`
@@ -117,10 +116,10 @@ const DataTableWrapper = styled.div`
   position: absolute;
   z-index: 5;
   width: 100%;
-  visibility: ${props => (props.isVisible ? 'visible' : 'hidden')}};
+  visibility: ${(props) => (props.isVisible ? 'visible' : 'hidden')}};
   box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
-  margin: ${props => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
-  bottom: ${props => (props.openAbove ? '45px' : 'auto')};
+  margin: ${(props) => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
+  bottom: ${(props) => (props.openAbove ? '45px' : 'auto')};
 `;
 
 const NoContentWrapper = styled.div`
@@ -128,7 +127,7 @@ const NoContentWrapper = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: ${props => (props.searching ? 50 : 30)}px;
+  padding: ${(props) => (props.searching ? 50 : 30)}px;
   font-size: 14px;
   font-weight: 600;
   font-style: italic;
@@ -165,7 +164,6 @@ const SearchOptionContainer = styled.div`
 type Props = {
   options :Map<*, *>,
   className? :string,
-  maxHeight? :number,
   searchPlaceholder :string,
   onInputChange? :Function,
   onSelect :Function,
@@ -220,7 +218,6 @@ class SearchableSelect extends React.Component<Props, State> {
       searchQuery: ''
     };
   }
-
 
   componentWillReceiveProps(nextProps :Props) {
     const { value, options } = nextProps;
