@@ -14,6 +14,9 @@ const geocodeAddress :RequestSequence = newRequestSequence(GEOCODE_ADDRESS);
 const LOAD_DEPARTMENTS_AND_DEVICES :string = 'LOAD_DEPARTMENTS_AND_DEVICES';
 const loadDepartmentsAndDevices :RequestSequence = newRequestSequence(LOAD_DEPARTMENTS_AND_DEVICES);
 
+const REVERSE_GEOCODE_COORDINATES :string = 'REVERSE_GEOCODE_COORDINATES';
+const reverseGeocodeCoordinates :RequestSequence = newRequestSequence(REVERSE_GEOCODE_COORDINATES);
+
 const SELECT_ADDRESS :string = 'SELECT_ADDRESS';
 const selectAddress :RequestSequence = newRequestSequence(SELECT_ADDRESS);
 
@@ -27,12 +30,14 @@ export {
   EDIT_SEARCH_PARAMETERS,
   GEOCODE_ADDRESS,
   LOAD_DEPARTMENTS_AND_DEVICES,
+  REVERSE_GEOCODE_COORDINATES,
   SELECT_ADDRESS,
   SET_DRAW_MODE,
   UPDATE_SEARCH_PARAMETERS,
   editSearchParameters,
   geocodeAddress,
   loadDepartmentsAndDevices,
+  reverseGeocodeCoordinates,
   selectAddress,
   setDrawMode,
   updateSearchParameters

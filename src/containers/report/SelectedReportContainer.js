@@ -34,18 +34,21 @@ import {
 } from '../../utils/constants/StateConstants';
 import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getValue } from '../../utils/DataUtils';
+import { getCoordinates, getEntityKeyId, getValue } from '../../utils/DataUtils';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 import * as ReportActionFactory from './ReportActionFactory';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
   report :Map,
   isLoadingReports :boolean,
+  isReverseGeocoding :boolean,
   isSubmitting :boolean,
   parameters :Map,
   reportReads :Map,
   departmentOptions :Map,
   deviceOptions :Map,
+  reverseGeocodeCoords :Map,
 
   actions :{
     loadReports :(edm :Map) => void,
@@ -69,7 +72,7 @@ type State = {
 };
 
 const printableStyle = css`
- ${props => (props.printable ? css`
+ ${(props) => (props.printable ? css`
    color: black !important;
   ` : '')}
 `;
@@ -158,13 +161,6 @@ const ReportDetails = styled.div`
   }
 `;
 
-const Print = styled.div`
-  width: 100%;
-  padding-bottom: 20px;
-  display: flex;
-  justify-content: center;
-`;
-
 const PrintableContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -213,6 +209,14 @@ class SelectedReportContainer extends React.Component<Props, State> {
       field: REPORT.NEW_REPORT_CASE,
       value: parameters.get(PARAMETERS.CASE_NUMBER, '')
     });
+
+    this.reverseGeocodeReads();
+  }
+
+  reverseGeocodeReads = () => {
+    const { actions, reportReads } = this.props;
+
+    actions.reverseGeocodeCoordinates(reportReads.map((r) => getCoordinates(r.get('neighborDetails', Map()))));
   }
 
   groupReadsByVehicle = () => {
@@ -280,7 +284,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
 
   renderRead = (readObj, isPrinting) => {
     const { expanded } = this.state;
-    const { departmentOptions, deviceOptions } = this.props;
+    const { departmentOptions, deviceOptions, reverseGeocodeCoords } = this.props;
 
     const read = readObj.get('neighborDetails');
     if (!read) {
@@ -322,6 +326,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
                 read={read}
                 departmentOptions={departmentOptions}
                 deviceOptions={deviceOptions}
+                reverseGeocodeCoords={reverseGeocodeCoords}
                 printable={isPrinting} />
           ) : null
         }
@@ -333,7 +338,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
 
     const state = reads.first().getIn(['neighborDetails', PROPERTY_TYPES.STATE, 0], 'CA');
 
-    const readIds = reads.map(read => getEntityKeyId(read.get('associationDetails', Map()))).toSet();
+    const readIds = reads.map((read) => getEntityKeyId(read.get('associationDetails', Map()))).toSet();
 
     const removeButton = <SubtleButton onClick={() => this.removeReads(readIds, true)} noHover>Remove</SubtleButton>;
 
@@ -341,7 +346,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
       <VehicleSection key={plate}>
         <VehicleHeader plate={plate} state={state} addButton={removeButton} printable={isPrinting} />
         <ReadsWrapper>
-          {reads.map(read => this.renderRead(read, isPrinting))}
+          {reads.map((read) => this.renderRead(read, isPrinting))}
         </ReadsWrapper>
       </VehicleSection>
     );
@@ -392,7 +397,7 @@ class SelectedReportContainer extends React.Component<Props, State> {
       <HiddenContent>
         <PrintableContent
             ref={(ref) => {
-              this.reportRef = ref
+              this.reportRef = ref;
             }}>
           <ReportDetails printable>
             <div>{name}</div>
@@ -401,17 +406,22 @@ class SelectedReportContainer extends React.Component<Props, State> {
           {this.renderVehiclesAndReads(true)}
         </PrintableContent>
       </HiddenContent>
-    )
+    );
   }
 
   render() {
-    const { isLoadingReports, isSubmitting, report } = this.props;
+    const {
+      isLoadingReports,
+      isReverseGeocoding,
+      isSubmitting,
+      report
+    } = this.props;
 
     if (!report) {
       return null;
     }
 
-    if (isLoadingReports || isSubmitting) {
+    if (isLoadingReports || isSubmitting || isReverseGeocoding) {
       return <SpinnerWrapper><Spinner /></SpinnerWrapper>;
     }
 
@@ -442,6 +452,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
+    reverseGeocodeCoords: parameters.get(SEARCH_PARAMETERS.REVERSE_GEOCODED_COORDS),
+    isReverseGeocoding: parameters.get(SEARCH_PARAMETERS.IS_REVERSE_GEOCODING),
     isSubmitting: submit.get(SUBMIT.SUBMITTING),
     edm
   };
@@ -449,6 +461,10 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
 function mapDispatchToProps(dispatch :Function) :Object {
   const actions :{ [string] :Function } = {};
+
+  Object.keys(ParametersActionFactory).forEach((action :string) => {
+    actions[action] = ParametersActionFactory[action];
+  });
 
   Object.keys(ReportActionFactory).forEach((action :string) => {
     actions[action] = ReportActionFactory[action];
