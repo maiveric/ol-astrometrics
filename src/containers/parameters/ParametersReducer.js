@@ -8,11 +8,11 @@ import { List, Map, fromJS } from 'immutable';
 import {
   EDIT_SEARCH_PARAMETERS,
   SELECT_ADDRESS,
-  SELECT_AGENCY,
   SET_DRAW_MODE,
   UPDATE_SEARCH_PARAMETERS,
   geocodeAddress,
-  loadDepartmentsAndDevices
+  loadDepartmentsAndDevices,
+  reverseGeocodeCoordinates
 } from './ParametersActionFactory';
 
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
@@ -32,10 +32,12 @@ const {
   DONE_LOADING_ADDRESSES,
   ADDRESS_SEARCH_RESULTS,
   IS_LOADING_AGENCIES,
+  IS_REVERSE_GEOCODING,
   DONE_LOADING_AGENCIES,
   AGENCY_OPTIONS,
   DEVICE_OPTIONS,
-  DEVICES_BY_AGENCY
+  DEVICES_BY_AGENCY,
+  REVERSE_GEOCODED_COORDS
 } = SEARCH_PARAMETERS_FIELDS;
 
 const {
@@ -89,10 +91,12 @@ const INITIAL_STATE :Map<> = fromJS({
   [DONE_LOADING_ADDRESSES]: false,
   [ADDRESS_SEARCH_RESULTS]: List(),
   [IS_LOADING_AGENCIES]: false,
+  [IS_REVERSE_GEOCODING]: false,
   [DONE_LOADING_AGENCIES]: false,
   [AGENCY_OPTIONS]: Map(),
   [DEVICE_OPTIONS]: Map(),
-  [DEVICES_BY_AGENCY]: Map()
+  [DEVICES_BY_AGENCY]: Map(),
+  [REVERSE_GEOCODED_COORDS]: Map()
 });
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
@@ -114,6 +118,14 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           .set(DEVICE_OPTIONS, action.value.deviceOptions)
           .set(DEVICES_BY_AGENCY, action.value.devicesByAgency),
         FINALLY: () => state.set(IS_LOADING_AGENCIES, false).set(DONE_LOADING_AGENCIES, true)
+      });
+    }
+
+    case reverseGeocodeCoordinates.case(action.type): {
+      return reverseGeocodeCoordinates.reducer(state, action, {
+        REQUEST: () => state.set(IS_REVERSE_GEOCODING, true),
+        SUCCESS: () => state.set(REVERSE_GEOCODED_COORDS, action.value),
+        FINALLY: () => state.set(IS_REVERSE_GEOCODING, false)
       });
     }
 
