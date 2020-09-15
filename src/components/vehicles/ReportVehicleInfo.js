@@ -14,8 +14,20 @@ type Props = {
   read :Map<*, *>,
   departmentOptions :Map,
   deviceOptions :Map,
-  printable :boolean
+  printable :boolean,
+  reverseGeocodeCoords :Map
 };
+
+const CardWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+`;
+
+const Address = styled.div`
+  padding-bottom: 5px;
+  font-weight: 600;
+`;
 
 const Card = styled.div`
   display: flex;
@@ -74,7 +86,7 @@ const Details = styled.article`
     font-size: 14px;
     line-height: 150%;
     font-weight: 500;
-    color: ${props => (props.printable ? 'black' : '#ffffff')};
+    color: ${(props) => (props.printable ? 'black' : '#ffffff')};
 
     span {
       color: #807F85;
@@ -86,7 +98,8 @@ const ReportVehicleInfo = ({
   read,
   departmentOptions,
   deviceOptions,
-  printable
+  printable,
+  reverseGeocodeCoords
 } :Props) => {
 
   const vehicleSrc = read.getIn([PROPERTY_TYPES.VEHICLE_IMAGE, 0]);
@@ -108,47 +121,56 @@ const ReportVehicleInfo = ({
   const device = getDisplayNameForId(deviceOptions, getValue(read, PROPERTY_TYPES.CAMERA_ID));
 
   const [long, lat] = getCoordinates(read);
+  const latLongAsString = `${lat}, ${long}`;
+  const reverseGeocodedAddress = reverseGeocodeCoords.get(latLongAsString, '');
   const mapImgSrc = getMapImgUrlAtSize(lat, long, 200, 150);
 
   return (
-    <Card>
+    <CardWrapper>
+      { reverseGeocodedAddress && <Address>{reverseGeocodedAddress}</Address> }
+      <Card>
 
-      <Photos>
-        <article>
-          {mapImgSrc && <img src={mapImgSrc} />}
-        </article>
-        <article>
-          {plateSrc && <img src={plateSrc} />}
-          {vehicleSrc && <img src={vehicleSrc} />}
-        </article>
-      </Photos>
+        <Photos>
+          <article>
+            {mapImgSrc && <img src={mapImgSrc} />}
+          </article>
+          <article>
+            {plateSrc && <img src={plateSrc} />}
+            {vehicleSrc && <img src={vehicleSrc} />}
+          </article>
+        </Photos>
 
-      <Details printable={printable}>
-        {
-          printable ? null : (
-            <>
-              <article>
-                <span>Make/model</span>
-                <div>{makeModel}</div>
-              </article>
-              <article>
-                <span>Color</span>
-                <div>{color}</div>
-              </article>
-            </>
-          )
-        }
-        <article>
-          <span>Department</span>
-          <div>{department}</div>
-        </article>
-        <article>
-          <span>Device</span>
-          <div>{device}</div>
-        </article>
-      </Details>
+        <Details printable={printable}>
+          {
+            printable ? null : (
+              <>
+                <article>
+                  <span>Make/model</span>
+                  <div>{makeModel}</div>
+                </article>
+                <article>
+                  <span>Color</span>
+                  <div>{color}</div>
+                </article>
+              </>
+            )
+          }
+          <article>
+            <span>Department</span>
+            <div>{department}</div>
+          </article>
+          <article>
+            <span>Device</span>
+            <div>{device}</div>
+          </article>
+          <article>
+            <span>Lat/Lon</span>
+            <div>{latLongAsString}</div>
+          </article>
+        </Details>
 
-    </Card>
+      </Card>
+    </CardWrapper>
   );
 };
 

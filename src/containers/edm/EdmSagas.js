@@ -9,7 +9,7 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { Map, fromJS } from 'immutable';
-import { AppApi, EntityDataModelApi } from 'lattice';
+import { AppApi, CollectionsApi, EntityDataModelApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { getFqnString, getFqnObj } from '../../utils/DataUtils';
@@ -23,10 +23,8 @@ import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 function* loadDataModelWorker(action :SequenceAction) {
   try {
     yield put(loadDataModel.request(action.id));
-    const appTypes = yield all(
-      Object.values(APP_TYPES).map(fqn => call(AppApi.getAppTypeByFqn, getFqnObj(fqn)))
-    );
-    const entityTypeIds = appTypes.map(({ entityTypeId }) => entityTypeId);
+    const entityTypes = yield call(EntityDataModelApi.getAllEntityTypes)
+    const entityTypeIds = entityTypes.map(({ id }) => id);
     const projection = yield call(EntityDataModelApi.getEntityDataModelProjection, entityTypeIds
       .filter(id => !!id)
       .map(id => ({

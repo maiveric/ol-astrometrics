@@ -91,11 +91,13 @@ export const SEARCH_PARAMETERS = {
   DONE_LOADING_ADDRESSES: 'doneLoadingAddresses',
   ADDRESS_SEARCH_RESULTS: 'addressSearchResults',
   IS_LOADING_AGENCIES: 'isLoadingAgencies',
+  IS_REVERSE_GEOCODING: 'isReverseGeocoding',
   DONE_LOADING_AGENCIES: 'doneLoadingAgencies',
   AGENCY_OPTIONS: 'agencyOptions',
   DEVICE_OPTIONS: 'deviceOptions',
   DEVICES_BY_AGENCY: 'devicesByAgency',
   DISPLAY_FULL_SEARCH_OPTIONS: 'displayFullSearchOptions',
+  REVERSE_GEOCODED_COORDS: 'reverseGeocodeCoordinates',
   SEARCH_PARAMETERS: 'searchParameters'
 };
 
