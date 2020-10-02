@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import moment from 'moment';
+import Papa from 'papaparse';
 import styled, { css } from 'styled-components';
 import { List, Map, OrderedMap } from 'immutable';
 import { DateTimePicker } from 'lattice-ui-kit';
@@ -13,6 +13,8 @@ import {
   withRouter
 } from 'react-router';
 import { bindActionCreators } from 'redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
 
 import * as AuditActionFactory from './AuditActionFactory';
 
@@ -21,6 +23,7 @@ import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
+import FileSaver from '../../utils/FileSaver';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import { Cell, HeaderCell, Table } from '../../components/body/Table';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
@@ -73,6 +76,17 @@ const FilterRow = styled.div`
     width: 32%;
   }
 
+`;
+
+const DownloadButtonRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin: 10px 0;
+
+  button {
+    padding: 10px 15px;
+  }
 `;
 
 const InputGroup = styled.div`
@@ -129,6 +143,10 @@ const DoubleInputSection = styled.div`
   button {
     width: 48%;
   }
+`;
+
+const ButtonText = styled.span`
+  margin-left: 5px;
 `;
 
 class AuditLog extends React.Component<Props, State> {
@@ -256,10 +274,10 @@ class AuditLog extends React.Component<Props, State> {
         </FilterRow>
 
       </>
-    )
+    );
   }
 
-  renderRow = auditEvent => (
+  renderRow = (auditEvent) => (
     <tr key={auditEvent.get(AUDIT_EVENT.ID, '')}>
       <StyledCell>{auditEvent.get(AUDIT_EVENT.DATE_TIME, '').format('YYYY-MM-DD HH:mm')}</StyledCell>
       <StyledCell>{auditEvent.get(AUDIT_EVENT.PERSON_ID, '')}</StyledCell>
@@ -288,15 +306,36 @@ class AuditLog extends React.Component<Props, State> {
     );
   }
 
-  render() {
+  renderDownloadButton = () => {
+    const { results } = this.props;
 
-    const {
-      isLoadingEdm,
-      isLoadingResults,
-      edmLoaded,
-      results,
-      filter
-    } = this.props;
+    const disabled = !results.size;
+
+    const onDownload = () => {
+
+      const formattedResults = results.map((auditEvent) => ({
+        Timestamp: auditEvent.get(AUDIT_EVENT.DATE_TIME, '').format('YYYY-MM-DD HH:mm'),
+        Email: auditEvent.get(AUDIT_EVENT.PERSON_ID, ''),
+        'Search purpose': auditEvent.get(AUDIT_EVENT.REASON, ''),
+        'Case number': auditEvent.get(AUDIT_EVENT.CASE_NUMBER, ''),
+        'License plate': auditEvent.get(AUDIT_EVENT.PLATE, '')
+      })).toJS();
+
+      FileSaver.saveFile(Papa.unparse(formattedResults), 'ALPR_Audit_Log', 'csv');
+    };
+
+    return (
+      <DownloadButtonRow>
+        <BasicButton disabled={disabled} onClick={onDownload}>
+          <FontAwesomeIcon icon={faCloudDownload} />
+          <ButtonText>Download</ButtonText>
+        </BasicButton>
+      </DownloadButtonRow>
+    );
+  }
+
+  render() {
+    const { isLoadingEdm, isLoadingResults } = this.props;
 
     if (isLoadingEdm || isLoadingResults) {
       return <Wrapper><Spinner /></Wrapper>;
@@ -306,6 +345,7 @@ class AuditLog extends React.Component<Props, State> {
       <Wrapper>
 
         {this.renderFilters()}
+        {this.renderDownloadButton()}
         {this.renderTable()}
 
       </Wrapper>
