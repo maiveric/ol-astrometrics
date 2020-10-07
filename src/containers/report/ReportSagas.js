@@ -19,6 +19,7 @@ import type { SequenceAction } from 'redux-reqseq';
 import { getVehicleList, getRecordsByVehicleId, getFilteredVehicles } from '../../utils/VehicleUtils';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { getAppFromState, getEntitySetId, getUserIdFromState } from '../../utils/AppUtils';
+import { getMapImgUrlAtSize } from '../../utils/MapUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { PARAMETERS } from '../../utils/constants/StateConstants';
 import {
@@ -49,7 +50,7 @@ const MAP_IMG_PIXELS = 600;
 
 const getStaticMapPathCall = (lat, long) => call(axios, {
   method: 'get',
-  url: `https://api.mapbox.com/v4/mapbox.streets/pin-l-car+000(${long},${lat})/${long},${lat},15/${MAP_IMG_PIXELS}x${MAP_IMG_PIXELS}.png?access_token=${__MAPBOX_TOKEN__}`,
+  url: getMapImgUrlAtSize(lat, long, MAP_IMG_PIXELS, MAP_IMG_PIXELS),
   responseType: 'arraybuffer'
 });
 
