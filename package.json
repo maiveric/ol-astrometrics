@@ -1,7 +1,7 @@
 {
   "name": "astrometrics",
   "version": "0.0.0",
-  "homepage": "https://github.com/Lattice-Works/astrometrics",
+  "homepage": "https://github.com/openlattice/astrometrics",
   "description": "An OpenLattice app which allows you to explore geographical data",
   "author": {
     "name": "OpenLattice, Inc.",
@@ -16,12 +16,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Lattice-Works/astrometrics.git"
+    "url": "git+https://github.com/openlattice/astrometrics.git"
   },
   "bugs": {
-    "url": "https://github.com/Lattice-Works/astrometrics/issues"
+    "url": "https://github.com/openlattice/astrometrics/issues"
   },
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "dependencies": {
     "@atlaskit/modal-dialog": "8.0.4",
     "@babel/polyfill": "~7.7.0",
