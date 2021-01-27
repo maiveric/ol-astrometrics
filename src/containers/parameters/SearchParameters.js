@@ -59,7 +59,6 @@ type Props = {
   isDrawMode :boolean;
   agencyOptions :Map<*>;
   deviceOptions :Map<*>;
-  devicesByAgency :Map<*>;
   isLoadingResults :boolean;
   isLoadingNeighbors :boolean;
   reportVehicles :Set<*>;
@@ -438,22 +437,15 @@ class SearchParameters extends React.Component<Props, State> {
   renderFullSearchParameters() {
     const {
       actions,
-      searchParameters,
-      isLoadingAddresses,
-      isDrawMode,
-      noAddressResults,
       agencyOptions,
       deviceOptions,
-      devicesByAgency
+      isDrawMode,
+      isLoadingAddresses,
+      noAddressResults,
+      searchParameters,
     } = this.props;
 
-    let filteredDeviceOptions = deviceOptions;
     const agencyId = searchParameters.get(PARAMETERS.DEPARTMENT);
-    if (agencyId) {
-      const devicesForAgency = devicesByAgency.get(agencyId, List());
-      filteredDeviceOptions = deviceOptions.filter((_, deviceId) => devicesForAgency.includes(deviceId));
-    }
-
     const onAgencyChange = (value) => {
       if (value !== agencyId) {
         actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value });
@@ -655,7 +647,7 @@ class SearchParameters extends React.Component<Props, State> {
                     value={searchParameters.get(PARAMETERS.DEVICE)}
                     onSelect={(value) => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
-                    options={filteredDeviceOptions}
+                    options={deviceOptions}
                     short />
               </InputGroup>
             </Row>
@@ -867,7 +859,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isTopNav: !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     agencyOptions: params.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: params.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
-    devicesByAgency: params.get(SEARCH_PARAMETERS.DEVICES_BY_AGENCY),
 
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };
