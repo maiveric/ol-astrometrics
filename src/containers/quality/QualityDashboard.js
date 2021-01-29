@@ -176,7 +176,20 @@ class QualityDashboard extends React.Component<Props, State> {
   renderReadBreakdowns = () => {
     const { agencyCounts, agenciesById, isLoadingAgencies } = this.props;
 
-    const agencyMapper = id => agenciesById.get(id, 'Unknown');
+    const agencyMapper = (id) => agenciesById.get(id, 'Unknown');
+
+    const counts = OrderedMap().withMutations((mutator) => {
+      agencyCounts.forEach((count, key) => {
+        const agencyName = agencyMapper(key);
+        const mappedCount = mutator.get(agencyName, 0);
+        if (count > mappedCount) {
+          mutator.set(agencyName, count);
+        }
+        else {
+          mutator.set(agencyName, mappedCount);
+        }
+      });
+    });
 
     return (
       <ReadBreakdowns>
