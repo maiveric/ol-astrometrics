@@ -11,18 +11,15 @@ import {
   select,
   takeEvery
 } from '@redux-saga/core/effects';
-import { DataApi, SearchApi } from 'lattice';
 import {
-  fromJS,
   List,
   Map,
-  OrderedMap
+  OrderedMap,
+  fromJS
 } from 'immutable';
+import { DataApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
-import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
-import { formatNameIdForDisplay, formatDescriptionIdForDisplay, getEntityKeyId } from '../../utils/DataUtils';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   GEOCODE_ADDRESS,
   LOAD_DEPARTMENTS_AND_DEVICES,
@@ -31,6 +28,10 @@ import {
   loadDepartmentsAndDevices,
   reverseGeocodeCoordinates
 } from './ParametersActionFactory';
+
+import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
+import { formatDescriptionIdForDisplay, formatNameIdForDisplay, getEntityKeyId } from '../../utils/DataUtils';
+import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 
 declare var __MAPBOX_TOKEN__;
 

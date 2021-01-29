@@ -3,64 +3,49 @@
  */
 
 import React from 'react';
-import styled, { css } from 'styled-components';
-import { OrderedMap, Map, Set } from 'immutable';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import {
-  Redirect,
-  Route,
-  Switch,
-  withRouter
-} from 'react-router';
 
-import StyledInput from '../../components/controls/StyledInput';
-import Spinner from '../../components/spinner/Spinner';
-import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
+import styled, { css } from 'styled-components';
+import { Map, OrderedMap } from 'immutable';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+import { bindActionCreators } from 'redux';
+
+import * as QualityActionFactory from './QualityActionFactory';
+
 import BarChart from '../../components/charts/BarChart';
 import DropdownButton from '../../components/buttons/DropdownButton';
+import Spinner from '../../components/spinner/Spinner';
+import * as EdmActionFactory from '../edm/EdmActionFactory';
 import {
-  Table,
   Cell,
   HeaderCell,
-  LightRow
+  LightRow,
+  Table
 } from '../../components/body/Table';
 import {
-  STATE,
-  AUDIT,
-  QUALITY,
-  EDM,
   DASHBOARD_WINDOWS,
-  DATE_FORMATS
+  DATE_FORMATS,
+  EDM,
+  QUALITY,
+  STATE
 } from '../../utils/constants/StateConstants';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
-import * as Routes from '../../core/router/Routes';
-import * as QualityActionFactory from './QualityActionFactory';
-import * as EdmActionFactory from '../edm/EdmActionFactory';
 
 type Props = {
-  edmLoaded :boolean;
+  agenciesById :Map<*, *>;
+  agencyCounts :Map;
+  counts :Map<*>;
+  dashboardWindow :string;
+  isLoadingAgencies :boolean;
   isLoadingEdm :boolean;
   isLoadingResults :boolean;
-  isLoadingAgencies :boolean;
-  dashboardWindow :string;
-  counts :Map<*>;
-  startDate :Object,
-  endDate :Object,
-  filter :string,
-  edm :Map<*, *>;
-  agenciesById :Map<*, *>;
   actions :{
     loadQualityDashboardData :(startDate :Object, endDate :Object) => void;
     loadDataModel :() => void;
+    setQualityDashboardWindow :(label :string) => void;
     updateAuditEnd :(value :string) => void;
     updateAuditStart :(value :string) => void;
     updateAuditFilter :(value :string) => void;
   }
-};
-
-type State = {
 };
 
 const Wrapper = styled.div`
@@ -69,13 +54,6 @@ const Wrapper = styled.div`
   width: 100%;
   height: 100%;
   background-color: #1F1E24;
-`;
-
-const Header = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: flex-start;
-  padding-bottom: 50px;
 `;
 
 const SpaceBetweenRow = styled.div`
@@ -115,27 +93,21 @@ const cellStyle = css`
   }
 `;
 
-const StyledCell = styled(Cell).attrs(_ => ({
+const StyledCell = styled(Cell).attrs(() => ({
   light: true
 }))`${cellStyle}`;
 
-const StyledHeaderCell = styled(HeaderCell).attrs(_ => ({
+const StyledHeaderCell = styled(HeaderCell).attrs(() => ({
   light: true
 }))`${cellStyle}`;
 
 
-class QualityDashboard extends React.Component<Props, State> {
-
-  constructor(props :Props) {
-    super(props);
-    this.state = {
-    };
-  }
+class QualityDashboard extends React.Component<Props> {
 
   renderReadsOverTime = () => {
     const { counts, dashboardWindow } = this.props;
 
-    const formatter = DATE_FORMATS[dashboardWindow]
+    const formatter = DATE_FORMATS[dashboardWindow];
 
     return (
       <BarChart color="#34B88B" resourceType="reads" countsMap={counts} formatter={formatter} yAxisWide />
@@ -176,12 +148,42 @@ class QualityDashboard extends React.Component<Props, State> {
   renderReadBreakdowns = () => {
     const { agencyCounts, agenciesById, isLoadingAgencies } = this.props;
 
-    const agencyMapper = id => agenciesById.get(id, 'Unknown');
+    const agencyMapper = (id) => agenciesById.get(id, 'Unknown');
+
+    const counts = OrderedMap().withMutations((mutator) => {
+      agencyCounts.forEach((count, key) => {
+        const agencyName = agencyMapper(key);
+        const mappedCount = mutator.get(agencyName, 0);
+        if (count > mappedCount) {
+          mutator.set(agencyName, count);
+        }
+        else {
+          mutator.set(agencyName, mappedCount);
+        }
+      });
+    });
 
     return (
       <ReadBreakdowns>
         <section>
-          {this.renderBreakdown('Agency contributions', 'Agency', agencyCounts, agencyMapper, isLoadingAgencies)}
+          <>
+            <HeaderLabel>Agency contributions</HeaderLabel>
+
+            <Table isLoading={isLoadingAgencies}>
+              <tbody>
+                <LightRow>
+                  <StyledHeaderCell>Agency</StyledHeaderCell>
+                  <StyledHeaderCell>Count</StyledHeaderCell>
+                </LightRow>
+                {counts.sort((v1, v2) => (v1 > v2 ? -1 : 1)).entrySeq().map(([key, value]) => (
+                  <LightRow key={key}>
+                    <StyledCell>{key}</StyledCell>
+                    <StyledCell>{value}</StyledCell>
+                  </LightRow>
+                ))}
+              </tbody>
+            </Table>
+          </>
         </section>
       </ReadBreakdowns>
     );
@@ -194,14 +196,13 @@ class QualityDashboard extends React.Component<Props, State> {
       isLoadingEdm,
       isLoadingResults,
       dashboardWindow,
-      agenciesById
     } = this.props;
 
     if (isLoadingEdm || isLoadingResults) {
       return <Wrapper><Spinner /></Wrapper>;
     }
 
-    const windowOptions = Object.values(DASHBOARD_WINDOWS).map(label => ({
+    const windowOptions = Object.values(DASHBOARD_WINDOWS).map((label) => ({
       label: `Past ${label}`,
       onClick: () => actions.setQualityDashboardWindow(label)
     }));
@@ -215,7 +216,6 @@ class QualityDashboard extends React.Component<Props, State> {
         </SpaceBetweenRow>
 
         {this.renderReadsOverTime()}
-
         {this.renderReadBreakdowns()}
 
       </Wrapper>
@@ -228,15 +228,13 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const edm = state.get(STATE.EDM);
 
   return {
-    edmLoaded: edm.get(EDM.EDM_LOADED),
-    isLoadingEdm: edm.get(EDM.IS_LOADING_DATA_MODEL),
-
-    isLoadingResults: quality.get(QUALITY.IS_LOADING),
-    isLoadingAgencies: quality.get(QUALITY.IS_LOADING_AGENCY_DATA) || quality.get(QUALITY.IS_LOADING_AGENCIES),
-    counts: quality.get(QUALITY.DASHBOARD_DATA),
-    agencyCounts: quality.get(QUALITY.AGENCY_COUNTS),
-    dashboardWindow: quality.get(QUALITY.DASHBOARD_WINDOW),
     agenciesById: quality.get(QUALITY.AGENCIES_BY_ID),
+    agencyCounts: quality.get(QUALITY.AGENCY_COUNTS),
+    counts: quality.get(QUALITY.DASHBOARD_DATA),
+    dashboardWindow: quality.get(QUALITY.DASHBOARD_WINDOW),
+    isLoadingAgencies: quality.get(QUALITY.IS_LOADING_AGENCY_DATA) || quality.get(QUALITY.IS_LOADING_AGENCIES),
+    isLoadingEdm: edm.get(EDM.IS_LOADING_DATA_MODEL),
+    isLoadingResults: quality.get(QUALITY.IS_LOADING),
   };
 }
 
