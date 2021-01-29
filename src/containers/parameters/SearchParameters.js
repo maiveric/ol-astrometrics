@@ -59,6 +59,7 @@ type Props = {
   isDrawMode :boolean;
   agencyOptions :Map<*>;
   deviceOptions :Map<*>;
+  devicesByAgency :Map<*>;
   isLoadingResults :boolean;
   isLoadingNeighbors :boolean;
   reportVehicles :Set<*>;
@@ -109,15 +110,12 @@ const InnerWrapper = styled.div`
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
-
   ::-webkit-scrollbar {
     width: 10px;
   }
-
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-
   ::-webkit-scrollbar-thumb {
     background: #CAC9CE;
     border-radius: 10px;
@@ -148,7 +146,6 @@ const StyledInput = styled.input.attrs(_ => ({
 }))`
   width: 100%;
   background: #4F4E54;
-
   background: #36353B;
   color: #ffffff;
   border-radius: 3px;
@@ -156,13 +153,11 @@ const StyledInput = styled.input.attrs(_ => ({
   height: 36px;
   padding: 0 16px;
   font-size: 14px;
-
   &:focus {
     border: 1px solid #98979D;
     background: #4F4E54;
     outline: none;
   }
-
   &:hover {
     background: #4F4E54;
   }
@@ -181,7 +176,6 @@ const StyledSearchableSelect = styled(SearchableSelect)`
 
 const DateTimePickerWrapper = styled.div`
   width: 100%;
-
   & > div {
     height: 38px;
   }
@@ -193,19 +187,16 @@ const TopNavBar = styled(SearchParameterWrapper)`
   flex-direction: row;
   justify-content: space-between;
   padding: 20px 15px;
-
   span {
     color: rgba(255, 255, 255, 0.4);
     font-weight: 400;
     font-size: 13px;
     margin-right: 8px;
   }
-
   div {
     color: rgba(255, 255, 255, 0.75);
     font-size: 15px;
   }
-
   button {
     background: transparent;
     border: none;
@@ -214,19 +205,15 @@ const TopNavBar = styled(SearchParameterWrapper)`
     display: flex;
     flex-direction: row;
     align-items: center;
-
     &:hover {
       cursor: pointer;
-
       span {
         color: rgba(255, 255, 255, 0.7);
       }
-
       div {
         color: rgb(255, 255, 255);
       }
     }
-
     &:focus {
       outline: none;
     }
@@ -248,7 +235,6 @@ const TopNavButtonGroup = styled.div`
   flex-direction: column;
   justify-content: space-between;
   margin: 0 20px;
-
   span {
     margin-bottom: 12px;
   }
@@ -262,30 +248,24 @@ const TopNavLargeButton = styled.button`
   justify-content: flex-start;
   align-items: center;
   color: rgba(255, 255, 255, 0.8);
-
   img {
     height: 20px;
   }
-
   div, a {
     margin-left: 10px;
     font-size: 16px;
   }
-
   a {
     color: rgba(255, 255, 255, 0.8) !important;
     text-decoration: none !important;
-
     &:hover {
       color: #ffffff !important;
     }
   }
-
   &:hover:enabled {
     cursor: pointer;
     color: #ffffff;
   }
-
   &:focus {
     outline: none;
   }
@@ -302,9 +282,7 @@ const InlineGroup = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-
   margin-bottom: 10px;
-
   ${Label} {
     margin-bottom: 0;
   }
@@ -315,7 +293,6 @@ const HelperText = styled.span`
   font-size: 12px;
   line-height: 150%;
   color: #807F85 !important;
-
   padding-left: ${(props) => (props.offsetLeft ? 8 : 0)}px;
 `;
 
@@ -437,15 +414,22 @@ class SearchParameters extends React.Component<Props, State> {
   renderFullSearchParameters() {
     const {
       actions,
+      searchParameters,
+      isLoadingAddresses,
+      isDrawMode,
+      noAddressResults,
       agencyOptions,
       deviceOptions,
-      isDrawMode,
-      isLoadingAddresses,
-      noAddressResults,
-      searchParameters,
+      devicesByAgency
     } = this.props;
 
+    let filteredDeviceOptions = deviceOptions;
     const agencyId = searchParameters.get(PARAMETERS.DEPARTMENT);
+    if (agencyId) {
+      const devicesForAgency = devicesByAgency.get(agencyId, List());
+      filteredDeviceOptions = deviceOptions.filter((_, deviceId) => devicesForAgency.includes(deviceId));
+    }
+
     const onAgencyChange = (value) => {
       if (value !== agencyId) {
         actions.updateSearchParameters({ field: PARAMETERS.DEPARTMENT, value });
@@ -647,7 +631,7 @@ class SearchParameters extends React.Component<Props, State> {
                     value={searchParameters.get(PARAMETERS.DEVICE)}
                     onSelect={(value) => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value })}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' })}
-                    options={deviceOptions}
+                    options={filteredDeviceOptions}
                     short />
               </InputGroup>
             </Row>
@@ -859,6 +843,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isTopNav: !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     agencyOptions: params.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: params.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
+    devicesByAgency: params.get(SEARCH_PARAMETERS.DEVICES_BY_AGENCY),
 
     reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS)
   };
