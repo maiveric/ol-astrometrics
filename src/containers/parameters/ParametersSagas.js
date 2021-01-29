@@ -44,7 +44,7 @@ function* getGeocodedResults(addressOrCoords) :Generator<*, *, *> {
   }
 
   const params = {
-    access_token: 'pk.eyJ1Ijoib3BlbmxhdHRpY2UiLCJhIjoiY2tjemNnd3FqMGk5NjJ6cWlmNmNoMWM2dyJ9.9gwEMLOHN_5Gim-I3TvpPA',
+    access_token: __MAPBOX_TOKEN__,
     autocomplete: true,
     proximity: SACRAMENTO_LAT_LONG
   };
