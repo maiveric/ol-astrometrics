@@ -123,7 +123,7 @@ function* loadDashboard() {
   const range = quality.get(QUALITY.DASHBOARD_WINDOW);
 
   const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
-  const dateTimePTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
 
   return yield call(executeSearchesForWindow, range, recordsEntitySetId, dateTimePTId);
 
@@ -138,8 +138,8 @@ function* loadAgencyCounts() {
   const agencyIds = quality.get(QUALITY.AGENCIES_BY_ID).keySeq();
 
   const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
-  const dateTimePTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-  const agenciesPTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.AGENCY_NAME));
+  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+  const agenciesPTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.AGENCY_NAME));
 
   return yield call(loadCountsForIds, agencyIds, range, recordsEntitySetId, dateTimePTId, agenciesPTId);
 }
@@ -158,8 +158,8 @@ function* loadDeviceCounts(agencyId) {
   }
 
   const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
-  const dateTimePTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-  const devicesPTId = yield select(state => getPropertyTypeId(state, PROPERTY_TYPES.CAMERA_ID));
+  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+  const devicesPTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.CAMERA_ID));
 
   return yield call(loadCountsForIds, deviceIds, range, recordsEntitySetId, dateTimePTId, devicesPTId);
 }
@@ -277,7 +277,7 @@ function* loadAgenciesWorker(action :SequenceAction) {
     let devicesByAgency = Map();
 
     agencies.forEach((agency) => {
-      const id = agency.getIn([PROPERTY_TYPES.ID, 0]);
+      const agencyName = agency.getIn([PROPERTY_TYPES.NAME, 0]);
       const name = agency.getIn([PROPERTY_TYPES.NAME, 0], agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], ''));
 
       let deviceIds = List();
@@ -291,8 +291,8 @@ function* loadAgenciesWorker(action :SequenceAction) {
         devicesById = devicesById.set(deviceId, deviceName);
       });
 
-      agenciesById = agenciesById.set(id, name);
-      devicesByAgency = devicesByAgency.set(id, deviceIds);
+      agenciesById = agenciesById.set(agencyName, name);
+      devicesByAgency = devicesByAgency.set(agencyName, deviceIds);
     });
 
     yield put(loadAgencies.success(action.id, { agenciesById, devicesByAgency, devicesById }));

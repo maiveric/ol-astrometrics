@@ -41,7 +41,6 @@
     "history": "~4.9.0",
     "immutable": "4.0.0-rc.9",
     "js-cookie": "~2.2.0",
-    "jspdf": "1.4.1",
     "lattice": "0.73.0",
     "lattice-auth": "~0.21.1",
     "lattice-sagas": "~0.49.0",
