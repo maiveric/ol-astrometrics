@@ -20,7 +20,6 @@ type Props = {
   isUnselected :boolean,
   onClick :() => void,
   timestampDesc? :boolean,
-  departmentOptions :Map,
   deviceOptions :Map
 };
 

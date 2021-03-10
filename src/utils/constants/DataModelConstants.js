@@ -43,7 +43,7 @@ export const PROPERTY_TYPES = {
   NAME: 'ol.name',
   TYPE: 'ol.type',
   ID: 'ol.id',
-  AGENCY_NAME: 'publicsafety.agencyname',
+  AGENCY_NAME: 'ol.agencyname',
   CAMERA_ID: 'ol.resourceid',
   HIT_TYPE: 'ol.description',
   DESCRIPTION: 'ol.description',

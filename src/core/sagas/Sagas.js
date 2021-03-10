@@ -75,7 +75,6 @@ export default function* sagas() :Generator<*, *, *> {
     fork(QualitySagas.loadQualityDeviceDataWatcher),
 
     /* ReportSagas */
-    fork(ReportSagas.exportReportWatcher),
     fork(ReportSagas.loadReportsWatcher),
 
     /* RoutingSagas */

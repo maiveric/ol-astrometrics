@@ -130,13 +130,27 @@ export function* reverseGeocodeCoordinatesWatcher() :Generator<*, *, *> {
   yield takeEvery(REVERSE_GEOCODE_COORDINATES, reverseGeocodeCoordinatesWorker);
 }
 
-const getDataAsMap = (entities, useDescription) => {
-  const formatter = useDescription ? formatDescriptionIdForDisplay : formatNameIdForDisplay;
+const getDeviceDataAsMap = (entities) => {
   let map = OrderedMap();
 
   fromJS(entities).forEach((entity) => {
     const id = entity.getIn([PROPERTY_TYPES.ID, 0]);
-    map = map.set(id, formatter(entity));
+    if (id) {
+      map = map.set(id, formatDescriptionIdForDisplay(entity));
+    }
+  });
+
+  return map.sort();
+};
+
+const getAgencyDataAsMap = (entities) => {
+  let map = OrderedMap();
+
+  fromJS(entities).forEach((entity) => {
+    const name = formatNameIdForDisplay(entity);
+    if (name) {
+      map = map.set(name, name);
+    }
   });
 
   return map.sort();
@@ -173,7 +187,7 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
     let devicesByAgency = Map();
 
     immutableDepartments.forEach((agency) => {
-      const id = agency.getIn([PROPERTY_TYPES.ID, 0]);
+      const agencyName = agency.getIn([PROPERTY_TYPES.NAME, 0]);
 
       let deviceIds = List();
       devicesByAgencyEntityKeyId.get(getEntityKeyId(agency), List()).forEach((deviceNeighbor) => {
@@ -182,12 +196,12 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
         deviceIds = deviceIds.push(deviceId);
       });
 
-      devicesByAgency = devicesByAgency.set(id, deviceIds);
+      devicesByAgency = devicesByAgency.set(agencyName, deviceIds);
     });
 
     yield put(loadDepartmentsAndDevices.success(action.id, {
-      departmentOptions: getDataAsMap(departments),
-      deviceOptions: getDataAsMap(devices, true),
+      departmentOptions: getAgencyDataAsMap(departments),
+      deviceOptions: getDeviceDataAsMap(devices),
       devicesByAgency
     }));
   }
