@@ -6,9 +6,6 @@ import React from 'react';
 
 import moment from 'moment';
 import styled from 'styled-components';
-import { faChevronLeft, faPrint } from '@fortawesome/pro-regular-svg-icons';
-import { faBell } from '@fortawesome/pro-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List, Map, OrderedMap } from 'immutable';
 import { DateTimePicker } from 'lattice-ui-kit';
 import { connect } from 'react-redux';
@@ -30,13 +27,7 @@ import * as ReportActionFactory from '../report/ReportActionFactory';
 import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getPreviousLicensePlateSearches } from '../../utils/CookieUtils';
-import {
-  ACCESSORIES,
-  COLORS,
-  MAKES,
-  SEARCH_REASONS,
-  STYLES
-} from '../../utils/constants/DataConstants';
+import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES } from '../../utils/constants/DataModelConstants';
 import { DISPLAY_NAME } from '../../utils/constants/GeocodingConstants';
 import {
@@ -49,7 +40,6 @@ import {
 } from '../../utils/constants/StateConstants';
 
 type Props = {
-  isTopNav :boolean;
   recordEntitySetId :string;
   propertyTypesByFqn :Map<*, *>;
   searchParameters :Map<*, *>;
@@ -60,16 +50,10 @@ type Props = {
   agencyOptions :Map<*>;
   deviceOptions :Map<*>;
   devicesByAgency :Map<*>;
-  isLoadingResults :boolean;
-  isLoadingNeighbors :boolean;
-  reportVehicles :Set<*>;
-  results :List<*>;
-  neighborsById :Map<*, *>;
   actions :{
     clearExploreSearchResults :RequestSequence;
     editSearchParameters :RequestSequence;
     executeSearch :RequestSequence;
-    exportReport :RequestSequence;
     geocodeAddress :RequestSequence;
     selectAddress :RequestSequence;
     setDrawMode :RequestSequence;
@@ -141,7 +125,7 @@ const StyledInputWrapper = styled.div`
   position: relative;
 `;
 
-const StyledInput = styled.input.attrs(_ => ({
+const StyledInput = styled.input.attrs((_) => ({
   type: 'text'
 }))`
   width: 100%;
@@ -178,96 +162,6 @@ const DateTimePickerWrapper = styled.div`
   width: 100%;
   & > div {
     height: 38px;
-  }
-`;
-
-const TopNavBar = styled(SearchParameterWrapper)`
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  padding: 20px 15px;
-  span {
-    color: rgba(255, 255, 255, 0.4);
-    font-weight: 400;
-    font-size: 13px;
-    margin-right: 8px;
-  }
-  div {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 15px;
-  }
-  button {
-    background: transparent;
-    border: none;
-    display: flex;
-    flex-direction: row;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    &:hover {
-      cursor: pointer;
-      span {
-        color: rgba(255, 255, 255, 0.7);
-      }
-      div {
-        color: rgb(255, 255, 255);
-      }
-    }
-    &:focus {
-      outline: none;
-    }
-  }
-`;
-
-const TopNavSection = styled.section`
-  display: flex;
-  flex-direction: row;
-  justify-content: ${(props) => (props.distribute ? 'space-evenly' : 'flex-start')};
-  align-items: center;
-  width: ${(props) => (props.width || '100%')};
-  min-width: ${(props) => (props.distribute ? props.width : 'auto')};
-`;
-
-const TopNavButtonGroup = styled.div`
-  height: 45px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0 20px;
-  span {
-    margin-bottom: 12px;
-  }
-`;
-
-const TopNavLargeButton = styled.button`
-  background: transparent;
-  border: none;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.8);
-  img {
-    height: 20px;
-  }
-  div, a {
-    margin-left: 10px;
-    font-size: 16px;
-  }
-  a {
-    color: rgba(255, 255, 255, 0.8) !important;
-    text-decoration: none !important;
-    &:hover {
-      color: #ffffff !important;
-    }
-  }
-  &:hover:enabled {
-    cursor: pointer;
-    color: #ffffff;
-  }
-  &:focus {
-    outline: none;
   }
 `;
 
@@ -411,7 +305,33 @@ class SearchParameters extends React.Component<Props, State> {
     });
   }
 
-  renderFullSearchParameters() {
+  onMakeChange = (value) => {
+    const { actions } = this.props;
+    actions.updateSearchParameters({ field: PARAMETERS.MAKE, value });
+  }
+
+  toggleAdditionalDetails = () => {
+    const { isExpanded } = this.state;
+    this.setState({ isExpanded: !isExpanded });
+  }
+
+  formatDateTime = (dateTime) => {
+    const momentDT = moment(dateTime);
+    return momentDT.isValid() ? momentDT.format('MM/DD/YY HH:mm a') : '';
+  }
+
+  renderSearchButton = () => {
+    const { searchParameters } = this.props;
+    const isReadyToSubmit = !getSearchFields(searchParameters).includes(PARAMETERS.NOT_READY);
+
+    return (
+      <SearchButtonWrapper>
+        <InfoButton fullSize onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
+      </SearchButtonWrapper>
+    );
+  }
+
+  render() {
     const {
       actions,
       searchParameters,
@@ -463,7 +383,7 @@ class SearchParameters extends React.Component<Props, State> {
                     value={searchParameters.get(PARAMETERS.REASON)}
                     searchPlaceholder="Select"
                     options={this.getAsMap(SEARCH_REASONS)}
-                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.REASON, value })}
+                    onSelect={(value) => actions.updateSearchParameters({ field: PARAMETERS.REASON, value })}
                     onClear={() => actions.updateSearchParameters({ field: PARAMETERS.REASON, value: '' })}
                     selectOnly
                     short />
@@ -491,7 +411,7 @@ class SearchParameters extends React.Component<Props, State> {
                 <StyledSearchableSelect
                     inputValue={searchParameters.get(PARAMETERS.PLATE)}
                     searchPlaceholder=""
-                    onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.PLATE, value })}
+                    onSelect={(value) => actions.updateSearchParameters({ field: PARAMETERS.PLATE, value })}
                     onInputChange={({ target }) => {
                       actions.updateSearchParameters({ field: PARAMETERS.PLATE, value: target.value });
                     }}
@@ -644,175 +564,6 @@ class SearchParameters extends React.Component<Props, State> {
     );
   }
 
-  onMakeChange = (value) => {
-    const { actions } = this.props;
-    actions.updateSearchParameters({ field: PARAMETERS.MAKE, value });
-  }
-
-  toggleAdditionalDetails = () => {
-    const { isExpanded } = this.state;
-    this.setState({ isExpanded: !isExpanded });
-  }
-
-  formatDateTime = (dateTime) => {
-    const momentDT = moment(dateTime);
-    return momentDT.isValid() ? momentDT.format('MM/DD/YY HH:mm a') : '';
-  }
-
-  renderSearchButton = () => {
-    const { searchParameters } = this.props;
-    const isReadyToSubmit = !getSearchFields(searchParameters).includes(PARAMETERS.NOT_READY);
-
-    return (
-      <SearchButtonWrapper>
-        <InfoButton fullSize onClick={this.onSearchSubmit} disabled={!isReadyToSubmit}>Search for vehicles</InfoButton>
-      </SearchButtonWrapper>
-    );
-  }
-
-  //* This is not currently used, but leaving the code here for future use */
-  renderAdditionalDetails = () => {
-    const { isExpanded } = this.state;
-    const { actions, searchParameters } = this.props;
-
-    if (!isExpanded) {
-      return null;
-    }
-
-    return (
-      <>
-        <MenuSection>
-
-          <Row>
-            <InputGroup>
-              <Label>Make</Label>
-              <StyledSearchableSelect
-                  value={searchParameters.get(PARAMETERS.MAKE)}
-                  onSelect={value => this.onMakeChange(value)}
-                  onClear={() => this.onMakeChange('')}
-                  options={this.getAsMap(MAKES)}
-                  openAbove
-                  short />
-            </InputGroup>
-          </Row>
-
-          <Row>
-            <InputGroup>
-              <Label>Color</Label>
-              <StyledSearchableSelect
-                  value={searchParameters.get(PARAMETERS.COLOR)}
-                  onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value })}
-                  onClear={() => actions.updateSearchParameters({ field: PARAMETERS.COLOR, value: '' })}
-                  options={this.getAsMap(COLORS)}
-                  openAbove
-                  short />
-            </InputGroup>
-          </Row>
-
-          <Row>
-            <InputGroup>
-              <Label>Accessories</Label>
-              <StyledSearchableSelect
-                  value={searchParameters.get(PARAMETERS.ACCESSORIES)}
-                  onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value })}
-                  onInputChange={({ target }) => {
-                    actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: target.value });
-                  }}
-                  onClear={() => actions.updateSearchParameters({ field: PARAMETERS.ACCESSORIES, value: '' })}
-                  options={this.getAsMap(ACCESSORIES)}
-                  openAbove
-                  short />
-            </InputGroup>
-          </Row>
-
-          <Row>
-            <InputGroup>
-              <Label>Style</Label>
-              <StyledSearchableSelect
-                  value={searchParameters.get(PARAMETERS.STYLE)}
-                  onSelect={value => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value })}
-                  onClear={() => actions.updateSearchParameters({ field: PARAMETERS.STYLE, value: '' })}
-                  options={this.getAsMap(STYLES)}
-                  openAbove
-                  short />
-            </InputGroup>
-          </Row>
-
-        </MenuSection>
-
-      </>
-    );
-  }
-
-  renderTopNav = () => {
-    const {
-      actions,
-      searchParameters,
-      isLoadingResults,
-      isLoadingNeighbors,
-      reportVehicles,
-      results,
-      neighborsById
-    } = this.props;
-
-    return (
-      <TopNavBar>
-        <TopNavSection width="230px">
-          <button
-              type="button"
-              onClick={() => {
-                actions.editSearchParameters(true);
-                actions.setDrawMode(false);
-                actions.clearExploreSearchResults();
-              }}>
-            <span><FontAwesomeIcon icon={faChevronLeft} /></span>
-            <div>Update search</div>
-          </button>
-        </TopNavSection>
-        <TopNavSection>
-          <TopNavButtonGroup>
-            <span>Reason</span>
-            <div>{searchParameters.get(PARAMETERS.REASON)}</div>
-          </TopNavButtonGroup>
-          <TopNavButtonGroup>
-            <span>Plate number</span>
-            <div>{searchParameters.get(PARAMETERS.PLATE)}</div>
-          </TopNavButtonGroup>
-          <TopNavButtonGroup>
-            <span>Time start</span>
-            <div>{this.formatDateTime(searchParameters.get(PARAMETERS.START))}</div>
-          </TopNavButtonGroup>
-          <TopNavButtonGroup>
-            <span>Time end</span>
-            <div>{this.formatDateTime(searchParameters.get(PARAMETERS.END))}</div>
-          </TopNavButtonGroup>
-        </TopNavSection>
-        <TopNavSection width="480px" distribute>
-          <TopNavLargeButton onClick={() => actions.toggleAlertModal(true)}>
-            <FontAwesomeIcon icon={faBell} />
-            <div>Manage alerts</div>
-          </TopNavLargeButton>
-          <TopNavLargeButton
-              onClick={() => actions.exportReport({
-                searchParameters,
-                reportVehicles,
-                results,
-                neighborsById
-              })}
-              disabled={isLoadingResults || isLoadingNeighbors}>
-            <FontAwesomeIcon icon={faPrint} />
-            <div>Export report</div>
-          </TopNavLargeButton>
-        </TopNavSection>
-      </TopNavBar>
-    );
-  }
-
-  render() {
-    const { isTopNav, searchParameters } = this.props;
-
-    return isTopNav ? null : this.renderFullSearchParameters();
-  }
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
@@ -840,7 +591,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingAddresses: params.get(SEARCH_PARAMETERS.IS_LOADING_ADDRESSES),
     noAddressResults: params.get(SEARCH_PARAMETERS.DONE_LOADING_ADDRESSES) && !geocodedAddresses.size,
     isDrawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
-    isTopNav: !params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     agencyOptions: params.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: params.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
     devicesByAgency: params.get(SEARCH_PARAMETERS.DEVICES_BY_AGENCY),
