@@ -165,7 +165,7 @@ class AuditDashboard extends React.Component<Props, State> {
       .map(search => search.get(AUDIT_EVENT.DATE_TIME))
       .filter(dateTime => dateTime.isSameOrAfter(lastValidMoment))
       .forEach((dateTime) => {
-        const dateTimeStr = dateTime.toISOString(true);
+        const dateTimeStr = dateTime.format(formatter);
         counts = counts.set(dateTimeStr, counts.get(dateTimeStr) + 1);
       });
 
