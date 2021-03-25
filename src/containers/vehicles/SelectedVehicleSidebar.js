@@ -248,7 +248,7 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     const idAndTimestamp = selectedEntityKeyIds.map((entityKeyId) => {
       const timestamp = moment(entitiesById.getIn([entityKeyId, PROPERTY_TYPES.TIMESTAMP, 0], ''));
       return [entityKeyId, timestamp];
-    }).sort(([id1, t1], [id2, t2]) => (t1.isBefore(t2) ? -1 : 1));
+    }).sort(([id1, t1], [id2, t2]) => (t1.isAfter(t2) ? -1 : 1));
 
     return idAndTimestamp.map(([entityKeyId, timestamp]) => {
 
