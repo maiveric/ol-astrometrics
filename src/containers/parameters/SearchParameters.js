@@ -218,8 +218,7 @@ class SearchParameters extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-      isExpanded: false,
-      hotlistOnly: false
+      isExpanded: false
     };
 
     this.addressSearchTimeout = null;
@@ -350,7 +349,6 @@ class SearchParameters extends React.Component<Props, State> {
       deviceOptions,
       devicesByAgency
     } = this.props;
-    const { hotlistOnly } = this.state;
 
     let filteredDeviceOptions = deviceOptions;
     const agencyId = searchParameters.get(PARAMETERS.DEPARTMENT);
@@ -365,6 +363,13 @@ class SearchParameters extends React.Component<Props, State> {
         actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' });
       }
     };
+
+    const onHotlistChange = () => {
+      actions.updateSearchParameters({
+        field: PARAMETERS.HOTLIST_ONLY,
+        value: !searchParameters.get(PARAMETERS.HOTLIST_ONLY)
+      });
+    }
 
     return (
       <SearchParameterWrapper>
@@ -401,7 +406,7 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InlineLabel>Show hotlist vehicles only</InlineLabel>
-              <YesNoToggle isActive={hotlistOnly} onToggle={() => this.setState({ hotlistOnly: !hotlistOnly })} />
+              <YesNoToggle isActive={searchParameters.get(PARAMETERS.HOTLIST_ONLY)} onToggle={onHotlistChange} />
             </Row>
 
           </MenuSection>

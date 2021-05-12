@@ -140,6 +140,7 @@ export const PARAMETERS = {
   ACCESSORIES: 'accessories',
   STYLE: 'style',
   LABEL: 'label',
+  HOTLIST_ONLY: 'hotlistOnly',
 
   // placeholder item to indicate search criteria is not met
   NOT_READY: 'notReady'
