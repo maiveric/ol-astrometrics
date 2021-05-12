@@ -11,11 +11,12 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { Constants, SearchApi } from 'lattice';
+import { Set } from 'immutable';
 import type { RequestSequence, SequenceAction } from 'redux-reqseq';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
-import { getAppFromState, getEntitySetId } from '../../utils/AppUtils';
+import { getAppFromState, getEntitySetId, getHotlistFromState } from '../../utils/AppUtils';
 import { getDateSearchTerm } from '../../utils/DataUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -30,9 +31,11 @@ import {
 import {
   EXECUTE_SEARCH,
   LOAD_ENTITY_NEIGHBORS,
+  LOAD_HOTLIST_PLATES,
   SET_MAP_MODE,
   executeSearch,
   loadEntityNeighbors,
+  loadHotlistPlates,
   setMapMode
 } from './ExploreActionFactory';
 
@@ -66,10 +69,33 @@ export function* loadEntityNeighborsWatcher() :Generator<*, *, *> {
   yield takeEvery(LOAD_ENTITY_NEIGHBORS, loadEntityNeighborsWorker);
 }
 
+function* loadHotlistPlatesWorker(action :SequenceAction) :Generator<*, *, *> {
+  try {
+    yield put(loadHotlistPlates.request(action.id, action.value));
+
+    // TODO actually implement
+    const hotlistPlates = Set.of();
+
+    yield put(loadHotlistPlates.success(action.id, hotlistPlates));
+  }
+  catch (error) {
+    console.error(error);
+    yield put(loadHotlistPlates.failure(action.id, error));
+  }
+  finally {
+    yield put(loadHotlistPlates.finally(action.id));
+  }
+}
+
+export function* loadHotlistPlatesWatcher() :Generator<*, *, *> {
+  yield takeEvery(LOAD_HOTLIST_PLATES, loadHotlistPlatesWorker);
+}
+
 const getSearchRequest = (
   entitySetId,
   propertyTypesByFqn,
-  searchParameters
+  searchParameters,
+  hotlistPlates
 ) => {
   const baseSearch = {
     entitySetIds: [entitySetId],
@@ -254,6 +280,20 @@ const getSearchRequest = (
     });
   }
 
+  if (searchParameters.get(PARAMETERS.HOTLIST_ONLY) && hotlistPlates.size) {
+    constraintGroups.push({
+      constraints: hotlistPlates.map(plate => ({
+        type: 'advanced',
+        searchFields: [{
+          searchTerm: plate,
+          property: getPropertyTypeId(PROPERTY_TYPES.PLATE),
+          exact: false
+        }]
+      })).toJS(),
+      min: 1
+    });
+  }
+
   return Object.assign({}, baseSearch, { constraints: constraintGroups });
 };
 
@@ -266,10 +306,13 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
       searchParameters
     } = action.value;
 
+    const hotlistPlates = yield select(getHotlistFromState);
+
     const searchRequest = getSearchRequest(
       entitySetId,
       propertyTypesByFqn,
-      searchParameters
+      searchParameters,
+      hotlistPlates
     );
 
     const logSearchAction = submit({

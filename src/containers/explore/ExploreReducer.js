@@ -26,6 +26,7 @@ import {
   UNMOUNT_EXPLORE,
   executeSearch,
   loadEntityNeighbors,
+  loadHotlistPlates
 } from './ExploreActionFactory';
 
 import { EDIT_SEARCH_PARAMETERS } from '../parameters/ParametersActionFactory';
@@ -34,7 +35,9 @@ const {
   ENTITY_NEIGHBORS_BY_ID,
   ENTITIES_BY_ID,
   FILTER,
+  HOTLIST_PLATES,
   IS_LOADING_ENTITY_NEIGHBORS,
+  IS_LOADING_HOTLIST_PLATES,
   IS_MAP_STYLE_LOADING,
   IS_SEARCHING_DATA,
   MAP_MODE,
@@ -50,7 +53,9 @@ const INITIAL_STATE :Map<> = fromJS({
   [ENTITY_NEIGHBORS_BY_ID]: Map(),
   [ENTITIES_BY_ID]: Map(),
   [FILTER]: '',
+  [HOTLIST_PLATES]: Set(),
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
+  [IS_LOADING_HOTLIST_PLATES]: false,
   [IS_MAP_STYLE_LOADING]: true,
   [IS_SEARCHING_DATA]: false,
   [MAP_MODE]: MAP_STYLE.DARK,
@@ -147,6 +152,14 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
             .set(ENTITIES_BY_ID, entitiesById);
         },
         FINALLY: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, false)
+      });
+    }
+
+    case loadHotlistPlates.case(action.type): {
+      return loadHotlistPlates.reducer(state, action, {
+        REQUEST: () => state.set(IS_LOADING_HOTLIST_PLATES, true),
+        SUCCESS: () => state.set(HOTLIST_PLATES, action.value),
+        FINALLY: () => state.set(IS_LOADING_HOTLIST_PLATES, false)
       });
     }
 

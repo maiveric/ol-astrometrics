@@ -78,6 +78,7 @@ type Props = {
     loadReports :() => void;
     loadDataModel :() => void;
     loadDepartmentsAndDevices :() => void;
+    loadHotlistPlates :() => void;
     loadSavedMaps :() => void;
     setDrawMode :(isDrawMode :boolean) => void;
     updateSearchParameters :({ field :string, value :string }) => void;
@@ -121,6 +122,7 @@ class ExploreContainer extends React.Component<Props, State> {
     const { actions, edmLoaded } = this.props;
     actions.loadDataModel();
     actions.loadAlerts();
+    actions.loadHotlistPlates();
 
     if (edmLoaded) {
       this.loadDataDependingOnEDM(this.props);

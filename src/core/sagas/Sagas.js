@@ -61,6 +61,7 @@ export default function* sagas() :Generator<*, *, *> {
     /* ExploreSagas */
     fork(ExploreSagas.executeSearchWatcher),
     fork(ExploreSagas.loadEntityNeighborsWatcher),
+    fork(ExploreSagas.loadHotlistPlatesWatcher),
 
     /* ParametersSagas */
     fork(ParametersSagas.geocodeAddressWatcher),
