@@ -17,6 +17,7 @@ import * as ParametersActionFactory from './ParametersActionFactory';
 import { getSearchFields } from './ParametersReducer';
 
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
+import YesNoToggle from '../../components/buttons/YesNoToggle';
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Slider from '../../components/controls/Slider';
@@ -172,6 +173,12 @@ const Label = styled.span`
   margin-bottom: 10px;
 `;
 
+const InlineLabel = styled.span`
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+`;
+
 const InlineGroup = styled.div`
   display: flex;
   flex-direction: row;
@@ -211,7 +218,8 @@ class SearchParameters extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-      isExpanded: false
+      isExpanded: false,
+      hotlistOnly: false
     };
 
     this.addressSearchTimeout = null;
@@ -342,6 +350,7 @@ class SearchParameters extends React.Component<Props, State> {
       deviceOptions,
       devicesByAgency
     } = this.props;
+    const { hotlistOnly } = this.state;
 
     let filteredDeviceOptions = deviceOptions;
     const agencyId = searchParameters.get(PARAMETERS.DEPARTMENT);
@@ -388,6 +397,11 @@ class SearchParameters extends React.Component<Props, State> {
                     selectOnly
                     short />
               </InputGroup>
+            </Row>
+
+            <Row>
+              <InlineLabel>Show hotlist vehicles only</InlineLabel>
+              <YesNoToggle isActive={hotlistOnly} onToggle={() => this.setState({ hotlistOnly: !hotlistOnly })} />
             </Row>
 
           </MenuSection>
