@@ -7,6 +7,7 @@ export const APP_TYPES = {
   AGENCIES: 'app.agencies',
   CONFIDENCE_METRICS: 'app.confidencemetrics',
   HITS: 'app.infractions',
+  HOTLIST_VEHICLES: 'app.hotlistvehicles',
   RECORDED_BY: 'app.recordedby',
   CARS: 'app.vehicle',
   USERS: 'app.staff',

@@ -10,14 +10,15 @@ import {
   take,
   takeEvery
 } from '@redux-saga/core/effects';
-import { Constants, SearchApi } from 'lattice';
-import { Set } from 'immutable';
+import { Constants, DataApi, SearchApi } from 'lattice';
+import { fromJS, Set } from 'immutable';
 import type { RequestSequence, SequenceAction } from 'redux-reqseq';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
 import { getAppFromState, getEntitySetId, getHotlistFromState } from '../../utils/AppUtils';
 import { getDateSearchTerm } from '../../utils/DataUtils';
+import { getPlate } from '../../utils/VehicleUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
@@ -73,8 +74,15 @@ function* loadHotlistPlatesWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
     yield put(loadHotlistPlates.request(action.id, action.value));
 
-    // TODO actually implement
-    const hotlistPlates = Set.of();
+    const app = yield select(getAppFromState);
+    const hotlistEntitySetId = getEntitySetId(app, APP_TYPES.HOTLIST_VEHICLES);
+
+    const plates = []
+    const vehicles = yield call(DataApi.getEntitySetData, hotlistEntitySetId);
+    fromJS(vehicles).forEach((vehicle) => {
+      plates.push(getPlate(vehicle).toLowerCase());
+    });
+    const hotlistPlates = Set(plates);
 
     yield put(loadHotlistPlates.success(action.id, hotlistPlates));
   }
