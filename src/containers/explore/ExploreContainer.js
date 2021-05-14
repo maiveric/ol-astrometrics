@@ -122,7 +122,6 @@ class ExploreContainer extends React.Component<Props, State> {
     const { actions, edmLoaded } = this.props;
     actions.loadDataModel();
     actions.loadAlerts();
-    actions.loadHotlistPlates();
 
     if (edmLoaded) {
       this.loadDataDependingOnEDM(this.props);
@@ -141,6 +140,7 @@ class ExploreContainer extends React.Component<Props, State> {
     const { actions } = props;
 
     actions.loadDepartmentsAndDevices();
+    actions.loadHotlistPlates();
     actions.loadSavedMaps();
     actions.loadReports();
   }

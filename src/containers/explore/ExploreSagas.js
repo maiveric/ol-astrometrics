@@ -18,7 +18,7 @@ import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig'
 import { getSearchFields } from '../parameters/ParametersReducer';
 import { getAppFromState, getEntitySetId, getHotlistFromState } from '../../utils/AppUtils';
 import { getDateSearchTerm } from '../../utils/DataUtils';
-import { getPlate } from '../../utils/VehicleUtils';
+import { getId } from '../../utils/VehicleUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
@@ -80,7 +80,7 @@ function* loadHotlistPlatesWorker(action :SequenceAction) :Generator<*, *, *> {
     const plates = []
     const vehicles = yield call(DataApi.getEntitySetData, hotlistEntitySetId);
     fromJS(vehicles).forEach((vehicle) => {
-      plates.push(getPlate(vehicle).toLowerCase());
+      plates.push(getId(vehicle).toLowerCase());
     });
     const hotlistPlates = Set(plates);
 
