@@ -12,23 +12,30 @@ const SliderWrapper = styled.div`
   justify-content: ${props => props.isActive ? 'flex-end' : 'flex-start'};
 
   &:hover {
-    cursor: pointer;
+    cursor: ${props => props.isDisabled ? 'default' : 'pointer'};
   }
 `;
 
 const Button = styled.div`
-  background-color: #ffffff;
+  background-color: ${props => props.isDisabled ? '#69696c' : '#ffffff'};
   height: 18px;
   width: 18px;
   margin: 0 3px;
   border-radius: 50%;
 `
 
-const YesNoToggle = ({ isActive, onToggle} ) => {
+const YesNoToggle = ({ isActive, isDisabled, onToggle }) => {
+
+  const onClick = (e) => {
+    if (isDisabled) {
+      return;
+    }
+    onToggle(e);
+  }
 
   return (
-    <SliderWrapper isActive={isActive} onClick={onToggle}>
-      <Button />
+    <SliderWrapper isActive={isActive} isDisabled={isDisabled} onClick={onClick}>
+      <Button isDisabled={isDisabled} />
     </SliderWrapper>
   )
 }

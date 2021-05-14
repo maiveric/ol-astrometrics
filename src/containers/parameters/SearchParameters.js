@@ -347,7 +347,8 @@ class SearchParameters extends React.Component<Props, State> {
       noAddressResults,
       agencyOptions,
       deviceOptions,
-      devicesByAgency
+      devicesByAgency,
+      hasHotlistPlates
     } = this.props;
 
     let filteredDeviceOptions = deviceOptions;
@@ -406,7 +407,10 @@ class SearchParameters extends React.Component<Props, State> {
 
             <Row>
               <InlineLabel>Show hotlist vehicles only</InlineLabel>
-              <YesNoToggle isActive={searchParameters.get(PARAMETERS.HOTLIST_ONLY)} onToggle={onHotlistChange} />
+              <YesNoToggle
+                  isActive={searchParameters.get(PARAMETERS.HOTLIST_ONLY)}
+                  isDisabled={!hasHotlistPlates}
+                  onToggle={onHotlistChange} />
             </Row>
 
           </MenuSection>
@@ -604,6 +608,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
     isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
+    hasHotlistPlates: !!explore.get(EXPLORE.HOTLIST_PLATES).size,
 
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     geocodedAddresses,
