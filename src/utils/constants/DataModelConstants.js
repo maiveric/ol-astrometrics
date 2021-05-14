@@ -66,3 +66,8 @@ export const PROPERTY_TYPES = {
   REPORT_CREATED_DATE_TIME: 'ol.datetimeadministered',
   REPORT_CREATOR_ID: 'general.id'
 };
+
+export const ALERT_TYPES = {
+  CUSTOM_VEHICLE_ALERT: 'ALPR_ALERT',
+  HOTLIST_ALERT: 'ALPR_HOTLIST_ALERT'
+}

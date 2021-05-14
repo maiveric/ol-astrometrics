@@ -26,7 +26,7 @@ import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getDateSearchTerm, getSearchTerm } from '../../utils/DataUtils';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES, ALERT_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   ALERTS,
   EDM,
@@ -70,11 +70,6 @@ type State = {
   isSettingNewAlert :boolean,
   alertType :string
 };
-
-const ALERT_TYPES = {
-  CUSTOM_VEHICLE_ALERT: 'ALPR_ALERT',
-  HOTLIST_ALERT: 'ALPR_HOTLIST_ALERT'
-}
 
 const ModalHeader = styled.div`
   font-size: 20px;
@@ -246,7 +241,12 @@ class NewAlertModal extends React.Component<Props, State> {
   }
 
   getAlertMetadata = (createDate) => {
-    const { caseNum, searchReason, plate } = this.props;
+    const {
+      caseNum,
+      searchReason,
+      plate,
+      county
+    } = this.props;
     const { alertType } = this.state;
 
     if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
@@ -259,7 +259,10 @@ class NewAlertModal extends React.Component<Props, State> {
     }
 
     if (alertType === ALERT_TYPES.HOTLIST_ALERT) {
-      return { createDate };
+      return {
+        createDate,
+        county
+      };
     }
 
     return {};
