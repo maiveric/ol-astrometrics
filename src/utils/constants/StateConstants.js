@@ -52,6 +52,7 @@ export const ALERTS = {
   EXPIRATION: 'expiration',
   CASE_NUMBER: 'caseNumber',
   SEARCH_REASON: 'searchReason',
+  COUNTY: 'county',
   ADDITIONAL_EMAILS: 'additionalEmails'
 };
 

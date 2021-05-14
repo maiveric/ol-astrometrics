@@ -213,6 +213,10 @@ class NewAlertModal extends React.Component<Props, State> {
       field: ALERTS.EXPIRATION,
       value: moment().add(1, 'month').toISOString()
     });
+    actions.setAlertValue({
+      field: ALERTS.COUNTY,
+      value: undefined
+    });
   }
 
   getOnChange = (field, noEventObj, filterWildcards) => {
@@ -454,15 +458,31 @@ class NewAlertModal extends React.Component<Props, State> {
       additionalEmails,
       isLoadingAlerts,
       isSubmitting,
-      county
+      county,
+      agencyOptions,
+      parameters
     } = this.props;
+
+    const onAgencyChange = (value) => {
+      if (value !== county) {
+        actions.setAlertValue({
+          field: ALERTS.COUNTY,
+          value: value
+        });
+      }
+    };
 
     return (
       <Section>
         <SectionRow>
           <InputHeader>County</InputHeader>
           <Accent>*</Accent>
-          <StyledInput value={caseNum} onChange={this.getOnChange(ALERTS.CASE_NUMBER)} />
+          <StyledSearchableSelect
+              value={county}
+              onSelect={onAgencyChange}
+              onClear={() => onAgencyChange()}
+              options={agencyOptions}
+              short />
         </SectionRow>
 
         <SpaceBetweenRow>
@@ -543,11 +563,13 @@ function mapStateToProps(state :Map<*, *>) :Object {
     searchReason: alerts.get(ALERTS.SEARCH_REASON),
     plate: alerts.get(ALERTS.PLATE),
     expirationDate: alerts.get(ALERTS.EXPIRATION),
+    county: alerts.get(ALERTS.COUNTY),
     additionalEmails: alerts.get(ALERTS.ADDITIONAL_EMAILS),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
+    agencyOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
     timestampPropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.TIMESTAMP, 'id']),
-    isSubmitting: submit.get(SUBMIT.SUBMITTING)
+    isSubmitting: submit.get(SUBMIT.SUBMITTING),
   };
 }
 
