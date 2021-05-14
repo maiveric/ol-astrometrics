@@ -1,3 +1,4 @@
+
 /*
  * @flow
  */
@@ -244,6 +245,81 @@ class NewAlertModal extends React.Component<Props, State> {
     return options;
   }
 
+  getAlertMetadata = (createDate) => {
+    const { caseNum, searchReason, plate } = this.props;
+    const { alertType } = this.state;
+
+    if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
+      return {
+        caseNum,
+        searchReason,
+        licensePlate: plate,
+        createDate
+      };
+    }
+
+    if (alertType === ALERT_TYPES.HOTLIST_ALERT) {
+      return { createDate };
+    }
+
+    return {};
+  }
+
+  getSearchConstraints = (createDate) => {
+    const {
+      plate,
+      readsEntitySetId,
+      hotlistEntitySetId,
+      platePropertyTypeId,
+      timestampPropertyTypeId
+    } = this.props;
+    const { alertType } = this.state;
+
+    const dateTimeSearchTerm = getDateSearchTerm(timestampPropertyTypeId, createDate, '*')
+
+    if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
+      return {
+        entitySetIds: [readsEntitySetId],
+        start: 0,
+        maxHits: 3000,
+        constraints: [
+          {
+            constraints: [{
+              type: 'simple',
+              searchTerm: getSearchTerm(platePropertyTypeId, plate)
+            }]
+          },
+          {
+            constraints: [{
+              type: 'simple',
+              fuzzy: false,
+              searchTerm: dateTimeSearchTerm
+            }]
+          }
+        ]
+      }
+    }
+
+    if (alertType === ALERT_TYPES.HOTLIST_ALERT) {
+      return {
+        entitySetIds: [hotlistEntitySetId],
+        start: 0,
+        maxHits: 3000,
+        constraints: [
+          {
+            constraints: [{
+              type: 'simple',
+              fuzzy: false,
+              searchTerm: dateTimeSearchTerm
+            }]
+          }
+        ]
+      }
+    }
+
+    return {};
+  }
+
   createAlert = () => {
     const {
       actions,
@@ -256,6 +332,7 @@ class NewAlertModal extends React.Component<Props, State> {
       platePropertyTypeId,
       timestampPropertyTypeId
     } = this.props;
+    const { alertType } = this.state;
 
     const expirationMoment = moment(expirationDate);
     if (!expirationMoment.isValid()) {
@@ -291,16 +368,13 @@ class NewAlertModal extends React.Component<Props, State> {
       .filter((e) => !!e);
     emails = emails.filter((email, idx) => emails.indexOf(email) === idx);
 
+    const alertMetadata = this.getAlertMetadata(createDate);
+
     const alert = {
       expiration: expirationMoment.toISOString(true),
-      type: 'ALPR_ALERT',
+      type: alertType,
       constraints,
-      alertMetadata: {
-        caseNum,
-        searchReason,
-        licensePlate: plate,
-        createDate
-      },
+      alertMetadata,
       emails
     };
 
@@ -558,6 +632,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
   return {
     readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
+    hotlistEntitySetId: getEntitySetId(app, APP_TYPES.HOTLIST_READS),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
     caseNum: alerts.get(ALERTS.CASE_NUMBER),
     searchReason: alerts.get(ALERTS.SEARCH_REASON),

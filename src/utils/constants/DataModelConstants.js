@@ -8,6 +8,7 @@ export const APP_TYPES = {
   CONFIDENCE_METRICS: 'app.confidencemetrics',
   HITS: 'app.infractions',
   HOTLIST_VEHICLES: 'app.hotlistvehicles',
+  HOTLIST_READS: 'hotlistReads',
   RECORDED_BY: 'app.recordedby',
   CARS: 'app.vehicle',
   USERS: 'app.staff',
