@@ -21,7 +21,7 @@ import {
   SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES, ALERT_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntitySetId } from '../../utils/AppUtils';
 import * as AlertActionFactory from './AlertActionFactory';
 
@@ -146,6 +146,7 @@ class AlertRow extends React.Component<Props, State> {
     const { email } = AuthUtils.getUserInfo();
 
     const alertMetadata = alert.get('alertMetadata', Map());
+    const alertType = alert.get('type');
 
     const emailArray = alert.get('emails', List()).toJS();
     emailArray.unshift(email);
@@ -168,10 +169,12 @@ class AlertRow extends React.Component<Props, State> {
             <span>{`Expire${expired ? 'd' : 's'} on`}</span>
             <div>{expiration}</div>
           </InfoGroup>
-          <InfoGroup width={50}>
-            <span>Search reason</span>
-            <div>{alertMetadata.get('searchReason')}</div>
-          </InfoGroup>
+          { alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT && (
+            <InfoGroup width={50}>
+              <span>Search reason</span>
+              <div>{alertMetadata.get('searchReason')}</div>
+            </InfoGroup>
+          )}
         </InfoRow>
 
         <InfoRow>
@@ -185,21 +188,43 @@ class AlertRow extends React.Component<Props, State> {
 
   }
 
+  renderAlertTitle = () => {
+    const { alert } = this.props;
+
+    const alertMetadata = alert.get('alertMetadata', Map());
+    const alertType = alert.get('type');
+
+    if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
+      return (
+        <div>
+          <div>{alertMetadata.get('licensePlate')}</div>
+          <span>{alertMetadata.get('caseNum')}</span>
+        </div>
+      );
+    }
+
+    if (alertType === ALERT_TYPES.HOTLIST_ALERT) {
+      return (
+        <div>
+          <div>{alertMetadata.get('county')}</div>
+          <span>Hotlist Vehicle Alert</span>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
   render() {
     const { actions, alert, expired } = this.props;
     const { expanded } = this.state;
-
-    const alertMetadata = alert.get('alertMetadata', Map());
 
     const icon = expanded ? faChevronUp : faChevronDown;
 
     return (
       <Alert expired={expired}>
         <AlertHeaderRow>
-          <div>
-            <div>{alertMetadata.get('licensePlate')}</div>
-            <span>{alertMetadata.get('caseNum')}</span>
-          </div>
+          {this.renderAlertTitle()}
 
           <div>
             {expired ? null : <SubtleButton onClick={() => actions.expireAlert(alert.get('id'))}>Expire</SubtleButton>}

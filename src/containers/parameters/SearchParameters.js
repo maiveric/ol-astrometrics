@@ -17,6 +17,7 @@ import * as ParametersActionFactory from './ParametersActionFactory';
 import { getSearchFields } from './ParametersReducer';
 
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
+import YesNoToggle from '../../components/buttons/YesNoToggle';
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Slider from '../../components/controls/Slider';
@@ -170,6 +171,12 @@ const Label = styled.span`
   font-size: 12px;
   font-weight: 500;
   margin-bottom: 10px;
+`;
+
+const InlineLabel = styled.span`
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 const InlineGroup = styled.div`
@@ -340,7 +347,8 @@ class SearchParameters extends React.Component<Props, State> {
       noAddressResults,
       agencyOptions,
       deviceOptions,
-      devicesByAgency
+      devicesByAgency,
+      hasHotlistPlates
     } = this.props;
 
     let filteredDeviceOptions = deviceOptions;
@@ -356,6 +364,13 @@ class SearchParameters extends React.Component<Props, State> {
         actions.updateSearchParameters({ field: PARAMETERS.DEVICE, value: '' });
       }
     };
+
+    const onHotlistChange = () => {
+      actions.updateSearchParameters({
+        field: PARAMETERS.HOTLIST_ONLY,
+        value: !searchParameters.get(PARAMETERS.HOTLIST_ONLY)
+      });
+    }
 
     return (
       <SearchParameterWrapper>
@@ -388,6 +403,14 @@ class SearchParameters extends React.Component<Props, State> {
                     selectOnly
                     short />
               </InputGroup>
+            </Row>
+
+            <Row>
+              <InlineLabel>Show hotlist vehicles only</InlineLabel>
+              <YesNoToggle
+                  isActive={searchParameters.get(PARAMETERS.HOTLIST_ONLY)}
+                  isDisabled={!hasHotlistPlates}
+                  onToggle={onHotlistChange} />
             </Row>
 
           </MenuSection>
@@ -585,6 +608,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
     isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
+    hasHotlistPlates: !!explore.get(EXPLORE.HOTLIST_PLATES).size,
 
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     geocodedAddresses,

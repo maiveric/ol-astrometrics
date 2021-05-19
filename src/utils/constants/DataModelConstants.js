@@ -7,6 +7,8 @@ export const APP_TYPES = {
   AGENCIES: 'app.agencies',
   CONFIDENCE_METRICS: 'app.confidencemetrics',
   HITS: 'app.infractions',
+  HOTLIST_VEHICLES: 'app.hotlistvehicles',
+  HOTLIST_READS: 'app.hotlistreads',
   RECORDED_BY: 'app.recordedby',
   CARS: 'app.vehicle',
   USERS: 'app.staff',
@@ -64,3 +66,8 @@ export const PROPERTY_TYPES = {
   REPORT_CREATED_DATE_TIME: 'ol.datetimeadministered',
   REPORT_CREATOR_ID: 'general.id'
 };
+
+export const ALERT_TYPES = {
+  CUSTOM_VEHICLE_ALERT: 'ALPR_ALERT',
+  HOTLIST_ALERT: 'ALPR_HOTLIST_ALERT'
+}

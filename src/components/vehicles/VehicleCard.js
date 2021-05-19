@@ -18,6 +18,7 @@ type Props = {
   vehicle :Map<*, *>,
   records :List<*>,
   isUnselected :boolean,
+  isStolen :boolean,
   onClick :() => void,
   timestampDesc? :boolean,
   deviceOptions :Map
@@ -141,10 +142,31 @@ const HitType = styled.div`
   color: #EE5345 !important;
 `;
 
+const StolenTag = styled.div`
+  width: 64px;
+  height: 19px;
+  border-radius: 4px;
+  background-color: #9C2D23;
+  margin-left: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 !important;
+
+  p {
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+  }
+`;
+
 export const VehicleHeader = ({
   state,
   plate,
-  isHit,
+  isStolen,
   noPadding,
   printable
 }) => (
@@ -152,13 +174,7 @@ export const VehicleHeader = ({
     <div>
       <span>{state}</span>
       <div>{plate}</div>
-      {
-        isHit ? (
-          <HitType>
-            <FontAwesomeIcon icon={faExclamationTriangle} />
-          </HitType>
-        ) : null
-      }
+      {isStolen ? <StolenTag><p>Stolen</p></StolenTag> : null}
     </div>
   </HeaderRow>
 );
@@ -191,6 +207,7 @@ const VehicleCard = ({
   records,
   onClick,
   isUnselected,
+  isStolen,
   timestampDesc
 } :Props) => {
 
@@ -231,7 +248,7 @@ const VehicleCard = ({
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
 
-      <VehicleHeader state={state} plate={plate} isHit={!!hitTypes.size} />
+      <VehicleHeader state={state} plate={plate} isStolen={isStolen} />
 
       <Section>
 

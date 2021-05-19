@@ -42,6 +42,7 @@ type Props = {
   isLoadingNeighbors :boolean;
   results :List<*>;
   selectedEntityKeyIds :Set<*>;
+  hotlistPlates :Set<*>;
   selectedReadId :string;
   neighborsById :List<*>;
   filter :string;
@@ -268,13 +269,19 @@ class Sidebar extends React.Component<Props, State> {
   }
 
   renderVehicles = (vehiclePage, recordsByVehicleId) => {
-    const { departmentOptions, deviceOptions, selectedReadPlate } = this.props;
+    const {
+      departmentOptions,
+      deviceOptions,
+      hotlistPlates,
+      selectedReadPlate
+    } = this.props;
     const { sort } = this.state;
 
     return vehiclePage.map((vehicle) => {
       const entityKeyId = getEntityKeyId(vehicle);
       const plate = getPlate(vehicle);
       const isIntermediate = vehicle.get('isIntermediate');
+      const isStolen = hotlistPlates.has(plate.toLowerCase());
 
       return (
         <VehicleCard
@@ -286,6 +293,7 @@ class Sidebar extends React.Component<Props, State> {
             deviceOptions={deviceOptions}
             records={recordsByVehicleId.get(entityKeyId, List())}
             count={recordsByVehicleId.get(entityKeyId).size}
+            isStolen={isStolen}
             timestampDesc={sort !== SORT_TYPE.OLDEST} />
       );
     });
@@ -352,8 +360,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
     searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS),
     geocodedAddresses: explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS),
     filter: explore.get(EXPLORE.FILTER),
+    hotlistPlates: explore.get(EXPLORE.HOTLIST_PLATES),
     departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
-    deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS)
+    deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
   };
 }
 

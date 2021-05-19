@@ -6,6 +6,7 @@ export const MAP_STYLE = {
 
 export const LAYERS = {
   ALL_SOURCE_FEATURES: 'allsourcefeatures',
+  HOTLIST_SOURCE_FEATURES: 'hotlistsourcefeatures',
   SELECTED_SOURCE_FEATURES: 'selectedsourcefeatures',
   SELECTED_READ: 'selectedread',
   SEARCH_RADIUS: 'searchradius',

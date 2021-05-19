@@ -25,6 +25,7 @@ const {
   EXPIRATION,
   CASE_NUMBER,
   SEARCH_REASON,
+  COUNTY,
   ADDITIONAL_EMAILS
 } = ALERTS;
 
@@ -36,6 +37,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [EXPIRATION]: '',
   [CASE_NUMBER]: '',
   [SEARCH_REASON]: '',
+  [COUNTY]: undefined,
   [ADDITIONAL_EMAILS]: ''
 });
 

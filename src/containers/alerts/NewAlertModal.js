@@ -1,3 +1,4 @@
+
 /*
  * @flow
  */
@@ -16,6 +17,7 @@ import { bindActionCreators } from 'redux';
 import * as AlertActionFactory from './AlertActionFactory';
 
 import InfoButton from '../../components/buttons/InfoButton';
+import SecondaryButton from '../../components/buttons/SecondaryButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput, { StyledTextArea } from '../../components/controls/StyledInput';
@@ -24,7 +26,7 @@ import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 import { getEntitySetId } from '../../utils/AppUtils';
 import { getDateSearchTerm, getSearchTerm } from '../../utils/DataUtils';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP_TYPES, PROPERTY_TYPES, ALERT_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   ALERTS,
   EDM,
@@ -65,7 +67,8 @@ type Props = {
 }
 
 type State = {
-  isSettingNewAlert :boolean
+  isSettingNewAlert :boolean,
+  alertType :string
 };
 
 const ModalHeader = styled.div`
@@ -173,7 +176,24 @@ const EvenlySpacedRow = styled(Row)`
   align-items: center;
 `;
 
+const AlertTypeButton = styled(SecondaryButton)`
+  margin: 5px 0;
+  background-color: #4F4E54;
+  color: #ffffff;
+
+  &:hover {
+    background-color: #605f65 !important;
+  }
+`;
+
 class NewAlertModal extends React.Component<Props, State> {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      alertType: undefined
+    }
+  }
 
   componentDidMount() {
     const { actions, parameters } = this.props;
@@ -188,6 +208,10 @@ class NewAlertModal extends React.Component<Props, State> {
     actions.setAlertValue({
       field: ALERTS.EXPIRATION,
       value: moment().add(1, 'month').toISOString()
+    });
+    actions.setAlertValue({
+      field: ALERTS.COUNTY,
+      value: undefined
     });
   }
 
@@ -216,6 +240,89 @@ class NewAlertModal extends React.Component<Props, State> {
     return options;
   }
 
+  getAlertMetadata = (createDate) => {
+    const {
+      caseNum,
+      searchReason,
+      plate,
+      county
+    } = this.props;
+    const { alertType } = this.state;
+
+    if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
+      return {
+        caseNum,
+        searchReason,
+        licensePlate: plate,
+        createDate
+      };
+    }
+
+    if (alertType === ALERT_TYPES.HOTLIST_ALERT) {
+      return {
+        createDate,
+        county
+      };
+    }
+
+    return {};
+  }
+
+  getSearchConstraints = (createDate) => {
+    const {
+      plate,
+      readsEntitySetId,
+      hotlistEntitySetId,
+      platePropertyTypeId,
+      timestampPropertyTypeId
+    } = this.props;
+    const { alertType } = this.state;
+
+    const dateTimeSearchTerm = getDateSearchTerm(timestampPropertyTypeId, createDate, '*')
+
+    if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
+      return {
+        entitySetIds: [readsEntitySetId],
+        start: 0,
+        maxHits: 3000,
+        constraints: [
+          {
+            constraints: [{
+              type: 'simple',
+              searchTerm: getSearchTerm(platePropertyTypeId, plate)
+            }]
+          },
+          {
+            constraints: [{
+              type: 'simple',
+              fuzzy: false,
+              searchTerm: dateTimeSearchTerm
+            }]
+          }
+        ]
+      }
+    }
+
+    if (alertType === ALERT_TYPES.HOTLIST_ALERT) {
+      return {
+        entitySetIds: [hotlistEntitySetId],
+        start: 0,
+        maxHits: 3000,
+        constraints: [
+          {
+            constraints: [{
+              type: 'simple',
+              fuzzy: false,
+              searchTerm: dateTimeSearchTerm
+            }]
+          }
+        ]
+      }
+    }
+
+    return {};
+  }
+
   createAlert = () => {
     const {
       actions,
@@ -228,6 +335,7 @@ class NewAlertModal extends React.Component<Props, State> {
       platePropertyTypeId,
       timestampPropertyTypeId
     } = this.props;
+    const { alertType } = this.state;
 
     const expirationMoment = moment(expirationDate);
     if (!expirationMoment.isValid()) {
@@ -263,16 +371,13 @@ class NewAlertModal extends React.Component<Props, State> {
       .filter((e) => !!e);
     emails = emails.filter((email, idx) => emails.indexOf(email) === idx);
 
+    const alertMetadata = this.getAlertMetadata(createDate);
+
     const alert = {
       expiration: expirationMoment.toISOString(true),
-      type: 'ALPR_ALERT',
+      type: alertType,
       constraints,
-      alertMetadata: {
-        caseNum,
-        searchReason,
-        licensePlate: plate,
-        createDate
-      },
+      alertMetadata,
       emails
     };
 
@@ -284,7 +389,85 @@ class NewAlertModal extends React.Component<Props, State> {
     return email;
   }
 
-  render() {
+  renderHeaderSection = (headerText) => (
+    <Section>
+      <SectionRow>
+        <EvenlySpacedRow>
+          <ModalHeader>{headerText}</ModalHeader>
+        </EvenlySpacedRow>
+      </SectionRow>
+    </Section>
+  )
+
+  renderEmailSection = () => {
+    const { additionalEmails } = this.props;
+
+    return (
+      <Section>
+
+        <SectionRow paddingBottom={22}>
+          <EvenlySpacedRow>
+            <SubHeader>Email alerts</SubHeader>
+          </EvenlySpacedRow>
+        </SectionRow>
+
+        <SectionRow paddingBottom={1}>
+          <InputHeader minPadding>{`Alerts will be sent to ${this.getEmail()}`}</InputHeader>
+        </SectionRow>
+
+        <SectionRow>
+          <InputHeaderSection>
+            <InputHeader minPadding>Additional emails</InputHeader>
+            <InputHeaderSubtitle minPadding>Separate emails with commas</InputHeaderSubtitle>
+          </InputHeaderSection>
+          <StyledTextArea value={additionalEmails} onChange={this.getOnChange(ALERTS.ADDITIONAL_EMAILS)} />
+        </SectionRow>
+
+      </Section>
+    )
+  }
+
+  renderSubmitOrCancel = () => {
+    const {
+      actions,
+      caseNum,
+      searchReason,
+      plate,
+      expirationDate,
+      county
+    } = this.props;
+    const { alertType } = this.state;
+
+    let canSubmit = false;
+
+    if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
+      canSubmit = caseNum
+        && searchReason
+        && expirationDate
+        && moment(expirationDate).isValid()
+        && plate
+        && plate.length > 3;
+    }
+
+    if (alertType === ALERT_TYPES.HOTLIST_ALERT) {
+      canSubmit = county
+        && expirationDate
+        && moment(expirationDate).isValid();
+    }
+
+    return (
+      <Section>
+        <SectionRow>
+          <CenteredRow>
+            <SubtleButton onClick={() => actions.toggleAlertModal(false)}>Cancel</SubtleButton>
+            <InfoButton disabled={!canSubmit} onClick={this.createAlert}>Create Alert</InfoButton>
+          </CenteredRow>
+        </SectionRow>
+      </Section>
+    )
+  }
+
+  renderCustomAlertFields = () => {
     const {
       actions,
       caseNum,
@@ -296,103 +479,149 @@ class NewAlertModal extends React.Component<Props, State> {
       isSubmitting
     } = this.props;
 
+    return (
+      <Section>
+        <SectionRow>
+          <InputHeader>Case number</InputHeader>
+          <Accent>*</Accent>
+          <StyledInput value={caseNum} onChange={this.getOnChange(ALERTS.CASE_NUMBER)} />
+        </SectionRow>
+
+        <SectionRow>
+          <InputHeader>Search reason</InputHeader>
+          <Accent>*</Accent>
+          <StyledSearchableSelect
+              value={searchReason}
+              searchPlaceholder="Select"
+              options={this.getAsMap(SEARCH_REASONS)}
+              onSelect={this.getOnChange(ALERTS.SEARCH_REASON, true)}
+              onClear={this.getOnClear(ALERTS.SEARCH_REASON)}
+              selectOnly
+              transparent
+              short />
+        </SectionRow>
+
+        <SpaceBetweenRow>
+
+          <SectionRow rowCount={2}>
+            <InputHeader>Full license plate</InputHeader>
+            <Accent>*</Accent>
+            <StyledInput value={plate} onChange={this.getOnChange(ALERTS.PLATE, false, true)} />
+          </SectionRow>
+
+          <SectionRow rowCount={2}>
+            <InputHeader>Alert expiration date and time</InputHeader>
+            <Accent>*</Accent>
+            <DateTimePickerWrapper>
+              <DateTimePicker
+                  minDate={moment().add(1, 'day').toISOString()}
+                  onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
+                  value={expirationDate} />
+            </DateTimePickerWrapper>
+          </SectionRow>
+
+        </SpaceBetweenRow>
+      </Section>
+    );
+  }
+
+  renderHotlistFields = () => {
+    const {
+      actions,
+      caseNum,
+      searchReason,
+      plate,
+      expirationDate,
+      additionalEmails,
+      isLoadingAlerts,
+      isSubmitting,
+      county,
+      agencyOptions,
+      parameters
+    } = this.props;
+
+    const onAgencyChange = (value) => {
+      if (value !== county) {
+        actions.setAlertValue({
+          field: ALERTS.COUNTY,
+          value: value
+        });
+      }
+    };
+
+    return (
+      <Section>
+        <SectionRow>
+          <InputHeader>County</InputHeader>
+          <Accent>*</Accent>
+          <StyledSearchableSelect
+              value={county}
+              onSelect={onAgencyChange}
+              onClear={() => onAgencyChange()}
+              options={agencyOptions}
+              short />
+        </SectionRow>
+
+        <SpaceBetweenRow>
+
+          <SectionRow>
+            <InputHeader>Alert expiration date</InputHeader>
+            <Accent>*</Accent>
+            <DateTimePickerWrapper>
+              <DateTimePicker
+                  minDate={moment().add(1, 'day').toISOString()}
+                  onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
+                  value={expirationDate} />
+            </DateTimePickerWrapper>
+          </SectionRow>
+
+        </SpaceBetweenRow>
+      </Section>
+    )
+  }
+
+  renderAlertTypeButton = (text, alertType) => {
+    const onClick = () => this.setState({ alertType });
+    return <AlertTypeButton onClick={onClick}>{text}</AlertTypeButton>;
+  }
+
+  render() {
+    const { isLoadingAlerts, isSubmitting } = this.props;
+    const { alertType } = this.state;
+
     if (isLoadingAlerts || isSubmitting) {
       return <SpinnerWrapper><Spinner /></SpinnerWrapper>;
     }
 
-    const canSubmit = caseNum
-      && searchReason
-      && expirationDate
-      && moment(expirationDate).isValid()
-      && plate
-      && plate.length > 3;
+    if (!alertType) {
+      return (
+        <FormContainer>
+          {this.renderHeaderSection('New Alert')}
+          {this.renderAlertTypeButton('Hotlist Alert', ALERT_TYPES.HOTLIST_ALERT)}
+          {this.renderAlertTypeButton('Custom Vehicle Alert', ALERT_TYPES.CUSTOM_VEHICLE_ALERT)}
+        </FormContainer>
+      )
+    }
+
+    if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
+      return (
+        <FormContainer>
+          {this.renderHeaderSection('Create new custom vehicle alert')}
+          {this.renderCustomAlertFields()}
+          {this.renderEmailSection()}
+          {this.renderSubmitOrCancel()}
+        </FormContainer>
+      );
+    }
 
     return (
       <FormContainer>
-        <Section>
-          <SectionRow>
-            <EvenlySpacedRow>
-              <ModalHeader>Create new alert</ModalHeader>
-            </EvenlySpacedRow>
-          </SectionRow>
-        </Section>
-
-        <Section>
-          <SectionRow>
-            <InputHeader>Case number</InputHeader>
-            <Accent>*</Accent>
-            <StyledInput value={caseNum} onChange={this.getOnChange(ALERTS.CASE_NUMBER)} />
-          </SectionRow>
-
-          <SectionRow>
-            <InputHeader>Search reason</InputHeader>
-            <Accent>*</Accent>
-            <StyledSearchableSelect
-                value={searchReason}
-                searchPlaceholder="Select"
-                options={this.getAsMap(SEARCH_REASONS)}
-                onSelect={this.getOnChange(ALERTS.SEARCH_REASON, true)}
-                onClear={this.getOnClear(ALERTS.SEARCH_REASON)}
-                selectOnly
-                transparent
-                short />
-          </SectionRow>
-
-          <SpaceBetweenRow>
-
-            <SectionRow rowCount={2}>
-              <InputHeader>Full license plate</InputHeader>
-              <Accent>*</Accent>
-              <StyledInput value={plate} onChange={this.getOnChange(ALERTS.PLATE, false, true)} />
-            </SectionRow>
-
-            <SectionRow rowCount={2}>
-              <InputHeader>Alert expiration date and time</InputHeader>
-              <Accent>*</Accent>
-              <DateTimePickerWrapper>
-                <DateTimePicker
-                    minDate={moment().add(1, 'day').toISOString()}
-                    onChange={this.getOnChange(ALERTS.EXPIRATION, true)}
-                    value={expirationDate} />
-              </DateTimePickerWrapper>
-            </SectionRow>
-
-          </SpaceBetweenRow>
-        </Section>
-
-        <Section>
-
-          <SectionRow paddingBottom={22}>
-            <EvenlySpacedRow>
-              <SubHeader>Email alerts</SubHeader>
-            </EvenlySpacedRow>
-          </SectionRow>
-
-          <SectionRow paddingBottom={1}>
-            <InputHeader minPadding>{`Alerts will be sent to ${this.getEmail()}`}</InputHeader>
-          </SectionRow>
-
-          <SectionRow>
-            <InputHeaderSection>
-              <InputHeader minPadding>Additional emails</InputHeader>
-              <InputHeaderSubtitle minPadding>Separate emails with commas</InputHeaderSubtitle>
-            </InputHeaderSection>
-            <StyledTextArea value={additionalEmails} onChange={this.getOnChange(ALERTS.ADDITIONAL_EMAILS)} />
-          </SectionRow>
-
-        </Section>
-
-        <Section>
-          <SectionRow>
-            <CenteredRow>
-              <SubtleButton onClick={() => actions.toggleAlertModal(false)}>Cancel</SubtleButton>
-              <InfoButton disabled={!canSubmit} onClick={this.createAlert}>Create Alert</InfoButton>
-            </CenteredRow>
-          </SectionRow>
-        </Section>
-
+        {this.renderHeaderSection('Create new hotlist alert')}
+        {this.renderHotlistFields()}
+        {this.renderEmailSection()}
+        {this.renderSubmitOrCancel()}
       </FormContainer>
-    );
+    )
   }
 
 }
@@ -406,16 +635,19 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
   return {
     readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
+    hotlistEntitySetId: getEntitySetId(app, APP_TYPES.HOTLIST_READS),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
     caseNum: alerts.get(ALERTS.CASE_NUMBER),
     searchReason: alerts.get(ALERTS.SEARCH_REASON),
     plate: alerts.get(ALERTS.PLATE),
     expirationDate: alerts.get(ALERTS.EXPIRATION),
+    county: alerts.get(ALERTS.COUNTY),
     additionalEmails: alerts.get(ALERTS.ADDITIONAL_EMAILS),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
+    agencyOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     platePropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.PLATE, 'id']),
     timestampPropertyTypeId: edm.getIn([EDM.PROPERTY_TYPES, PROPERTY_TYPES.TIMESTAMP, 'id']),
-    isSubmitting: submit.get(SUBMIT.SUBMITTING)
+    isSubmitting: submit.get(SUBMIT.SUBMITTING),
   };
 }
 

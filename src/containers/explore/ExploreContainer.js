@@ -78,6 +78,7 @@ type Props = {
     loadReports :() => void;
     loadDataModel :() => void;
     loadDepartmentsAndDevices :() => void;
+    loadHotlistPlates :() => void;
     loadSavedMaps :() => void;
     setDrawMode :(isDrawMode :boolean) => void;
     updateSearchParameters :({ field :string, value :string }) => void;
@@ -139,6 +140,7 @@ class ExploreContainer extends React.Component<Props, State> {
     const { actions } = props;
 
     actions.loadDepartmentsAndDevices();
+    actions.loadHotlistPlates();
     actions.loadSavedMaps();
     actions.loadReports();
   }
@@ -249,6 +251,7 @@ class ExploreContainer extends React.Component<Props, State> {
       drawMode,
       filter,
       isMapStyleLoading,
+      hotlistPlates,
       mapMode,
       results,
       searchParameters,
@@ -269,6 +272,7 @@ class ExploreContainer extends React.Component<Props, State> {
             setSearchZones={this.setSearchZones}
             entities={entities}
             isMapStyleLoading={isMapStyleLoading}
+            hotlistPlates={hotlistPlates}
             selectEntity={this.selectEntity}
             selectedEntityKeyIds={selectedEntityKeyIds}
             selectedReadId={selectedReadId}
@@ -357,6 +361,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     filter: explore.get(EXPLORE.FILTER),
     isMapStyleLoading: explore.get(EXPLORE.IS_MAP_STYLE_LOADING),
+    hotlistPlates: explore.get(EXPLORE.HOTLIST_PLATES),
     mapMode: explore.get(EXPLORE.MAP_MODE),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),

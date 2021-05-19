@@ -1,9 +1,10 @@
-import { Map } from 'immutable';
+import { Map, Set } from 'immutable';
 
 import {
   STATE,
   APP,
   EDM,
+  EXPLORE,
   SEARCH_PARAMETERS
 } from './constants/StateConstants';
 
@@ -30,3 +31,5 @@ export const getPropertyTypeId = (state :Map, fqn :string) => state.getIn([
 ]);
 
 export const getUserIdFromState = app => app.get(APP.SELF_ENTITY_KEY_ID);
+
+export const getHotlistFromState = state => state.getIn([STATE.EXPLORE, EXPLORE.HOTLIST_PLATES], Set());

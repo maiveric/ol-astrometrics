@@ -59,6 +59,7 @@ const {
   ACCESSORIES,
   STYLE,
   LABEL,
+  HOTLIST_ONLY,
   NOT_READY
 } = PARAMETERS;
 
@@ -80,7 +81,8 @@ const INITIAL_SEARCH_PARAMETERS :Map<> = fromJS({
   [COLOR]: '',
   [ACCESSORIES]: '',
   [STYLE]: '',
-  [LABEL]: ''
+  [LABEL]: '',
+  [HOTLIST_ONLY]: false
 });
 
 const INITIAL_STATE :Map<> = fromJS({
