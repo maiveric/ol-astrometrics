@@ -11,21 +11,14 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import {
-  Map,
   List,
+  Map,
   OrderedMap,
   fromJS
 } from 'immutable';
 import { DataApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
-import { getSearchTerm, getEntityKeyId, getDateSearchTerm } from '../../utils/DataUtils';
-import {
-  getAppFromState,
-  getQualityFromState,
-  getEntitySetId,
-  getPropertyTypeId
-} from '../../utils/AppUtils';
 import {
   LOAD_AGENCIES,
   LOAD_QUALITY_AGENCY_DATA,
@@ -36,11 +29,18 @@ import {
   loadQualityAgencyData,
   loadQualityDashboardData,
   loadQualityDeviceData,
-  setQualityDashboardWindow
+  setQualityDashboardWindow,
 } from './QualityActionFactory';
 
-import { QUALITY, DASHBOARD_WINDOWS, DATE_FORMATS } from '../../utils/constants/StateConstants';
+import {
+  getAppFromState,
+  getEntitySetId,
+  getPropertyTypeId,
+  getQualityFromState
+} from '../../utils/AppUtils';
+import { getDateSearchTerm, getSearchTerm } from '../../utils/DataUtils';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { DASHBOARD_WINDOWS, QUALITY } from '../../utils/constants/StateConstants';
 
 function* executeSearchesForWindow(range, readsEntitySetId, dateTimePTId) {
 
@@ -78,41 +78,47 @@ function* executeSearchesForWindow(range, readsEntitySetId, dateTimePTId) {
   return counts;
 }
 
-function* loadCountsForIds(ids, range, readsEntitySetId, dateTimePTId, idPTId) {
-
-  const labels = [];
-  const requests = [];
+function* loadCountsForIds(ids, range, readsEntitySetId, dateTimePTId, idPTId, dataSourcePTID :?string) {
 
   const increment = range === DASHBOARD_WINDOWS.YEAR ? 'month' : 'day';
 
   const start = moment().subtract(1, range).add(1, increment).startOf(increment).toISOString(true);
   const end = moment().endOf(increment).toISOString(true);
+  const dateFilter = getDateSearchTerm(dateTimePTId, start, end);
 
+  const app = yield select(getAppFromState);
+  const dataSourcesESID = getEntitySetId(app, APP_TYPES.TEMP_DATA_SOURCE_ENUM);
+  const dataSourcesResponse = yield call(DataApi.getEntitySetData, dataSourcesESID);
+  const dataSources = dataSourcesResponse.map((dataSource) => dataSource[PROPERTY_TYPES.NAME][0]);
+
+  const calls = {};
   ids.forEach((id) => {
-
-    const dateFilter = getDateSearchTerm(dateTimePTId, start, end);
     const idFilter = getSearchTerm(idPTId, id);
-
-    labels.push(id);
-    requests.push(call(SearchApi.searchEntitySetData, readsEntitySetId, {
-      start: 0,
-      maxHits: 0,
-      fuzzy: false,
-      searchTerm: `${idFilter} AND ${dateFilter}`
-    }));
-
+    dataSources.forEach((dataSource) => {
+      const dataSourceFilter = getSearchTerm(dataSourcePTID, dataSource);
+      const requestId = `${id}|${dataSource}`;
+      calls[requestId] = call(SearchApi.searchEntitySetData, readsEntitySetId, {
+        fuzzy: false,
+        maxHits: 0,
+        searchTerm: `${idFilter} AND ${dataSourceFilter} AND ${dateFilter}`,
+        start: 0,
+      });
+    });
   });
 
-  const resp = yield all(requests);
+  const responses = yield all(calls);
 
-  let counts = OrderedMap();
-  labels.forEach((label, index) => {
-    const { numHits } = resp[index];
-    counts = counts.set(label, numHits || 0);
+  const counts = Map().withMutations((mutableMap) => {
+    ids.forEach((id) => {
+      dataSources.forEach((dataSource) => {
+        const requestId = `${id}|${dataSource}`;
+        const response = responses[requestId];
+        mutableMap.setIn([id, dataSource], response.numHits || 0);
+      });
+    });
   });
 
   return counts;
-
 }
 
 function* loadDashboard() {
@@ -139,12 +145,13 @@ function* loadAgencyCounts() {
 
   const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
   const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-  const agenciesPTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.AGENCY_NAME));
+  const agenciesPTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME));
+  const dataSourcePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.OL_DATA_SOURCE));
 
-  return yield call(loadCountsForIds, agencyIds, range, recordsEntitySetId, dateTimePTId, agenciesPTId);
+  return yield call(loadCountsForIds, agencyIds, range, recordsEntitySetId, dateTimePTId, agenciesPTId, dataSourcePTID);
 }
 
-function* loadDeviceCounts(agencyId) {
+function* loadDeviceCounts(agencyId :?string) {
 
   const app = yield select(getAppFromState);
   const quality = yield select(getQualityFromState);
@@ -198,7 +205,7 @@ function* setQualityDashboardWindowWorker(action :SequenceAction) {
     yield put(setQualityDashboardWindow.success(action.id, { searches, agencyCounts, deviceCounts }));
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(setQualityDashboardWindow.failure(action.id, error));
   }
   finally {
@@ -219,7 +226,7 @@ function* loadQualityAgencyDataWorker(action :SequenceAction) {
     yield put(loadQualityAgencyData.success(action.id, agencyCounts));
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(loadQualityAgencyData.failure(action.id, error));
   }
   finally {
@@ -240,7 +247,7 @@ function* loadQualityDeviceDataWorker(action :SequenceAction) {
     yield put(loadQualityDeviceData.success(action.id, deviceCounts));
   }
   catch (error) {
-    console.error(error)
+    console.error(error);
     yield put(loadQualityDeviceData.failure(action.id, error));
   }
   finally {
@@ -257,45 +264,49 @@ function* loadAgenciesWorker(action :SequenceAction) {
     yield put(loadAgencies.request(action.id));
 
     const app = yield select(getAppFromState);
-    const agencyEntitySetId = getEntitySetId(app, APP_TYPES.AGENCIES);
-    const devicesEntitySetId = getEntitySetId(app, APP_TYPES.CAMERAS);
+    const agenciesESID = getEntitySetId(app, APP_TYPES.STANDARDIZED_AGENCIES);
 
-    let agencies = yield call(DataApi.getEntitySetData, agencyEntitySetId);
+    let agencies = yield call(DataApi.getEntitySetData, agenciesESID);
     agencies = fromJS(agencies);
 
-    const agencyEntityKeyIds = agencies.map(getEntityKeyId);
-
-    let devicesByAgencyEntityKeyId = yield call(SearchApi.searchEntityNeighborsWithFilter, agencyEntitySetId, {
-      entityKeyIds: agencyEntityKeyIds.toJS(),
-      sourceEntitySetIds: [devicesEntitySetId],
-      destinationEntitySetIds: [devicesEntitySetId]
-    });
-    devicesByAgencyEntityKeyId = fromJS(devicesByAgencyEntityKeyId);
-
     let agenciesById = Map();
-    let devicesById = Map();
-    let devicesByAgency = Map();
-
     agencies.forEach((agency) => {
+      const agencyId = agency.getIn([PROPERTY_TYPES.ID, 0]);
       const agencyName = agency.getIn([PROPERTY_TYPES.NAME, 0]);
-      const name = agency.getIn([PROPERTY_TYPES.NAME, 0], agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], ''));
-
-      let deviceIds = List();
-      devicesByAgencyEntityKeyId.get(getEntityKeyId(agency), List()).forEach((deviceNeighbor) => {
-        const device = deviceNeighbor.get('neighborDetails', Map());
-
-        const deviceId = device.getIn([PROPERTY_TYPES.ID, 0]);
-        const deviceName = device.getIn([PROPERTY_TYPES.NAME, 0], agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], ''));
-
-        deviceIds = deviceIds.push(deviceId);
-        devicesById = devicesById.set(deviceId, deviceName);
-      });
-
-      agenciesById = agenciesById.set(agencyName, name);
-      devicesByAgency = devicesByAgency.set(agencyName, deviceIds);
+      agenciesById = agenciesById.set(agencyId, agencyName);
     });
 
-    yield put(loadAgencies.success(action.id, { agenciesById, devicesByAgency, devicesById }));
+    // NOTE: 2021-05-23 - removing for now in order to implement https://jira.openlattice.com/browse/APPS-2950
+    // const devicesEntitySetId = getEntitySetId(app, APP_TYPES.CAMERAS);
+    // const agencyEntityKeyIds = agencies.map(getEntityKeyId);
+    // let devicesByAgencyEntityKeyId = yield call(SearchApi.searchEntityNeighborsWithFilter, agenciesESID, {
+    //   entityKeyIds: agencyEntityKeyIds.toJS(),
+    //   sourceEntitySetIds: [devicesEntitySetId],
+    //   destinationEntitySetIds: [devicesEntitySetId]
+    // });
+    // devicesByAgencyEntityKeyId = fromJS(devicesByAgencyEntityKeyId);
+    // let devicesById = Map();
+    // let devicesByAgency = Map();
+    // agencies.forEach((agency) => {
+    //   const agencyId = agency.getIn([PROPERTY_TYPES.ID, 0]);
+    //   const agencyName = agency.getIn([PROPERTY_TYPES.NAME, 0]);
+    //
+    //   let deviceIds = List();
+    //   devicesByAgencyEntityKeyId.get(getEntityKeyId(agency), List()).forEach((deviceNeighbor) => {
+    //     const device = deviceNeighbor.get('neighborDetails', Map());
+    //
+    //     const deviceId = device.getIn([PROPERTY_TYPES.ID, 0]);
+    //     const deviceName = device.getIn([PROPERTY_TYPES.NAME, 0], agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], ''));
+    //
+    //     deviceIds = deviceIds.push(deviceId);
+    //     devicesById = devicesById.set(deviceId, deviceName);
+    //   });
+    //
+    //   agenciesById = agenciesById.set(agencyId, agencyName);
+    //   devicesByAgency = devicesByAgency.set(agencyName, deviceIds);
+    // });
+
+    yield put(loadAgencies.success(action.id, { agenciesById }));
     yield put(loadQualityAgencyData());
   }
   catch (error) {
