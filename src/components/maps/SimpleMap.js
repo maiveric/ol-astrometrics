@@ -21,6 +21,7 @@ import {
   SEARCH_DOT_COLOR
 } from '../../utils/constants/Colors';
 import { getCoordinates, getEntityKeyId } from '../../utils/DataUtils';
+import { getPlate } from '../../utils/VehicleUtils';
 import { getSearchFields } from '../../containers/parameters/ParametersReducer';
 
 declare var __MAPBOX_TOKEN__;
@@ -220,7 +221,15 @@ class SimpleMap extends React.Component<Props, State> {
     );
   }
 
-  addSource = () => this.getSourceLayer(LAYERS.ALL_SOURCE_FEATURES, entity => getCoordinates(entity))
+  isHotlist = (entity) => {
+    const { hotlistPlates } = this.props;
+    return hotlistPlates.has(getPlate(entity).toLowerCase());
+  }
+
+  addSource = () => this.getSourceLayer(
+    LAYERS.ALL_SOURCE_FEATURES,
+    entity => getCoordinates(entity)
+  )
 
   addSelectedSource = () => {
     const { selectedEntityKeyIds } = this.props;
@@ -229,6 +238,14 @@ class SimpleMap extends React.Component<Props, State> {
       LAYERS.SELECTED_SOURCE_FEATURES,
       entity => selectedEntityKeyIds.has(getEntityKeyId(entity)) && getCoordinates(entity)
     );
+  }
+
+  addHotlistSource = () => {
+    const { hotlistPlates } = this.props;
+    return this.getSourceLayer(
+      LAYERS.HOTLIST_SOURCE_FEATURES,
+      entity => this.isHotlist(entity) && getCoordinates(entity)
+    )
   }
 
   addSelectedReadSource = () => {
@@ -275,6 +292,17 @@ class SimpleMap extends React.Component<Props, State> {
         paint={{
           'circle-opacity': 1,
           'circle-color': '#ffffff',
+          'circle-radius': 4
+        }} />
+  )
+
+  renderHotlistInnerCircles = () => (
+    <Layer
+        type="circle"
+        sourceId={LAYERS.HOTLIST_SOURCE_FEATURES}
+        paint={{
+          'circle-opacity': 1,
+          'circle-color': SEARCH_DOT_COLOR.HOTLIST,
           'circle-radius': 4
         }} />
   )
@@ -349,6 +377,16 @@ class SimpleMap extends React.Component<Props, State> {
     );
   }
 
+  renderHotlistReads = () => {
+
+    return (
+      <>
+        {this.addHotlistSource()}
+        {this.renderHotlistInnerCircles()}
+      </>
+    );
+  }
+
   render() {
     const { mapMode, searchParameters, setMapStyleLoaded } = this.props;
     const { fitToBounds } = this.state;
@@ -392,6 +430,8 @@ class SimpleMap extends React.Component<Props, State> {
           {this.renderReads()}
 
           {this.renderSelectedReads()}
+
+          {this.renderHotlistReads()}
 
           {this.renderSearchZones()}
           {this.renderAddressAndRadiusSearchParams(searchFields)}

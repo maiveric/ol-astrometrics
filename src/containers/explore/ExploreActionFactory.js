@@ -38,6 +38,9 @@ export const setMapStyleLoaded :RequestSequence = newRequestSequence(SET_MAP_STY
 export const DESELECT_READS_FOR_REPORT :string = 'DESELECT_READS_FOR_REPORT';
 export const deselectReadsForReport :RequestSequence = newRequestSequence(DESELECT_READS_FOR_REPORT);
 
+export const LOAD_HOTLIST_PLATES :string = 'LOAD_HOTLIST_PLATES';
+export const loadHotlistPlates :RequestSequence = newRequestSequence(LOAD_HOTLIST_PLATES);
+
 export {
   CLEAR_EXPLORE_SEARCH_RESULTS,
   EXECUTE_SEARCH,

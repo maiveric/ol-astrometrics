@@ -6,6 +6,7 @@ import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { PersistentSearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
+import { ALERT_TYPES } from '../../utils/constants/DataModelConstants';
 import {
   CREATE_ALERT,
   EXPIRE_ALERT,
@@ -63,7 +64,10 @@ function* loadAlertsWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
     yield put(loadAlerts.request(action.id));
 
-    const alerts = yield call(PersistentSearchApi.loadPersistentSearches, true);
+    let alerts = yield call(PersistentSearchApi.loadPersistentSearches, true);
+
+    const alertTypes = Object.values(ALERT_TYPES);
+    alerts = alerts.filter(({ type }) => alertTypes.includes(type));
 
     yield put(loadAlerts.success(action.id, alerts));
   }

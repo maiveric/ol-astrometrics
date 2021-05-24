@@ -52,6 +52,7 @@ export const ALERTS = {
   EXPIRATION: 'expiration',
   CASE_NUMBER: 'caseNumber',
   SEARCH_REASON: 'searchReason',
+  COUNTY: 'county',
   ADDITIONAL_EMAILS: 'additionalEmails'
 };
 
@@ -72,7 +73,9 @@ export const EXPLORE = {
   ENTITIES_BY_ID: 'entitiesById',
   ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById',
   FILTER: 'filter',
+  HOTLIST_PLATES: 'hotlistPlates',
   IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
+  IS_LOADING_HOTLIST_PLATES: 'isLoadingHotlistPlates',
   SEARCH_DATE_TIME: 'searchDateTime',
   IS_MAP_STYLE_LOADING: 'isMapStyleLoading',
   IS_SEARCHING_DATA: 'isSearchingData',
@@ -140,6 +143,7 @@ export const PARAMETERS = {
   ACCESSORIES: 'accessories',
   STYLE: 'style',
   LABEL: 'label',
+  HOTLIST_ONLY: 'hotlistOnly',
 
   // placeholder item to indicate search criteria is not met
   NOT_READY: 'notReady'

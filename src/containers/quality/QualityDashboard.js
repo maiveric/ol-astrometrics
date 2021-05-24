@@ -4,8 +4,8 @@
 
 import React from 'react';
 
-import styled, { css } from 'styled-components';
-import { Map, OrderedMap } from 'immutable';
+import styled from 'styled-components';
+import { Map } from 'immutable';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { bindActionCreators } from 'redux';
@@ -16,12 +16,7 @@ import BarChart from '../../components/charts/BarChart';
 import DropdownButton from '../../components/buttons/DropdownButton';
 import Spinner from '../../components/spinner/Spinner';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
-import {
-  Cell,
-  HeaderCell,
-  LightRow,
-  Table
-} from '../../components/body/Table';
+import { HeaderCell, LightRow, Table } from '../../components/body/Table';
 import {
   DASHBOARD_WINDOWS,
   DATE_FORMATS,
@@ -31,7 +26,6 @@ import {
 } from '../../utils/constants/StateConstants';
 
 type Props = {
-  agenciesById :Map<*, *>;
   agencyCounts :Map;
   counts :Map<*>;
   dashboardWindow :string;
@@ -39,12 +33,7 @@ type Props = {
   isLoadingEdm :boolean;
   isLoadingResults :boolean;
   actions :{
-    loadQualityDashboardData :(startDate :Object, endDate :Object) => void;
-    loadDataModel :() => void;
     setQualityDashboardWindow :(label :string) => void;
-    updateAuditEnd :(value :string) => void;
-    updateAuditStart :(value :string) => void;
-    updateAuditFilter :(value :string) => void;
   }
 };
 
@@ -86,21 +75,13 @@ const ReadBreakdowns = styled.div`
   }
 `;
 
-const cellStyle = css`
-
-  &:nth-child(2) {
+const StyledHeaderCell = styled(HeaderCell).attrs(() => ({
+  light: true
+}))`
+  &:nth-child(3) {
     text-align: right;
   }
 `;
-
-const StyledCell = styled(Cell).attrs(() => ({
-  light: true
-}))`${cellStyle}`;
-
-const StyledHeaderCell = styled(HeaderCell).attrs(() => ({
-  light: true
-}))`${cellStyle}`;
-
 
 class QualityDashboard extends React.Component<Props> {
 
@@ -114,76 +95,56 @@ class QualityDashboard extends React.Component<Props> {
     );
   }
 
-    renderBreakdown = (header, label, countMap, labelMapper, isLoading) => {
-
-      let counts = OrderedMap();
-
-      countMap.entrySeq().forEach(([key, count]) => {
-        counts = counts.set(labelMapper(key), count);
-      });
-
-      return (
-        <>
-          <HeaderLabel>{header}</HeaderLabel>
-
-          <Table isLoading={isLoading}>
-            <tbody>
-              <LightRow>
-                <StyledHeaderCell>{label}</StyledHeaderCell>
-                <StyledHeaderCell>Count</StyledHeaderCell>
-              </LightRow>
-              {counts.sort((v1, v2) => (v1 > v2 ? -1 : 1)).entrySeq().map(([key, value]) => (
-                <LightRow key={key}>
-                  <StyledCell>{key}</StyledCell>
-                  <StyledCell>{value}</StyledCell>
-                </LightRow>
-              ))}
-            </tbody>
-          </Table>
-
-        </>
-      );
-    }
-
   renderReadBreakdowns = () => {
-    const { agencyCounts, agenciesById, isLoadingAgencies } = this.props;
 
-    const agencyMapper = (id) => agenciesById.get(id, 'Unknown');
+    const { agencyCounts, isLoadingAgencies } = this.props;
 
-    const counts = OrderedMap().withMutations((mutator) => {
-      agencyCounts.forEach((count, key) => {
-        const agencyName = agencyMapper(key);
-        const mappedCount = mutator.get(agencyName, 0);
-        if (count > mappedCount) {
-          mutator.set(agencyName, count);
-        }
-        else {
-          mutator.set(agencyName, mappedCount);
+    const rows = [];
+    let total = 0;
+
+    agencyCounts.forEach((dataSourceMap :Map, agencyId :string) => {
+      let agencyTotal = 0;
+      dataSourceMap.forEach((count :number, dataSource :string) => {
+        agencyTotal += count;
+        total += count;
+        if (count > 0) {
+          rows.push([agencyId, dataSource, count]);
         }
       });
+      if (agencyTotal === 0) {
+        rows.push([agencyId, '', 0]);
+      }
     });
+
+    rows.sort((row1, row2) => (row1[2] > row2[2] ? -1 : 1));
 
     return (
       <ReadBreakdowns>
         <section>
-          <>
-            <HeaderLabel>Agency contributions</HeaderLabel>
-
-            <Table isLoading={isLoadingAgencies}>
-              <tbody>
-                <LightRow>
-                  <StyledHeaderCell>Agency</StyledHeaderCell>
-                  <StyledHeaderCell>Count</StyledHeaderCell>
-                </LightRow>
-                {counts.sort((v1, v2) => (v1 > v2 ? -1 : 1)).entrySeq().map(([key, value]) => (
-                  <LightRow key={key}>
-                    <StyledCell>{key}</StyledCell>
-                    <StyledCell>{value}</StyledCell>
+          <HeaderLabel>Agency contributions</HeaderLabel>
+          <Table isLoading={isLoadingAgencies}>
+            <tbody>
+              <LightRow>
+                <StyledHeaderCell>Agency</StyledHeaderCell>
+                <StyledHeaderCell>Source</StyledHeaderCell>
+                <StyledHeaderCell>Count</StyledHeaderCell>
+              </LightRow>
+              {
+                rows.map((row) => (
+                  <LightRow key={`${row[0]}_${row[1]}`}>
+                    <StyledHeaderCell>{row[0]}</StyledHeaderCell>
+                    <StyledHeaderCell>{row[1]}</StyledHeaderCell>
+                    <StyledHeaderCell>{row[2]}</StyledHeaderCell>
                   </LightRow>
-                ))}
-              </tbody>
-            </Table>
-          </>
+                ))
+              }
+              <LightRow>
+                <StyledHeaderCell>Total</StyledHeaderCell>
+                <StyledHeaderCell />
+                <StyledHeaderCell>{total}</StyledHeaderCell>
+              </LightRow>
+            </tbody>
+          </Table>
         </section>
       </ReadBreakdowns>
     );
@@ -202,7 +163,7 @@ class QualityDashboard extends React.Component<Props> {
       return <Wrapper><Spinner /></Wrapper>;
     }
 
-    const windowOptions = Object.values(DASHBOARD_WINDOWS).map((label) => ({
+    const windowOptions = (Object.values(DASHBOARD_WINDOWS) :any).map((label) => ({
       label: `Past ${label}`,
       onClick: () => actions.setQualityDashboardWindow(label)
     }));
@@ -228,7 +189,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const edm = state.get(STATE.EDM);
 
   return {
-    agenciesById: quality.get(QUALITY.AGENCIES_BY_ID),
     agencyCounts: quality.get(QUALITY.AGENCY_COUNTS),
     counts: quality.get(QUALITY.DASHBOARD_DATA),
     dashboardWindow: quality.get(QUALITY.DASHBOARD_WINDOW),

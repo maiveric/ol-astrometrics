@@ -5,8 +5,11 @@ export const APP_TYPES = {
   CAMERAS: 'app.camera',
   LOCATIONS: 'app.location',
   AGENCIES: 'app.agencies',
+  STANDARDIZED_AGENCIES: 'app.standardizedagencies',
   CONFIDENCE_METRICS: 'app.confidencemetrics',
   HITS: 'app.infractions',
+  HOTLIST_VEHICLES: 'app.hotlistvehicles',
+  HOTLIST_READS: 'app.hotlistreads',
   RECORDED_BY: 'app.recordedby',
   CARS: 'app.vehicle',
   USERS: 'app.staff',
@@ -14,7 +17,8 @@ export const APP_TYPES = {
   REPORTS: 'app.report',
   SAVED_MAPS: 'app.savedmaps',
   SEARCHES: 'app.searchalert',
-  SEARCHED_BY: 'app.searchedby'
+  SEARCHED_BY: 'app.searchedby',
+  TEMP_DATA_SOURCE_ENUM: 'app.temporarydatasourcesenum',
 };
 
 export const PERSON_ENTITY_TYPE_FQN = 'general.person';
@@ -62,5 +66,13 @@ export const PROPERTY_TYPES = {
 
   // reports
   REPORT_CREATED_DATE_TIME: 'ol.datetimeadministered',
-  REPORT_CREATOR_ID: 'general.id'
+  REPORT_CREATOR_ID: 'general.id',
+
+  OL_DATA_SOURCE: 'ol.datasource',
+  PUBLIC_SAFETY_AGENCY_NAME: 'publicsafety.agencyname',
+};
+
+export const ALERT_TYPES = {
+  CUSTOM_VEHICLE_ALERT: 'ALPR_ALERT',
+  HOTLIST_ALERT: 'ALPR_HOTLIST_ALERT'
 };

@@ -162,11 +162,11 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
 
     const app = yield select(getAppFromState);
 
-    const agenciesEntitySetId = getEntitySetId(app, APP_TYPES.AGENCIES);
+    const agenciesESID = getEntitySetId(app, APP_TYPES.STANDARDIZED_AGENCIES);
     const devicesEntitySetId = getEntitySetId(app, APP_TYPES.CAMERAS);
 
     const [departments, devices] = yield all([
-      call(DataApi.getEntitySetData, agenciesEntitySetId),
+      call(DataApi.getEntitySetData, agenciesESID),
       call(DataApi.getEntitySetData, devicesEntitySetId)
     ]);
 
@@ -176,7 +176,7 @@ function* loadDepartmentsAndDevicesWorker(action :SequenceAction) :Generator<*, 
 
     let devicesByAgencyEntityKeyId = {};
     if (agencyEntityKeyIds.length) {
-      devicesByAgencyEntityKeyId = yield call(SearchApi.searchEntityNeighborsWithFilter, agenciesEntitySetId, {
+      devicesByAgencyEntityKeyId = yield call(SearchApi.searchEntityNeighborsWithFilter, agenciesESID, {
         entityKeyIds: agencyEntityKeyIds,
         sourceEntitySetIds: [devicesEntitySetId],
         destinationEntitySetIds: [devicesEntitySetId]

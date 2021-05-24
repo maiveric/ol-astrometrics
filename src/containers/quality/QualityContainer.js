@@ -97,7 +97,6 @@ class QualityContainer extends React.Component<Props, State> {
     }
   }
 
-
   render() {
 
     const {
@@ -111,22 +110,15 @@ class QualityContainer extends React.Component<Props, State> {
 
     return (
       <Wrapper>
-
         <Header>
           <NavLinkWrapper to={Routes.QUALITY_DASHBOARD_ROUTE} large="true">
             Dashboard
           </NavLinkWrapper>
-          <NavLinkWrapper to={Routes.QUALITY_CONTRIBUTIONS_ROUTE} large="true">
-            Contributions
-          </NavLinkWrapper>
         </Header>
-
         <Switch>
           <Route path={Routes.QUALITY_DASHBOARD_ROUTE} component={QualityDashboard} />
-          <Route path={Routes.QUALITY_CONTRIBUTIONS_ROUTE} component={QualityContributions} />
           <Redirect to={Routes.QUALITY_DASHBOARD_ROUTE} />
         </Switch>
-
       </Wrapper>
     );
   }
