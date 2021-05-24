@@ -69,11 +69,14 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return loadAgencies.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_AGENCIES, true),
         SUCCESS: () => {
-          const { agenciesById, devicesByAgency, devicesById } = action.value;
+          const { agenciesById } = action.value;
           return state
             .set(AGENCIES_BY_ID, agenciesById)
-            .set(DEVICES_BY_ID, devicesById)
-            .set(DEVICES_BY_AGENCY, devicesByAgency);
+            // NOTE: 2021-05-23 - removing for now in order to implement https://jira.openlattice.com/browse/APPS-2950
+            // .set(DEVICES_BY_ID, devicesById)
+            // .set(DEVICES_BY_AGENCY, devicesByAgency)
+            .set(DEVICES_BY_ID, Map())
+            .set(DEVICES_BY_AGENCY, Map());
         },
         FINALLY: () => state.set(IS_LOADING_AGENCIES, false)
       });
