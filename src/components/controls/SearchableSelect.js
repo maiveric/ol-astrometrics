@@ -84,13 +84,8 @@ const SearchInput = styled.input.attrs((_) => ({
 `;
 
 const SearchIcon = styled.div`
-  align-self: center;
-  color: #687F96;
-  position: absolute;
-  margin: 0 20px;
-  right: 0;
-  height: 100%;
   display: flex;
+  margin-left: -30px;
 `;
 
 const SearchButton = styled.button`
