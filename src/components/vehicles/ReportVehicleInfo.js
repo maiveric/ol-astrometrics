@@ -119,6 +119,7 @@ const ReportVehicleInfo = ({
 
   const department = getDisplayNameForId(departmentOptions, getValue(read, PROPERTY_TYPES.AGENCY_NAME));
   const device = getDisplayNameForId(deviceOptions, getValue(read, PROPERTY_TYPES.CAMERA_ID));
+  const source = getValue(read, PROPERTY_TYPES.OL_DATA_SOURCE);
 
   const [long, lat] = getCoordinates(read);
   const latLongAsString = `${lat}, ${long}`;
@@ -158,6 +159,10 @@ const ReportVehicleInfo = ({
           <article>
             <span>Department</span>
             <div>{department}</div>
+          </article>
+          <article>
+            <span>Source</span>
+            <div>{source}</div>
           </article>
           <article>
             <span>Device</span>
