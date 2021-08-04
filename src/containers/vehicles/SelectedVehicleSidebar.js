@@ -75,7 +75,9 @@ const SelectedRead = styled(PaddedSection)`
   background-color: #121117;
 `;
 
-const ReadDetail = styled(Row)`
+const ReadDetail = styled.div`
+  display: flex;
+  flex-direction: column;
   font-size: 14px;
   line-height: 150%;
 
@@ -173,6 +175,8 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
       .get(PROPERTY_TYPES.AGENCY_NAME, List())
       .map(d => getDisplayNameForId(departmentOptions, d))
       .join(', ');
+
+    details.Source = read.get(PROPERTY_TYPES.OL_DATA_SOURCE, List()).join(', ');
 
     details.Device = read
       .get(PROPERTY_TYPES.CAMERA_ID, List())

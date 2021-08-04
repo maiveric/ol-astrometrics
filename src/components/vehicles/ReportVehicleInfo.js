@@ -34,7 +34,6 @@ const Card = styled.div`
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
-  height: 130px;
 
   article {
     width: 49%;
@@ -80,9 +79,7 @@ const Details = styled.article`
   article {
     width: 100%;
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     font-size: 14px;
     line-height: 150%;
     font-weight: 500;
@@ -119,6 +116,7 @@ const ReportVehicleInfo = ({
 
   const department = getDisplayNameForId(departmentOptions, getValue(read, PROPERTY_TYPES.AGENCY_NAME));
   const device = getDisplayNameForId(deviceOptions, getValue(read, PROPERTY_TYPES.CAMERA_ID));
+  const source = getValue(read, PROPERTY_TYPES.OL_DATA_SOURCE);
 
   const [long, lat] = getCoordinates(read);
   const latLongAsString = `${lat}, ${long}`;
@@ -158,6 +156,10 @@ const ReportVehicleInfo = ({
           <article>
             <span>Department</span>
             <div>{department}</div>
+          </article>
+          <article>
+            <span>Source</span>
+            <div>{source}</div>
           </article>
           <article>
             <span>Device</span>
