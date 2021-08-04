@@ -34,7 +34,6 @@ const Card = styled.div`
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
-  height: 130px;
 
   article {
     width: 49%;
@@ -80,9 +79,7 @@ const Details = styled.article`
   article {
     width: 100%;
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     font-size: 14px;
     line-height: 150%;
     font-weight: 500;

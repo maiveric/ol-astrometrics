@@ -75,7 +75,9 @@ const SelectedRead = styled(PaddedSection)`
   background-color: #121117;
 `;
 
-const ReadDetail = styled(Row)`
+const ReadDetail = styled.div`
+  display: flex;
+  flex-direction: column;
   font-size: 14px;
   line-height: 150%;
 
