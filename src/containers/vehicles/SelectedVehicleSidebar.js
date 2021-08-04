@@ -174,6 +174,8 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
       .map(d => getDisplayNameForId(departmentOptions, d))
       .join(', ');
 
+    details.Source = read.get(PROPERTY_TYPES.OL_DATA_SOURCE, List()).join(', ');
+
     details.Device = read
       .get(PROPERTY_TYPES.CAMERA_ID, List())
       .map(d => getDisplayNameForId(deviceOptions, d))
