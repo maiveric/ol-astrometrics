@@ -51,7 +51,7 @@ const { getAppWorker, getAppConfigsWorker } = AppApiSagas;
 const LOG = new Logger('AppSagas');
 
 export const getAuth0Id = () => {
-  const { id } = AuthUtils.getUserInfo();
+  const { id } = AuthUtils.getUserInfo() || {};
   return id;
 };
 
@@ -92,6 +92,7 @@ function* getOrCreateUserIdForEntitySet(userEntitySetId) :Generator<*, *, *> {
 function* checkIfAdmin(searchesEntitySetId) :Generator<*, *, *> {
   try {
 
+    // $FlowFixMe
     const [{ permissions }] = yield call(AuthorizationApi.checkAuthorizations, [{
       aclKey: [searchesEntitySetId],
       permissions: ['OWNER']
@@ -165,8 +166,6 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 
     const { data: appConfigs } = response;
 
-    let fqnMap = Map();
-
     let entitySetsByOrgId = Map();
     let configByOrgId = Map();
     let orgsById = Map();
@@ -184,10 +183,6 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 
           const { entitySetId } = appConfig.config[fqn];
 
-          fqnMap = fqnMap.setIn(
-            [fqn, APP.ENTITY_SETS_BY_ORG, orgId],
-            entitySetId
-          );
           configByOrgId = configByOrgId.set(
             orgId,
             configByOrgId.get(orgId, Map()).set(fqn, entitySetId)
@@ -216,7 +211,6 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
       orgsById,
       selectedOrg,
       entityKeyId,
-      fqnMap,
       isAdmin
     }));
   }
