@@ -134,13 +134,13 @@ type Props = {
   isAdmin :boolean;
   loading :boolean;
   organizations :List;
-  selectedOrg :UUID;
+  selectedOrg :string;
 };
 
 class AppHeaderContainer extends Component<Props> {
 
   getDisplayName = () => {
-    const userInfo = AuthUtils.getUserInfo();
+    const userInfo = AuthUtils.getUserInfo() || {};
     return (userInfo.email && userInfo.email.length > 0) ? userInfo.email : '';
   };
 

@@ -22,8 +22,8 @@
 !<PROJECT_ROOT>/node_modules/redux-reqseq
 .*/node_modules/immutable/.*
 
-[libs]
-./src/types.js.flow
+[options]
+esproposal.optional_chaining=enable
 
 [untyped]
 <PROJECT_ROOT>/node_modules/lattice-ui-kit
