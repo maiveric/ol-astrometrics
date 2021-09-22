@@ -166,7 +166,6 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 
     const { data: appConfigs } = response;
 
-    let entitySetsByOrgId = Map();
     let configByOrgId = Map();
     let orgsById = Map();
 
@@ -186,10 +185,6 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
           configByOrgId = configByOrgId.set(
             orgId,
             configByOrgId.get(orgId, Map()).set(fqn, entitySetId)
-          );
-          entitySetsByOrgId = entitySetsByOrgId.set(
-            orgId,
-            entitySetsByOrgId.get(orgId, Map()).set(entitySetId, fqn)
           );
         });
       }
