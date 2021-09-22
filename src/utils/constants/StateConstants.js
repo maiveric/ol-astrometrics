@@ -1,3 +1,7 @@
+/*
+ * @flow
+ */
+
 export const STATE = {
   APP: 'app',
   AUDIT: 'audit',
@@ -195,5 +199,4 @@ export const DASHBOARD_WINDOWS = {
 export const DATE_FORMATS = {
   [DASHBOARD_WINDOWS.WEEK]: 'MM/DD',
   [DASHBOARD_WINDOWS.MONTH]: 'MM/DD',
-  [DASHBOARD_WINDOWS.YEAR]: 'MMM'
 };
