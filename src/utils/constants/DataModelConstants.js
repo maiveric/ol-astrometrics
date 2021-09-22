@@ -1,3 +1,7 @@
+/*
+ * @flow
+ */
+
 export const APP_NAME = 'astrometrics';
 
 export const APP_TYPES = {
