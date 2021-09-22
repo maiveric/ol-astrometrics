@@ -15,7 +15,9 @@ import { Map, fromJS } from 'immutable';
 import type { SequenceAction } from 'redux-reqseq';
 import {
   AppApiActions,
-  AppApiSagas
+  AppApiSagas,
+  SearchApiActions,
+  SearchApiSagas,
 } from 'lattice-sagas';
 import {
   SearchApi,
@@ -47,6 +49,8 @@ const {
 
 const { getApp, getAppConfigs } = AppApiActions;
 const { getAppWorker, getAppConfigsWorker } = AppApiSagas;
+const { searchEntitySetData } = SearchApiActions;
+const { searchEntitySetDataWorker } = SearchApiSagas;
 
 const LOG = new Logger('AppSagas');
 
@@ -201,12 +205,36 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
     const entityKeyId = yield call(getOrCreateUserIdForEntitySet, usersEntitySetId);
     const isAdmin = yield call(checkIfAdmin, searchesEntitySetId);
 
+    const settingsESID = configByOrgId.getIn([selectedOrg, APP_TYPES.SETTINGS]);
+    response = yield call(
+      searchEntitySetDataWorker,
+      searchEntitySetData({
+        entitySetId: settingsESID,
+        searchOptions: {
+          maxHits: 1,
+          searchTerm: '*',
+          start: 0,
+        }
+      }),
+    );
+
+    let appSettingsByOrgId = Map();
+    try {
+      const appSettingsEntity = fromJS(response.data ? response.data.hits : []).first(Map());
+      const appSettingsJSON = appSettingsEntity.getIn([PROPERTY_TYPES.OL_APP_DETAILS, 0]);
+      const appSettings = fromJS(JSON.parse(appSettingsJSON)) || Map();
+      appSettingsByOrgId = appSettingsByOrgId.set(selectedOrg, appSettings);
+    } catch (error) {
+      LOG.error('error getting app settings', error);
+    }
+
     yield put(loadApp.success(action.id, {
+      appSettingsByOrgId,
       configByOrgId,
+      entityKeyId,
+      isAdmin,
       orgsById,
       selectedOrg,
-      entityKeyId,
-      isAdmin
     }));
   }
   catch (error) {

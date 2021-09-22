@@ -23,6 +23,7 @@ export const APP_TYPES = {
   SEARCHES: 'app.searchalert',
   SEARCHED_BY: 'app.searchedby',
   TEMP_DATA_SOURCE_ENUM: 'app.temporarydatasourcesenum',
+  SETTINGS: 'app.settings',
 };
 
 export const PERSON_ENTITY_TYPE_FQN = 'general.person';
@@ -72,6 +73,7 @@ export const PROPERTY_TYPES = {
   REPORT_CREATED_DATE_TIME: 'ol.datetimeadministered',
   REPORT_CREATOR_ID: 'general.id',
 
+  OL_APP_DETAILS: 'ol.appdetails',
   OL_DATA_SOURCE: 'ol.datasource',
   PUBLIC_SAFETY_AGENCY_NAME: 'publicsafety.agencyname',
 };
