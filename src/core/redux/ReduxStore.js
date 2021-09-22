@@ -10,6 +10,8 @@ import { applyMiddleware, compose, createStore } from 'redux';
 import sagas from '../sagas/Sagas';
 import reduxReducer from './ReduxReducer';
 
+declare var __ENV_DEV__ :boolean;
+
 export default function initializeReduxStore(routerHistory :any) :Object {
 
   const sagaMiddleware = createSagaMiddleware();
@@ -26,7 +28,8 @@ export default function initializeReduxStore(routerHistory :any) :Object {
   /* eslint-disable no-underscore-dangle */
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
-      maxAge: 100
+      maxAge: 100,
+      name: __ENV_DEV__ ? 'localhost-astrometrics' : 'astrometrics',
     })
     : compose;
   /* eslint-enable */
