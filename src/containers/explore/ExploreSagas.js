@@ -16,7 +16,12 @@ import type { RequestSequence, SequenceAction } from 'redux-reqseq';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
 import { getSearchFields } from '../parameters/ParametersReducer';
-import { getAppFromState, getEntitySetId, getHotlistFromState } from '../../utils/AppUtils';
+import {
+  getAppFromState,
+  getEntitySetId,
+  getHotlistFromState,
+  getSelectedOrganizationId,
+} from '../../utils/AppUtils';
 import { getDateSearchTerm } from '../../utils/DataUtils';
 import { getId } from '../../utils/VehicleUtils';
 import { saveLicensePlateSearch } from '../../utils/CookieUtils';
@@ -24,10 +29,11 @@ import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConsta
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
 import { submit } from '../submit/SubmitActionFactory';
 import {
+  APP,
   STATE,
   EXPLORE,
   PARAMETERS,
-  SEARCH_PARAMETERS
+  SEARCH_PARAMETERS,
 } from '../../utils/constants/StateConstants';
 import {
   EXECUTE_SEARCH,
@@ -39,6 +45,7 @@ import {
   loadHotlistPlates,
   setMapMode
 } from './ExploreActionFactory';
+import { AGENCY_VEHICLE_RECORDS_ENTITY_SET_IDS } from '../../utils/constants';
 
 const { OPENLATTICE_ID_FQN } = Constants;
 
@@ -103,10 +110,11 @@ const getSearchRequest = (
   entitySetId,
   propertyTypesByFqn,
   searchParameters,
-  hotlistPlates
+  hotlistPlates,
+  agencyVehicleRecordsEntitySetIds = []
 ) => {
   const baseSearch = {
-    entitySetIds: [entitySetId],
+    entitySetIds: [entitySetId, ...agencyVehicleRecordsEntitySetIds],
     start: 0,
     maxHits: 3000
   };
@@ -316,11 +324,17 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
 
     const hotlistPlates = yield select(getHotlistFromState);
 
+    const app = yield select(getAppFromState);
+    const orgId = getSelectedOrganizationId(app);
+    const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
+    const agencyVehicleRecordsEntitySetIds = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SET_IDS) || Set();
+
     const searchRequest = getSearchRequest(
       entitySetId,
       propertyTypesByFqn,
       searchParameters,
-      hotlistPlates
+      hotlistPlates,
+      agencyVehicleRecordsEntitySetIds.toJS(),
     );
 
     const logSearchAction = submit({
@@ -338,7 +352,6 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
     if (logSearchResponseAction.type === submit.SUCCESS) {
       const results = yield call(SearchApi.executeSearch, searchRequest);
 
-      const app = yield select(getAppFromState);
       const vehicleEntitySetId = getEntitySetId(app, APP_TYPES.CARS);
       yield put(executeSearch.success(action.id, { results, vehicleEntitySetId }));
 
