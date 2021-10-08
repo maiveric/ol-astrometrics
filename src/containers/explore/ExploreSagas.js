@@ -37,11 +37,11 @@ import {
 } from '../../utils/constants/StateConstants';
 import {
   EXECUTE_SEARCH,
-  LOAD_ENTITY_NEIGHBORS,
+  // LOAD_ENTITY_NEIGHBORS,
   LOAD_HOTLIST_PLATES,
   SET_MAP_MODE,
   executeSearch,
-  loadEntityNeighbors,
+  // loadEntityNeighbors,
   loadHotlistPlates,
   setMapMode
 } from './ExploreActionFactory';
@@ -56,26 +56,26 @@ function takeReqSeqSuccessFailure(reqseq :RequestSequence, seqAction :SequenceAc
   );
 }
 
-function* loadEntityNeighborsWorker(action :SequenceAction) :Generator<*, *, *> {
-  try {
-    const { entitySetId, entityKeyIds } = action.value;
-    yield put(loadEntityNeighbors.request(action.id, action.value));
-
-    const neighborsById = yield call(SearchApi.searchEntityNeighborsBulk, entitySetId, entityKeyIds);
-    yield put(loadEntityNeighbors.success(action.id, neighborsById));
-  }
-  catch (error) {
-    console.error(error);
-    yield put(loadEntityNeighbors.failure(action.id, error));
-  }
-  finally {
-    yield put(loadEntityNeighbors.finally(action.id));
-  }
-}
-
-export function* loadEntityNeighborsWatcher() :Generator<*, *, *> {
-  yield takeEvery(LOAD_ENTITY_NEIGHBORS, loadEntityNeighborsWorker);
-}
+// function* loadEntityNeighborsWorker(action :SequenceAction) :Generator<*, *, *> {
+//   try {
+//     const { entitySetId, entityKeyIds } = action.value;
+//     yield put(loadEntityNeighbors.request(action.id, action.value));
+//
+//     const neighborsById = yield call(SearchApi.searchEntityNeighborsBulk, entitySetId, entityKeyIds);
+//     yield put(loadEntityNeighbors.success(action.id, neighborsById));
+//   }
+//   catch (error) {
+//     console.error(error);
+//     yield put(loadEntityNeighbors.failure(action.id, error));
+//   }
+//   finally {
+//     yield put(loadEntityNeighbors.finally(action.id));
+//   }
+// }
+//
+// export function* loadEntityNeighborsWatcher() :Generator<*, *, *> {
+//   yield takeEvery(LOAD_ENTITY_NEIGHBORS, loadEntityNeighborsWorker);
+// }
 
 function* loadHotlistPlatesWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
@@ -355,10 +355,10 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
       const vehicleEntitySetId = getEntitySetId(app, APP_TYPES.CARS);
       yield put(executeSearch.success(action.id, { results, vehicleEntitySetId }));
 
-      yield put(loadEntityNeighbors({
-        entitySetId,
-        entityKeyIds: results.hits.map(entity => entity[OPENLATTICE_ID_FQN][0])
-      }));
+      // yield put(loadEntityNeighbors({
+      //   entitySetId,
+      //   entityKeyIds: results.hits.map(entity => entity[OPENLATTICE_ID_FQN][0])
+      // }));
     }
     else {
       console.error('Unable to log search.');
