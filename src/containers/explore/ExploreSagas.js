@@ -107,14 +107,13 @@ export function* loadHotlistPlatesWatcher() :Generator<*, *, *> {
 }
 
 const getSearchRequest = (
-  entitySetId,
   propertyTypesByFqn,
   searchParameters,
   hotlistPlates,
   agencyVehicleRecordsEntitySetIds = []
 ) => {
   const baseSearch = {
-    entitySetIds: [entitySetId, ...agencyVehicleRecordsEntitySetIds],
+    entitySetIds: agencyVehicleRecordsEntitySetIds,
     start: 0,
     maxHits: 3000
   };
@@ -330,7 +329,6 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
     const agencyVehicleRecordsEntitySetIds = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SET_IDS) || Set();
 
     const searchRequest = getSearchRequest(
-      entitySetId,
       propertyTypesByFqn,
       searchParameters,
       hotlistPlates,
