@@ -53,15 +53,16 @@ export default function appReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
           }
 
           const {
+            appSettingsByOrgId,
             configByOrgId,
+            entityKeyId,
+            isAdmin,
             orgsById,
             selectedOrg,
-            entityKeyId,
-            fqnMap,
-            isAdmin
           } = value;
 
-          return state.merge(fqnMap)
+          return state
+            .set(APP.SETTINGS_BY_ORG_ID, appSettingsByOrgId)
             .set(APP.CONFIG_BY_ORG_ID, configByOrgId)
             .set(APP.ORGS_BY_ID, orgsById)
             .set(APP.SELECTED_ORG_ID, selectedOrg)
