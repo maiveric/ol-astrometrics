@@ -15,7 +15,9 @@ import { Map, fromJS } from 'immutable';
 import type { SequenceAction } from 'redux-reqseq';
 import {
   AppApiActions,
-  AppApiSagas
+  AppApiSagas,
+  SearchApiActions,
+  SearchApiSagas,
 } from 'lattice-sagas';
 import {
   SearchApi,
@@ -47,11 +49,13 @@ const {
 
 const { getApp, getAppConfigs } = AppApiActions;
 const { getAppWorker, getAppConfigsWorker } = AppApiSagas;
+const { searchEntitySetData } = SearchApiActions;
+const { searchEntitySetDataWorker } = SearchApiSagas;
 
 const LOG = new Logger('AppSagas');
 
 export const getAuth0Id = () => {
-  const { id } = AuthUtils.getUserInfo();
+  const { id } = AuthUtils.getUserInfo() || {};
   return id;
 };
 
@@ -92,6 +96,7 @@ function* getOrCreateUserIdForEntitySet(userEntitySetId) :Generator<*, *, *> {
 function* checkIfAdmin(searchesEntitySetId) :Generator<*, *, *> {
   try {
 
+    // $FlowFixMe
     const [{ permissions }] = yield call(AuthorizationApi.checkAuthorizations, [{
       aclKey: [searchesEntitySetId],
       permissions: ['OWNER']
@@ -165,9 +170,6 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 
     const { data: appConfigs } = response;
 
-    let fqnMap = Map();
-
-    let entitySetsByOrgId = Map();
     let configByOrgId = Map();
     let orgsById = Map();
 
@@ -184,17 +186,9 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
 
           const { entitySetId } = appConfig.config[fqn];
 
-          fqnMap = fqnMap.setIn(
-            [fqn, APP.ENTITY_SETS_BY_ORG, orgId],
-            entitySetId
-          );
           configByOrgId = configByOrgId.set(
             orgId,
             configByOrgId.get(orgId, Map()).set(fqn, entitySetId)
-          );
-          entitySetsByOrgId = entitySetsByOrgId.set(
-            orgId,
-            entitySetsByOrgId.get(orgId, Map()).set(entitySetId, fqn)
           );
         });
       }
@@ -211,13 +205,36 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
     const entityKeyId = yield call(getOrCreateUserIdForEntitySet, usersEntitySetId);
     const isAdmin = yield call(checkIfAdmin, searchesEntitySetId);
 
+    const settingsESID = configByOrgId.getIn([selectedOrg, APP_TYPES.SETTINGS]);
+    response = yield call(
+      searchEntitySetDataWorker,
+      searchEntitySetData({
+        entitySetId: settingsESID,
+        searchOptions: {
+          maxHits: 1,
+          searchTerm: '*',
+          start: 0,
+        }
+      }),
+    );
+
+    let appSettingsByOrgId = Map();
+    try {
+      const appSettingsEntity = fromJS(response.data ? response.data.hits : []).first(Map());
+      const appSettingsJSON = appSettingsEntity.getIn([PROPERTY_TYPES.OL_APP_DETAILS, 0]);
+      const appSettings = fromJS(JSON.parse(appSettingsJSON)) || Map();
+      appSettingsByOrgId = appSettingsByOrgId.set(selectedOrg, appSettings);
+    } catch (error) {
+      LOG.error('error getting app settings', error);
+    }
+
     yield put(loadApp.success(action.id, {
+      appSettingsByOrgId,
       configByOrgId,
+      entityKeyId,
+      isAdmin,
       orgsById,
       selectedOrg,
-      entityKeyId,
-      fqnMap,
-      isAdmin
     }));
   }
   catch (error) {

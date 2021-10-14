@@ -25,7 +25,6 @@ import {
   SET_MAP_STYLE_LOADED,
   UNMOUNT_EXPLORE,
   executeSearch,
-  loadEntityNeighbors,
   loadHotlistPlates
 } from './ExploreActionFactory';
 
@@ -36,7 +35,6 @@ const {
   ENTITIES_BY_ID,
   FILTER,
   HOTLIST_PLATES,
-  IS_LOADING_ENTITY_NEIGHBORS,
   IS_LOADING_HOTLIST_PLATES,
   IS_MAP_STYLE_LOADING,
   IS_SEARCHING_DATA,
@@ -54,7 +52,6 @@ const INITIAL_STATE :Map<> = fromJS({
   [ENTITIES_BY_ID]: Map(),
   [FILTER]: '',
   [HOTLIST_PLATES]: Set(),
-  [IS_LOADING_ENTITY_NEIGHBORS]: false,
   [IS_LOADING_HOTLIST_PLATES]: false,
   [IS_MAP_STYLE_LOADING]: true,
   [IS_SEARCHING_DATA]: false,
@@ -139,21 +136,21 @@ const updateEntitiesIdForNeighbors = (initEntitiesById, neighborLists) => {
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
 
-    case loadEntityNeighbors.case(action.type): {
-      return loadEntityNeighbors.reducer(state, action, {
-        REQUEST: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, true),
-        SUCCESS: () => {
-          const neighborsById = fromJS(action.value);
-
-          const entitiesById = updateEntitiesIdForNeighbors(state.get(ENTITIES_BY_ID), neighborsById.valueSeq());
-
-          return state
-            .set(ENTITY_NEIGHBORS_BY_ID, state.get(ENTITY_NEIGHBORS_BY_ID).merge(neighborsById))
-            .set(ENTITIES_BY_ID, entitiesById);
-        },
-        FINALLY: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, false)
-      });
-    }
+    // case loadEntityNeighbors.case(action.type): {
+    //   return loadEntityNeighbors.reducer(state, action, {
+    //     REQUEST: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, true),
+    //     SUCCESS: () => {
+    //       const neighborsById = fromJS(action.value);
+    //
+    //       const entitiesById = updateEntitiesIdForNeighbors(state.get(ENTITIES_BY_ID), neighborsById.valueSeq());
+    //
+    //       return state
+    //         .set(ENTITY_NEIGHBORS_BY_ID, state.get(ENTITY_NEIGHBORS_BY_ID).merge(neighborsById))
+    //         .set(ENTITIES_BY_ID, entitiesById);
+    //     },
+    //     FINALLY: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, false)
+    //   });
+    // }
 
     case loadHotlistPlates.case(action.type): {
       return loadHotlistPlates.reducer(state, action, {
@@ -256,7 +253,6 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case CLEAR_EXPLORE_SEARCH_RESULTS:
     case UNMOUNT_EXPLORE:
       return state
-        .set(IS_LOADING_ENTITY_NEIGHBORS, false)
         .set(IS_SEARCHING_DATA, false)
         .set(SEARCH_RESULTS, List())
         .set(SELECTED_ENTITY_KEY_IDS, Set())
