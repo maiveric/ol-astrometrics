@@ -11,7 +11,7 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { Constants, DataApi, SearchApi } from 'lattice';
-import { fromJS, Set } from 'immutable';
+import { Map, Set, fromJS } from 'immutable';
 import type { RequestSequence, SequenceAction } from 'redux-reqseq';
 
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
@@ -45,7 +45,7 @@ import {
   loadHotlistPlates,
   setMapMode
 } from './ExploreActionFactory';
-import { AGENCY_VEHICLE_RECORDS_ENTITY_SET_IDS } from '../../utils/constants';
+import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
 
 const { OPENLATTICE_ID_FQN } = Constants;
 
@@ -327,14 +327,14 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
     const app = yield select(getAppFromState);
     const orgId = getSelectedOrganizationId(app);
     const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
-    const agencyVehicleRecordsEntitySetIds = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SET_IDS) || Set();
+    const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
 
     const searchRequest = getSearchRequest(
       entitySetId,
       propertyTypesByFqn,
       searchParameters,
       hotlistPlates,
-      agencyVehicleRecordsEntitySetIds.toJS(),
+      agencyVehicleRecordsEntitySets.keySeq().toJS(),
     );
 
     const logSearchAction = submit({

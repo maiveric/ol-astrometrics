@@ -224,7 +224,8 @@ function* loadAppWorker(action :SequenceAction) :Generator<*, *, *> {
       const appSettingsJSON = appSettingsEntity.getIn([PROPERTY_TYPES.OL_APP_DETAILS, 0]);
       const appSettings = fromJS(JSON.parse(appSettingsJSON)) || Map();
       appSettingsByOrgId = appSettingsByOrgId.set(selectedOrg, appSettings);
-    } catch (error) {
+    }
+    catch (error) {
       LOG.error('error getting app settings', error);
     }
 
