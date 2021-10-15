@@ -34,20 +34,69 @@ import {
 import { getDateSearchTerm, getSearchTerm } from '../../utils/DataUtils';
 import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { APP, DASHBOARD_WINDOWS, QUALITY } from '../../utils/constants/StateConstants';
+import { APP, QUALITY } from '../../utils/constants/StateConstants';
 
-function* loadCountsForIds(range, dateTimePTId, dataSourcePTID :?string) {
+function* loadDashboard() {
 
   const app = yield select(getAppFromState);
+  const quality = yield select(getQualityFromState);
+  const dateTimePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+
   const orgId = getSelectedOrganizationId(app);
   const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
   const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
+  const timeRange = quality.get(QUALITY.DASHBOARD_WINDOW);
 
-  const increment = range === DASHBOARD_WINDOWS.MONTH ? 'month' : 'day';
+  const day = 'day';
+  const requests = {};
 
-  const start = moment().subtract(1, range).add(1, increment).startOf(increment).toISOString(true);
-  const end = moment().endOf(increment).toISOString(true);
-  const dateFilter = getDateSearchTerm(dateTimePTId, start, end);
+  let targetDay = moment().subtract(1, timeRange).add(1, day);
+  while (targetDay.isSameOrBefore(moment().endOf(day))) {
+    const start = targetDay.startOf(day).toISOString(true);
+    const end = targetDay.endOf(day).toISOString(true);
+    const dateTime = targetDay.toISOString(true);
+    requests[dateTime] = call(SearchApi.executeSearch, {
+      constraints: [{
+        constraints: [{
+          fuzzy: false,
+          searchTerm: getDateSearchTerm(dateTimePTID, start, end),
+        }]
+      }],
+      entitySetIds: agencyVehicleRecordsEntitySets.keySeq().toJS(),
+      maxHits: 0,
+      start: 0,
+    });
+    targetDay = targetDay.add(1, day);
+  }
+
+  const responses = yield all(requests);
+
+  const counts = OrderedMap().withMutations((map) => {
+    Object.keys(responses).forEach((dateTime) => {
+      const response = responses[dateTime];
+      map.set(dateTime, response ? response.numHits : 0);
+    });
+  });
+
+  return counts;
+}
+
+function* loadAgencyCounts() {
+
+  const app = yield select(getAppFromState);
+  const quality = yield select(getQualityFromState);
+  const dataSourcePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.OL_DATA_SOURCE));
+  const dateTimePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+
+  const orgId = getSelectedOrganizationId(app);
+  const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
+  const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
+  const timeRange = quality.get(QUALITY.DASHBOARD_WINDOW);
+
+  const day = 'day';
+  const start = moment().subtract(1, timeRange).add(1, day).startOf(day).toISOString(true);
+  const end = moment().endOf(day).toISOString(true);
+  const dateFilter = getDateSearchTerm(dateTimePTID, start, end);
 
   const dataSourcesESID = getEntitySetId(app, APP_TYPES.TEMP_DATA_SOURCE_ENUM);
   const dataSourcesResponse = yield call(DataApi.getEntitySetData, dataSourcesESID);
@@ -99,65 +148,10 @@ function* loadCountsForIds(range, dateTimePTId, dataSourcePTID :?string) {
   return counts;
 }
 
-function* loadDashboard() {
-
-  const app = yield select(getAppFromState);
-  const quality = yield select(getQualityFromState);
-  const dateTimePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-
-  const orgId = getSelectedOrganizationId(app);
-  const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
-  const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Set();
-  const timeRange = quality.get(QUALITY.DASHBOARD_WINDOW);
-
-  const day = 'day';
-  const requests = {};
-
-  let targetDay = moment().subtract(1, timeRange).add(1, day);
-  while (targetDay.isSameOrBefore(moment().endOf(day))) {
-    const start = targetDay.startOf(day).toISOString(true);
-    const end = targetDay.endOf(day).toISOString(true);
-    const dateTime = targetDay.toISOString(true);
-    requests[dateTime] = call(SearchApi.executeSearch, {
-      constraints: [{
-        constraints: [{
-          fuzzy: false,
-          searchTerm: getDateSearchTerm(dateTimePTID, start, end),
-        }]
-      }],
-      entitySetIds: agencyVehicleRecordsEntitySets.keySeq().toJS(),
-      maxHits: 0,
-      start: 0,
-    });
-    targetDay = targetDay.add(1, day);
-  }
-
-  const responses = yield all(requests);
-
-  const counts = OrderedMap().withMutations((map) => {
-    Object.keys(responses).forEach((dateTime) => {
-      const response = responses[dateTime];
-      map.set(dateTime, response ? response.numHits : 0);
-    });
-  });
-
-  return counts;
-}
-
-function* loadAgencyCounts() {
-  const quality = yield select(getQualityFromState);
-  const range = quality.get(QUALITY.DASHBOARD_WINDOW);
-  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-  const dataSourcePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.OL_DATA_SOURCE));
-  return yield call(loadCountsForIds, range, dateTimePTId, dataSourcePTID);
-}
-
 function* loadQualityDashboardDataWorker(action :SequenceAction) {
   try {
     yield put(loadQualityDashboardData.request(action.id));
-
     const searches = yield call(loadDashboard);
-
     yield put(loadQualityDashboardData.success(action.id, searches));
   }
   catch (error) {
@@ -196,9 +190,7 @@ export function* setQualityDashboardWindowWatcher() :Generator<*, *, *> {
 function* loadQualityAgencyDataWorker(action :SequenceAction) {
   try {
     yield put(loadQualityAgencyData.request(action.id, action.value));
-
     const agencyCounts = yield call(loadAgencyCounts);
-
     yield put(loadQualityAgencyData.success(action.id, agencyCounts));
   }
   catch (error) {
