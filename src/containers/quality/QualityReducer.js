@@ -51,11 +51,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case setQualityDashboardWindow.case(action.type): {
       return setQualityDashboardWindow.reducer(state, action, {
-        REQUEST: () => state.set(IS_LOADING, true).set(DASHBOARD_WINDOW, action.value),
-        SUCCESS: () => state
-          .set(DASHBOARD_DATA, action.value.searches)
-          .set(AGENCY_COUNTS, action.value.agencyCounts),
-        FINALLY: () => state.set(IS_LOADING, false)
+        REQUEST: () => state.set(DASHBOARD_WINDOW, action.value),
       });
     }
 

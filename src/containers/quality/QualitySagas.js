@@ -176,13 +176,9 @@ export function* loadQualityDashboardDataWatcher() :Generator<*, *, *> {
 function* setQualityDashboardWindowWorker(action :SequenceAction) {
   try {
     yield put(setQualityDashboardWindow.request(action.id, action.value));
-
-    const [searches, agencyCounts] = yield all([
-      call(loadDashboard),
-      call(loadAgencyCounts),
-    ]);
-
-    yield put(setQualityDashboardWindow.success(action.id, { searches, agencyCounts }));
+    yield put(loadQualityDashboardData());
+    yield put(loadQualityAgencyData());
+    yield put(setQualityDashboardWindow.success(action.id));
   }
   catch (error) {
     console.error(error);
