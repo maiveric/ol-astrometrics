@@ -70,9 +70,7 @@ export default function* sagas() :Generator<*, *, *> {
     /* QualitySagas */
     fork(QualitySagas.loadQualityDashboardDataWatcher),
     fork(QualitySagas.setQualityDashboardWindowWatcher),
-    fork(QualitySagas.loadAgenciesWatcher),
     fork(QualitySagas.loadQualityAgencyDataWatcher),
-    fork(QualitySagas.loadQualityDeviceDataWatcher),
 
     /* ReportSagas */
     fork(ReportSagas.loadReportsWatcher),
