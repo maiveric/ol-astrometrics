@@ -36,71 +36,6 @@ import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { APP, DASHBOARD_WINDOWS, QUALITY } from '../../utils/constants/StateConstants';
 
-function* executeSearchesForWindow(range, dateTimePTId) {
-
-  const app = yield select(getAppFromState);
-  const orgId = getSelectedOrganizationId(app);
-  const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
-  const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Set();
-
-  const requests = [];
-  const increment = 'day';
-
-  let curr = moment().subtract(1, range).add(1, increment);
-  while (curr.isSameOrBefore(moment().endOf(increment))) {
-
-    const start = curr.startOf(increment).toISOString(true);
-    const end = curr.endOf(increment).toISOString(true);
-    const datetime = curr.toISOString(true);
-
-    agencyVehicleRecordsEntitySets.keySeq().forEach((entitySetId) => {
-      requests.push({
-        [`${datetime}__${entitySetId}`]: call(
-          SearchApi.searchEntitySetData,
-          entitySetId,
-          {
-            fuzzy: false,
-            maxHits: 0,
-            searchTerm: getDateSearchTerm(dateTimePTId, start, end),
-            start: 0,
-          }
-        )
-      });
-    });
-
-    curr = curr.add(1, increment);
-  }
-
-  let responses = {};
-  const chunks = _chunk(requests, 100);
-  for (let i = 0; i < chunks.length; i += 1) {
-    let chunkCalls = {};
-    chunks[i].forEach((searchCall) => {
-      chunkCalls = { ...chunkCalls, ...searchCall };
-    });
-    try {
-      const chunkResponses = yield all(chunkCalls);
-      responses = { ...responses, ...chunkResponses };
-    }
-    catch (e) {
-      console.error(e);
-    }
-  }
-
-  const counts = OrderedMap().withMutations((map) => {
-    Object.keys(responses).forEach((requestId) => {
-      const response = responses[requestId];
-      if (response) {
-        const { numHits } = response;
-        const datetime = requestId.split('__')[0];
-        map.update(datetime, (count = 0) => count + numHits);
-      }
-    });
-  });
-
-  return counts;
-}
-
 function* loadCountsForIds(range, dateTimePTId, dataSourcePTID :?string) {
 
   const app = yield select(getAppFromState);
@@ -165,10 +100,48 @@ function* loadCountsForIds(range, dateTimePTId, dataSourcePTID :?string) {
 }
 
 function* loadDashboard() {
+
+  const app = yield select(getAppFromState);
   const quality = yield select(getQualityFromState);
-  const range = quality.get(QUALITY.DASHBOARD_WINDOW);
-  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-  return yield call(executeSearchesForWindow, range, dateTimePTId);
+  const dateTimePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+
+  const orgId = getSelectedOrganizationId(app);
+  const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
+  const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Set();
+  const timeRange = quality.get(QUALITY.DASHBOARD_WINDOW);
+
+  const day = 'day';
+  const requests = {};
+
+  let targetDay = moment().subtract(1, timeRange).add(1, day);
+  while (targetDay.isSameOrBefore(moment().endOf(day))) {
+    const start = targetDay.startOf(day).toISOString(true);
+    const end = targetDay.endOf(day).toISOString(true);
+    const dateTime = targetDay.toISOString(true);
+    requests[dateTime] = call(SearchApi.executeSearch, {
+      constraints: [{
+        constraints: [{
+          fuzzy: false,
+          searchTerm: getDateSearchTerm(dateTimePTID, start, end),
+        }]
+      }],
+      entitySetIds: agencyVehicleRecordsEntitySets.keySeq().toJS(),
+      maxHits: 0,
+      start: 0,
+    });
+    targetDay = targetDay.add(1, day);
+  }
+
+  const responses = yield all(requests);
+
+  const counts = OrderedMap().withMutations((map) => {
+    Object.keys(responses).forEach((dateTime) => {
+      const response = responses[dateTime];
+      map.set(dateTime, response ? response.numHits : 0);
+    });
+  });
+
+  return counts;
 }
 
 function* loadAgencyCounts() {
