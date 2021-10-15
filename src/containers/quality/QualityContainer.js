@@ -3,49 +3,35 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
-import { List, Map, Set } from 'immutable';
+import { Map } from 'immutable';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import {
   Redirect,
   Route,
   Switch,
   withRouter
 } from 'react-router';
+import { bindActionCreators } from 'redux';
 
 import QualityDashboard from './QualityDashboard';
-import QualityContributions from './QualityContributions';
-import StyledInput from '../../components/controls/StyledInput';
-import Spinner from '../../components/spinner/Spinner';
-import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
-import {
-  STATE,
-  AUDIT,
-  EDM,
-  QUALITY
-} from '../../utils/constants/StateConstants';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
-import * as Routes from '../../core/router/Routes';
 import * as QualityActionFactory from './QualityActionFactory';
+
+import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
+import Spinner from '../../components/spinner/Spinner';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
+import * as Routes from '../../core/router/Routes';
+import { AUDIT, EDM, STATE } from '../../utils/constants/StateConstants';
 
 type Props = {
   edmLoaded :boolean;
   isLoadingEdm :boolean;
   isLoadingResults :boolean;
-  results :List<*>;
-  startDate :Object,
-  endDate :Object,
-  filter :string,
-  edm :Map<*, *>;
   actions :{
-    loadQualityDashboardData :(startDate :Object, endDate :Object) => void;
     loadDataModel :() => void;
-    updateAuditEnd :(value :string) => void;
-    updateAuditStart :(value :string) => void;
-    updateAuditFilter :(value :string) => void;
+    loadQualityAgencyData :() => void;
+    loadQualityDashboardData :() => void;
   }
 };
 
@@ -84,7 +70,7 @@ class QualityContainer extends React.Component<Props, State> {
     }
     else {
       actions.loadQualityDashboardData();
-      actions.loadAgencies();
+      actions.loadQualityAgencyData();
     }
   }
 
@@ -93,7 +79,7 @@ class QualityContainer extends React.Component<Props, State> {
 
     if (!prevProps.edmLoaded && edmLoaded) {
       actions.loadQualityDashboardData();
-      actions.loadAgencies();
+      actions.loadQualityAgencyData();
     }
   }
 
@@ -131,13 +117,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
   return {
     edmLoaded: edm.get(EDM.EDM_LOADED),
     isLoadingEdm: edm.get(EDM.IS_LOADING_DATA_MODEL),
-
     isLoadingResults: audit.get(AUDIT.IS_LOADING_RESULTS),
-    isLoadingAgencies: audit.get(AUDIT.IS_LOADING_AGENCIES),
-    results: audit.get(AUDIT.FILTERED_RESULTS),
-    startDate: audit.get(AUDIT.START_DATE),
-    endDate: audit.get(AUDIT.END_DATE),
-    filter: audit.get(AUDIT.FILTER)
   };
 }
 

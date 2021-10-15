@@ -2,6 +2,7 @@
  * @flow
  */
 
+import _chunk from 'lodash/chunk';
 import moment from 'moment';
 import {
   all,
@@ -10,25 +11,16 @@ import {
   select,
   takeEvery
 } from '@redux-saga/core/effects';
-import {
-  List,
-  Map,
-  OrderedMap,
-  fromJS
-} from 'immutable';
+import { Map, OrderedMap, Set } from 'immutable';
 import { DataApi, SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import {
-  LOAD_AGENCIES,
   LOAD_QUALITY_AGENCY_DATA,
   LOAD_QUALITY_DASHBOARD_DATA,
-  LOAD_QUALITY_DEVICE_DATA,
   SET_QUALITY_DASHBOARD_WINDOW,
-  loadAgencies,
   loadQualityAgencyData,
   loadQualityDashboardData,
-  loadQualityDeviceData,
   setQualityDashboardWindow,
 } from './QualityActionFactory';
 
@@ -36,147 +28,130 @@ import {
   getAppFromState,
   getEntitySetId,
   getPropertyTypeId,
-  getQualityFromState
+  getQualityFromState,
+  getSelectedOrganizationId,
 } from '../../utils/AppUtils';
 import { getDateSearchTerm, getSearchTerm } from '../../utils/DataUtils';
+import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { DASHBOARD_WINDOWS, QUALITY } from '../../utils/constants/StateConstants';
-
-function* executeSearchesForWindow(range, readsEntitySetId, dateTimePTId) {
-
-  const labels = [];
-  const requests = [];
-
-  const increment = range === DASHBOARD_WINDOWS.YEAR ? 'month' : 'day';
-
-  let curr = moment().subtract(1, range).add(1, increment);
-
-  while (curr.isSameOrBefore(moment().endOf(increment))) {
-
-    const start = curr.startOf(increment).toISOString(true);
-    const end = curr.endOf(increment).toISOString(true);
-    labels.push(curr.toISOString(true));
-
-    requests.push(call(SearchApi.searchEntitySetData, readsEntitySetId, {
-      start: 0,
-      maxHits: 0,
-      fuzzy: false,
-      searchTerm: getDateSearchTerm(dateTimePTId, start, end)
-    }));
-
-    curr = curr.add(1, increment);
-  }
-
-  const resp = yield all(requests);
-
-  let counts = OrderedMap();
-  labels.forEach((label, index) => {
-    const { numHits } = resp[index];
-    counts = counts.set(label, numHits || 0);
-  });
-
-  return counts;
-}
-
-function* loadCountsForIds(ids, range, readsEntitySetId, dateTimePTId, idPTId, dataSourcePTID :?string) {
-
-  const increment = range === DASHBOARD_WINDOWS.YEAR ? 'month' : 'day';
-
-  const start = moment().subtract(1, range).add(1, increment).startOf(increment).toISOString(true);
-  const end = moment().endOf(increment).toISOString(true);
-  const dateFilter = getDateSearchTerm(dateTimePTId, start, end);
-
-  const app = yield select(getAppFromState);
-  const dataSourcesESID = getEntitySetId(app, APP_TYPES.TEMP_DATA_SOURCE_ENUM);
-  const dataSourcesResponse = yield call(DataApi.getEntitySetData, dataSourcesESID);
-  const dataSources = dataSourcesResponse.map((dataSource) => dataSource[PROPERTY_TYPES.NAME][0]);
-
-  const calls = {};
-  ids.forEach((id) => {
-    const idFilter = getSearchTerm(idPTId, id);
-    dataSources.forEach((dataSource) => {
-      const dataSourceFilter = getSearchTerm(dataSourcePTID, dataSource);
-      const requestId = `${id}|${dataSource}`;
-      calls[requestId] = call(SearchApi.searchEntitySetData, readsEntitySetId, {
-        fuzzy: false,
-        maxHits: 0,
-        searchTerm: `${idFilter} AND ${dataSourceFilter} AND ${dateFilter}`,
-        start: 0,
-      });
-    });
-  });
-
-  const responses = yield all(calls);
-
-  const counts = Map().withMutations((mutableMap) => {
-    ids.forEach((id) => {
-      dataSources.forEach((dataSource) => {
-        const requestId = `${id}|${dataSource}`;
-        const response = responses[requestId];
-        mutableMap.setIn([id, dataSource], response.numHits || 0);
-      });
-    });
-  });
-
-  return counts;
-}
+import { APP, QUALITY } from '../../utils/constants/StateConstants';
 
 function* loadDashboard() {
 
   const app = yield select(getAppFromState);
   const quality = yield select(getQualityFromState);
+  const dateTimePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
 
-  const range = quality.get(QUALITY.DASHBOARD_WINDOW);
+  const orgId = getSelectedOrganizationId(app);
+  const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
+  const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
+  const timeRange = quality.get(QUALITY.DASHBOARD_WINDOW);
 
-  const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
-  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
+  const day = 'day';
+  const requests = {};
 
-  return yield call(executeSearchesForWindow, range, recordsEntitySetId, dateTimePTId);
+  let targetDay = moment().subtract(1, timeRange).add(1, day);
+  while (targetDay.isSameOrBefore(moment().endOf(day))) {
+    const start = targetDay.startOf(day).toISOString(true);
+    const end = targetDay.endOf(day).toISOString(true);
+    const dateTime = targetDay.toISOString(true);
+    requests[dateTime] = call(SearchApi.executeSearch, {
+      constraints: [{
+        constraints: [{
+          fuzzy: false,
+          searchTerm: getDateSearchTerm(dateTimePTID, start, end),
+        }]
+      }],
+      entitySetIds: agencyVehicleRecordsEntitySets.keySeq().toJS(),
+      maxHits: 0,
+      start: 0,
+    });
+    targetDay = targetDay.add(1, day);
+  }
 
+  const responses = yield all(requests);
+
+  const counts = OrderedMap().withMutations((map) => {
+    Object.keys(responses).forEach((dateTime) => {
+      const response = responses[dateTime];
+      map.set(dateTime, response ? response.numHits : 0);
+    });
+  });
+
+  return counts;
 }
 
 function* loadAgencyCounts() {
 
   const app = yield select(getAppFromState);
   const quality = yield select(getQualityFromState);
-
-  const range = quality.get(QUALITY.DASHBOARD_WINDOW);
-  const agencyIds = quality.get(QUALITY.AGENCIES_BY_ID).keySeq();
-
-  const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
-  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-  const agenciesPTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME));
   const dataSourcePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.OL_DATA_SOURCE));
+  const dateTimePTID = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
 
-  return yield call(loadCountsForIds, agencyIds, range, recordsEntitySetId, dateTimePTId, agenciesPTId, dataSourcePTID);
-}
+  const orgId = getSelectedOrganizationId(app);
+  const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
+  const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
+  const timeRange = quality.get(QUALITY.DASHBOARD_WINDOW);
 
-function* loadDeviceCounts(agencyId :?string) {
+  const day = 'day';
+  const start = moment().subtract(1, timeRange).add(1, day).startOf(day).toISOString(true);
+  const end = moment().endOf(day).toISOString(true);
+  const dateFilter = getDateSearchTerm(dateTimePTID, start, end);
 
-  const app = yield select(getAppFromState);
-  const quality = yield select(getQualityFromState);
+  const dataSourcesESID = getEntitySetId(app, APP_TYPES.TEMP_DATA_SOURCE_ENUM);
+  const dataSourcesResponse = yield call(DataApi.getEntitySetData, dataSourcesESID);
+  const dataSources = dataSourcesResponse.map((dataSource) => dataSource[PROPERTY_TYPES.NAME][0]);
 
-  const range = quality.get(QUALITY.DASHBOARD_WINDOW);
-  const selectedAgencyId = agencyId || quality.get(QUALITY.SELECTED_AGENCY_ID);
-  const deviceIds = quality.getIn([QUALITY.DEVICES_BY_AGENCY, selectedAgencyId], List());
+  const requests = [];
+  agencyVehicleRecordsEntitySets.forEach((agencyName, agencyEntitySetId) => {
+    dataSources.forEach((dataSource) => {
+      const dataSourceFilter = getSearchTerm(dataSourcePTID, dataSource);
+      requests.push({
+        [`${agencyName}|${dataSource}`]: call(SearchApi.searchEntitySetData, agencyEntitySetId, {
+          fuzzy: false,
+          maxHits: 0,
+          searchTerm: `${dataSourceFilter} AND ${dateFilter}`,
+          start: 0,
+        })
+      });
+    });
+  });
 
-  if (!selectedAgencyId || !deviceIds.size) {
-    return Map();
+  let responses = {};
+  const chunks = _chunk(requests, 100);
+  for (let i = 0; i < chunks.length; i += 1) {
+    let chunkCalls = {};
+    chunks[i].forEach((searchCall) => {
+      chunkCalls = { ...chunkCalls, ...searchCall };
+    });
+    try {
+      const chunkResponses = yield all(chunkCalls);
+      responses = { ...responses, ...chunkResponses };
+    }
+    catch (e) {
+      console.error(e);
+    }
   }
 
-  const recordsEntitySetId = getEntitySetId(app, APP_TYPES.RECORDS);
-  const dateTimePTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.TIMESTAMP));
-  const devicesPTId = yield select((state) => getPropertyTypeId(state, PROPERTY_TYPES.CAMERA_ID));
+  const counts = Map().withMutations((mutableMap) => {
+    agencyVehicleRecordsEntitySets.forEach((agencyName) => {
+      dataSources.forEach((dataSource) => {
+        const requestId = `${agencyName}|${dataSource}`;
+        const response = responses[requestId];
+        if (response) {
+          mutableMap.setIn([agencyName, dataSource], response.numHits || 0);
+        }
+      });
+    });
+  });
 
-  return yield call(loadCountsForIds, deviceIds, range, recordsEntitySetId, dateTimePTId, devicesPTId);
+  return counts;
 }
 
 function* loadQualityDashboardDataWorker(action :SequenceAction) {
   try {
     yield put(loadQualityDashboardData.request(action.id));
-
     const searches = yield call(loadDashboard);
-
     yield put(loadQualityDashboardData.success(action.id, searches));
   }
   catch (error) {
@@ -195,14 +170,9 @@ export function* loadQualityDashboardDataWatcher() :Generator<*, *, *> {
 function* setQualityDashboardWindowWorker(action :SequenceAction) {
   try {
     yield put(setQualityDashboardWindow.request(action.id, action.value));
-
-    const [searches, agencyCounts, deviceCounts] = yield all([
-      call(loadDashboard),
-      call(loadAgencyCounts),
-      call(loadDeviceCounts)
-    ]);
-
-    yield put(setQualityDashboardWindow.success(action.id, { searches, agencyCounts, deviceCounts }));
+    yield put(loadQualityDashboardData());
+    yield put(loadQualityAgencyData());
+    yield put(setQualityDashboardWindow.success(action.id));
   }
   catch (error) {
     console.error(error);
@@ -220,9 +190,7 @@ export function* setQualityDashboardWindowWatcher() :Generator<*, *, *> {
 function* loadQualityAgencyDataWorker(action :SequenceAction) {
   try {
     yield put(loadQualityAgencyData.request(action.id, action.value));
-
     const agencyCounts = yield call(loadAgencyCounts);
-
     yield put(loadQualityAgencyData.success(action.id, agencyCounts));
   }
   catch (error) {
@@ -236,88 +204,4 @@ function* loadQualityAgencyDataWorker(action :SequenceAction) {
 
 export function* loadQualityAgencyDataWatcher() :Generator<*, *, *> {
   yield takeEvery(LOAD_QUALITY_AGENCY_DATA, loadQualityAgencyDataWorker);
-}
-
-function* loadQualityDeviceDataWorker(action :SequenceAction) {
-  try {
-    yield put(loadQualityDeviceData.request(action.id, action.value));
-
-    const deviceCounts = yield call(loadDeviceCounts, action.value);
-
-    yield put(loadQualityDeviceData.success(action.id, deviceCounts));
-  }
-  catch (error) {
-    console.error(error);
-    yield put(loadQualityDeviceData.failure(action.id, error));
-  }
-  finally {
-    yield put(loadQualityDeviceData.finally(action.id));
-  }
-}
-
-export function* loadQualityDeviceDataWatcher() :Generator<*, *, *> {
-  yield takeEvery(LOAD_QUALITY_DEVICE_DATA, loadQualityDeviceDataWorker);
-}
-
-function* loadAgenciesWorker(action :SequenceAction) {
-  try {
-    yield put(loadAgencies.request(action.id));
-
-    const app = yield select(getAppFromState);
-    const agenciesESID = getEntitySetId(app, APP_TYPES.STANDARDIZED_AGENCIES);
-
-    let agencies = yield call(DataApi.getEntitySetData, agenciesESID);
-    agencies = fromJS(agencies);
-
-    let agenciesById = Map();
-    agencies.forEach((agency) => {
-      const agencyId = agency.getIn([PROPERTY_TYPES.ID, 0]);
-      const agencyName = agency.getIn([PROPERTY_TYPES.NAME, 0]);
-      agenciesById = agenciesById.set(agencyId, agencyName);
-    });
-
-    // NOTE: 2021-05-23 - removing for now in order to implement https://jira.openlattice.com/browse/APPS-2950
-    // const devicesEntitySetId = getEntitySetId(app, APP_TYPES.CAMERAS);
-    // const agencyEntityKeyIds = agencies.map(getEntityKeyId);
-    // let devicesByAgencyEntityKeyId = yield call(SearchApi.searchEntityNeighborsWithFilter, agenciesESID, {
-    //   entityKeyIds: agencyEntityKeyIds.toJS(),
-    //   sourceEntitySetIds: [devicesEntitySetId],
-    //   destinationEntitySetIds: [devicesEntitySetId]
-    // });
-    // devicesByAgencyEntityKeyId = fromJS(devicesByAgencyEntityKeyId);
-    // let devicesById = Map();
-    // let devicesByAgency = Map();
-    // agencies.forEach((agency) => {
-    //   const agencyId = agency.getIn([PROPERTY_TYPES.ID, 0]);
-    //   const agencyName = agency.getIn([PROPERTY_TYPES.NAME, 0]);
-    //
-    //   let deviceIds = List();
-    //   devicesByAgencyEntityKeyId.get(getEntityKeyId(agency), List()).forEach((deviceNeighbor) => {
-    //     const device = deviceNeighbor.get('neighborDetails', Map());
-    //
-    //     const deviceId = device.getIn([PROPERTY_TYPES.ID, 0]);
-    //     const deviceName = device.getIn([PROPERTY_TYPES.NAME, 0], agency.getIn([PROPERTY_TYPES.DESCRIPTION, 0], ''));
-    //
-    //     deviceIds = deviceIds.push(deviceId);
-    //     devicesById = devicesById.set(deviceId, deviceName);
-    //   });
-    //
-    //   agenciesById = agenciesById.set(agencyId, agencyName);
-    //   devicesByAgency = devicesByAgency.set(agencyName, deviceIds);
-    // });
-
-    yield put(loadAgencies.success(action.id, { agenciesById }));
-    yield put(loadQualityAgencyData());
-  }
-  catch (error) {
-    console.error(error);
-    yield put(loadAgencies.failure(action.id, error));
-  }
-  finally {
-    yield put(loadAgencies.finally(action.id));
-  }
-}
-
-export function* loadAgenciesWatcher() :Generator<*, *, *> {
-  yield takeEvery(LOAD_AGENCIES, loadAgenciesWorker);
 }
