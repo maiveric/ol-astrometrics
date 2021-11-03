@@ -8,46 +8,40 @@ import {
   put,
   select,
   take,
-  takeEvery
+  takeEvery,
 } from '@redux-saga/core/effects';
-import { Constants, DataApi, SearchApi } from 'lattice';
 import { Map, Set, fromJS } from 'immutable';
+import { DataApi, SearchApi } from 'lattice';
 import type { RequestSequence, SequenceAction } from 'redux-reqseq';
 
+import {
+  EXECUTE_SEARCH,
+  LOAD_HOTLIST_PLATES,
+  executeSearch,
+  loadHotlistPlates,
+} from './ExploreActionFactory';
+
 import searchPerformedConig from '../../config/formconfig/SearchPerformedConfig';
-import { getSearchFields } from '../parameters/ParametersReducer';
 import {
   getAppFromState,
   getEntitySetId,
   getHotlistFromState,
   getSelectedOrganizationId,
 } from '../../utils/AppUtils';
+import { saveLicensePlateSearch } from '../../utils/CookieUtils';
 import { getDateSearchTerm } from '../../utils/DataUtils';
 import { getId } from '../../utils/VehicleUtils';
-import { saveLicensePlateSearch } from '../../utils/CookieUtils';
+import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { SEARCH_TYPES } from '../../utils/constants/ExploreConstants';
-import { submit } from '../submit/SubmitActionFactory';
 import {
   APP,
-  STATE,
   EXPLORE,
   PARAMETERS,
   SEARCH_PARAMETERS,
 } from '../../utils/constants/StateConstants';
-import {
-  EXECUTE_SEARCH,
-  // LOAD_ENTITY_NEIGHBORS,
-  LOAD_HOTLIST_PLATES,
-  SET_MAP_MODE,
-  executeSearch,
-  // loadEntityNeighbors,
-  loadHotlistPlates,
-  setMapMode
-} from './ExploreActionFactory';
-import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
-
-const { OPENLATTICE_ID_FQN } = Constants;
+import { getSearchFields } from '../parameters/ParametersReducer';
+import { submit } from '../submit/SubmitActionFactory';
 
 function takeReqSeqSuccessFailure(reqseq :RequestSequence, seqAction :SequenceAction) {
   return take(
@@ -56,27 +50,6 @@ function takeReqSeqSuccessFailure(reqseq :RequestSequence, seqAction :SequenceAc
   );
 }
 
-// function* loadEntityNeighborsWorker(action :SequenceAction) :Generator<*, *, *> {
-//   try {
-//     const { entitySetId, entityKeyIds } = action.value;
-//     yield put(loadEntityNeighbors.request(action.id, action.value));
-//
-//     const neighborsById = yield call(SearchApi.searchEntityNeighborsBulk, entitySetId, entityKeyIds);
-//     yield put(loadEntityNeighbors.success(action.id, neighborsById));
-//   }
-//   catch (error) {
-//     console.error(error);
-//     yield put(loadEntityNeighbors.failure(action.id, error));
-//   }
-//   finally {
-//     yield put(loadEntityNeighbors.finally(action.id));
-//   }
-// }
-//
-// export function* loadEntityNeighborsWatcher() :Generator<*, *, *> {
-//   yield takeEvery(LOAD_ENTITY_NEIGHBORS, loadEntityNeighborsWorker);
-// }
-
 function* loadHotlistPlatesWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
     yield put(loadHotlistPlates.request(action.id, action.value));
@@ -84,7 +57,7 @@ function* loadHotlistPlatesWorker(action :SequenceAction) :Generator<*, *, *> {
     const app = yield select(getAppFromState);
     const hotlistEntitySetId = getEntitySetId(app, APP_TYPES.HOTLIST_VEHICLES);
 
-    const plates = []
+    const plates = [];
     const vehicles = yield call(DataApi.getEntitySetData, hotlistEntitySetId);
     fromJS(vehicles).forEach((vehicle) => {
       plates.push(getId(vehicle).toLowerCase());
@@ -121,7 +94,7 @@ const getSearchRequest = (
 
   const searchFields = getSearchFields(searchParameters);
 
-  const getPropertyTypeId = fqn => propertyTypesByFqn.getIn([fqn, 'id']);
+  const getPropertyTypeId = (fqn) => propertyTypesByFqn.getIn([fqn, 'id']);
 
   const timestampPropertyTypeId = getPropertyTypeId(PROPERTY_TYPES.TIMESTAMP);
 
@@ -298,7 +271,7 @@ const getSearchRequest = (
 
   if (searchParameters.get(PARAMETERS.HOTLIST_ONLY) && hotlistPlates.size) {
     constraintGroups.push({
-      constraints: hotlistPlates.map(plate => ({
+      constraints: hotlistPlates.map((plate) => ({
         type: 'advanced',
         searchFields: [{
           searchTerm: plate,
@@ -352,8 +325,7 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
     if (logSearchResponseAction.type === submit.SUCCESS) {
       const results = yield call(SearchApi.executeSearch, searchRequest);
 
-      const vehicleEntitySetId = getEntitySetId(app, APP_TYPES.CARS);
-      yield put(executeSearch.success(action.id, { results, vehicleEntitySetId }));
+      yield put(executeSearch.success(action.id, { results }));
 
       // yield put(loadEntityNeighbors({
       //   entitySetId,

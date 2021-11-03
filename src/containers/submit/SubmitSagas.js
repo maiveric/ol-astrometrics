@@ -1,46 +1,43 @@
 import {
+  all,
   call,
   put,
-  takeEvery,
   select,
-  all
+  takeEvery,
 } from '@redux-saga/core/effects';
-import {
-  Constants,
-  DataApi,
-  EntityDataModelApi,
-  Models
-} from 'lattice';
+import { getIn } from 'immutable';
+import { DataApi, EntityDataModelApi, Models } from 'lattice';
 import { AuthUtils } from 'lattice-auth';
 
-import { stripIdField, getFqnObj, getSearchTerm } from '../../utils/DataUtils';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { ID_FIELDS } from '../../utils/constants/DataConstants';
-import { APP } from '../../utils/constants/StateConstants';
-import { getAppFromState, getEntitySetId, getUserIdFromState } from '../../utils/AppUtils';
 import {
-  DELETE_ENTITY,
   DELETE_ENTITIES,
+  DELETE_ENTITY,
   PARTIAL_REPLACE_ENTITY,
   REPLACE_ENTITY,
   SUBMIT,
-  deleteEntity,
   deleteEntities,
+  deleteEntity,
   partialReplaceEntity,
   replaceEntity,
-  submit
+  submit,
 } from './SubmitActionFactory';
 
-const {
-  FullyQualifiedName
-} = Models;
+import {
+  getAppFromState,
+  getEntitySetId,
+  getSelectedOrganizationId,
+  getUserIdFromState,
+} from '../../utils/AppUtils';
+import { stripIdField } from '../../utils/DataUtils';
+import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
+import { ID_FIELDS } from '../../utils/constants/DataConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP } from '../../utils/constants/StateConstants';
 
-const {
-  OPENLATTICE_ID_FQN
-} = Constants;
+const { FullyQualifiedName } = Models;
 
 function getFormattedValue(value) {
-  const valueIsDefined = v => v !== null && v !== undefined && v !== '';
+  const valueIsDefined = (v) => v !== null && v !== undefined && v !== '';
 
   /* Value is already formatted as an array -- we should filter for undefined values */
   if (value instanceof Array) {
@@ -147,7 +144,7 @@ function* deleteEntitiesWorker(action) {
       callback
     } = action.value;
 
-    const requests = entityKeyIds.map(entityKeyId => call(DataApi.deleteEntity, entitySetId, entityKeyId, 'Soft'));
+    const requests = entityKeyIds.map((entityKeyId) => call(DataApi.deleteEntity, entitySetId, entityKeyId, 'Soft'));
 
     yield all(requests);
 
@@ -224,6 +221,9 @@ function* submitWorkerNew(action) {
     yield put(submit.request(action.id));
 
     const app = yield select(getAppFromState);
+    const orgId = getSelectedOrganizationId(app);
+    const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
+    const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
 
     if (includeUserId) {
       const userId = getUserIdFromState(app);
@@ -233,7 +233,7 @@ function* submitWorkerNew(action) {
 
     const allEntitySetIds = config.entitySets.map(({ name }) => getEntitySetId(app, name));
 
-    const edmDetailsRequest = allEntitySetIds.map(id => ({
+    const edmDetailsRequest = allEntitySetIds.map((id) => ({
       id,
       type: 'EntitySet',
       include: [
@@ -254,7 +254,7 @@ function* submitWorkerNew(action) {
     const entities = {}; // entitySetId -> [ entities... ]
     const associations = {}; // entitySetId -> [ DataAssociation... ]
 
-    const associationEntities = config.associations.map(associationDetails => associationDetails.association);
+    const associationEntities = config.associations.map((associationDetails) => associationDetails.association);
 
     config.entitySets.forEach((entityDescription, index) => {
       const {
@@ -293,6 +293,14 @@ function* submitWorkerNew(action) {
               if (idOrIndex !== undefined && idOrIndex !== null) {
 
                 const entityIdObject = getEntityIdObject(entitySetId, idOrIndex, isId);
+
+                // NOTE: 2021-11-02 - putting this hack in place to fix bugs ... all of this needs to go
+                if (alias === 'read' && entityValues.read) {
+                  const agencyName = getIn(entityValues.read, [PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME, 0]);
+                  const agencyEntitySetId = agencyVehicleRecordsEntitySets.findKey((v) => v === agencyName);
+                  entityIdObject.entitySetId = agencyEntitySetId;
+                }
+
                 entityIdsByAlias[alias].push(entityIdObject);
 
                 if (!isId) {

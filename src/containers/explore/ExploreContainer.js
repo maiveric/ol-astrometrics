@@ -3,55 +3,56 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import {
   Redirect,
   Route,
   Switch,
   withRouter
 } from 'react-router';
+import { bindActionCreators } from 'redux';
 import type { RequestSequence } from 'redux-reqseq';
 
-import Sidebar from '../../components/body/Sidebar';
-import VehicleSidebar from './VehicleListSidebar';
-import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
-import SearchParameters from '../parameters/SearchParameters';
-import SimpleMap from '../../components/maps/SimpleMap';
-import Modal from '../../components/modals/Modal';
-import NewMapModalBody from '../map/NewMapModalBody';
 import ExploreNavigationContainer from './ExploreNavigationContainer';
-import SavedMapNavBar from '../map/SavedMapNavBar';
-import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
-import NewAlertModal from '../alerts/NewAlertModal';
-import NewReportModal from '../report/NewReportModal';
-import RenameReportModal from '../report/RenameReportModal';
-import DeleteReportModal from '../report/DeleteReportModal';
-import DeleteVehicleReadsModal from '../report/DeleteVehicleReadsModal';
+import VehicleSidebar from './VehicleListSidebar';
+import * as ExploreActionFactory from './ExploreActionFactory';
+
 import AddReadsToReportModal from '../report/AddReadsToReportModal';
 import AllReportsContainer from '../report/AllReportsContainer';
+import DeleteReportModal from '../report/DeleteReportModal';
+import DeleteVehicleReadsModal from '../report/DeleteVehicleReadsModal';
+import ManageAlertsContainer from '../alerts/ManageAlertsContainer';
+import Modal from '../../components/modals/Modal';
+import NewAlertModal from '../alerts/NewAlertModal';
+import NewMapModalBody from '../map/NewMapModalBody';
+import NewReportModal from '../report/NewReportModal';
+import RenameReportModal from '../report/RenameReportModal';
+import SavedMapNavBar from '../map/SavedMapNavBar';
+import SearchParameters from '../parameters/SearchParameters';
+import SelectedVehicleSidebar from '../vehicles/SelectedVehicleSidebar';
+import Sidebar from '../../components/body/Sidebar';
+import SimpleMap from '../../components/maps/SimpleMap';
+import * as AlertActionFactory from '../alerts/AlertActionFactory';
+import * as DrawActionFactory from '../map/DrawActionFactory';
+import * as EdmActionFactory from '../edm/EdmActionFactory';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
+import * as ReportActionFactory from '../report/ReportActionFactory';
+import * as Routes from '../../core/router/Routes';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
-  STATE,
   ALERTS,
   DRAW,
   EDM,
   EXPLORE,
   PARAMETERS,
   REPORT,
-  SEARCH_PARAMETERS
+  SEARCH_PARAMETERS,
+  STATE,
 } from '../../utils/constants/StateConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
-import { getEntitySetId } from '../../utils/AppUtils';
-import * as Routes from '../../core/router/Routes';
-import * as AlertActionFactory from '../alerts/AlertActionFactory';
-import * as DrawActionFactory from '../map/DrawActionFactory';
-import * as ExploreActionFactory from './ExploreActionFactory';
-import * as EdmActionFactory from '../edm/EdmActionFactory';
-import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
-import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
   edmLoaded :boolean;
@@ -69,7 +70,6 @@ type Props = {
   results :List<*>;
   selectedEntityKeyIds :Set<*>;
   selectedReadId :string;
-  vehiclesEntitySetId :string;
   searchParameters :Map<*, *>;
   filter :string;
   edm :Map<*, *>;
@@ -154,9 +154,9 @@ class ExploreContainer extends React.Component<Props, State> {
     actions.setDrawMode(false);
   }
 
-  selectEntity = (data) => {
-    const { actions, vehiclesEntitySetId } = this.props;
-    actions.selectEntity({ data, vehiclesEntitySetId });
+  selectEntity = (readEntityKeyId) => {
+    const { actions } = this.props;
+    actions.selectEntity(readEntityKeyId);
   }
 
   renderModal = () => {
@@ -260,7 +260,7 @@ class ExploreContainer extends React.Component<Props, State> {
     } = this.props;
 
     const entities = filter.length
-      ? results.filter(hit => hit.get(PROPERTY_TYPES.HIT_TYPE, List()).includes(filter))
+      ? results.filter((hit) => hit.get(PROPERTY_TYPES.HIT_TYPE, List()).includes(filter))
       : results;
 
     return (
@@ -346,19 +346,15 @@ class ExploreContainer extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const app = state.get(STATE.APP);
   const draw = state.get(STATE.DRAW);
   const edm = state.get(STATE.EDM);
   const explore = state.get(STATE.EXPLORE);
   const params = state.get(STATE.PARAMETERS);
   const alerts = state.get(STATE.ALERTS);
   const reports = state.get(STATE.REPORT);
-
   return {
     edm,
     edmLoaded: edm.get(EDM.EDM_LOADED),
-
-    vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
     filter: explore.get(EXPLORE.FILTER),
     isMapStyleLoading: explore.get(EXPLORE.IS_MAP_STYLE_LOADING),
     hotlistPlates: explore.get(EXPLORE.HOTLIST_PLATES),
@@ -366,11 +362,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
-
     displayFullSearchOptions: params.get(SEARCH_PARAMETERS.DISPLAY_FULL_SEARCH_OPTIONS),
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
     drawMode: params.get(SEARCH_PARAMETERS.DRAW_MODE),
-
     alertModalOpen: alerts.get(ALERTS.ALERT_MODAL_OPEN),
     addReadsToReportModalOpen: !!reports.get(REPORT.ADD_READS_TO_REPORT_MODAL_OPEN),
     reportModalOpen: reports.get(REPORT.REPORT_MODAL_OPEN),

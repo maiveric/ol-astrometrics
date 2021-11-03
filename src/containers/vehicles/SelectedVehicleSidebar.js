@@ -3,48 +3,42 @@
  */
 
 import React, { Fragment } from 'react';
-import styled from 'styled-components';
-import moment from 'moment';
-import { List, Map, Set } from 'immutable';
-import { withRouter } from 'react-router';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMap } from '@fortawesome/pro-light-svg-icons';
 
-import { ScrollableSidebar, SidebarHeader, PaddedSection } from '../../components/body/Sidebar';
+import moment from 'moment';
+import styled from 'styled-components';
+import { faMap } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { List, Map, Set } from 'immutable';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+import { bindActionCreators } from 'redux';
+
 import BasicButton from '../../components/buttons/BasicButton';
-import RoundButton from '../../components/buttons/RoundButton';
-import ReadReportTooltip from '../../components/reports/ReadReportTooltip';
 import Checkbox from '../../components/controls/StyledCheckbox';
-import { VehicleHeader, VehicleImageRow } from '../../components/vehicles/VehicleCard';
-import {
-  STATE,
-  EXPLORE,
-  REPORT,
-  SEARCH_PARAMETERS
-} from '../../utils/constants/StateConstants';
-import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getDisplayNameForId, getCoordinates } from '../../utils/DataUtils';
-import { getEntitySetId } from '../../utils/AppUtils';
+import RoundButton from '../../components/buttons/RoundButton';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as ReportActionFactory from '../report/ReportActionFactory';
+import { PaddedSection, ScrollableSidebar, SidebarHeader } from '../../components/body/Sidebar';
+import { VehicleHeader, VehicleImageRow } from '../../components/vehicles/VehicleCard';
+import { getCoordinates, getDisplayNameForId, getEntityKeyId } from '../../utils/DataUtils';
+import { getPlate } from '../../utils/VehicleUtils';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { EXPLORE, SEARCH_PARAMETERS, STATE } from '../../utils/constants/StateConstants';
 
 type Props = {
-  vehiclesEntitySetId :string,
-  reportEntitySetId :string,
-  selectedEntityKeyIds :Set<*>,
-  neighborsById :Map<*, *>,
-  entitiesById :Map<*, *>,
-  selectedReadId :string,
-  reportVehicles :List<*>,
-  departmentOptions :Map,
-  readIdsForReport :Set,
-  reportEntityKeyIds :Set,
-  deviceOptions :Map,
+  selectedEntityKeyIds :Set<*>;
+  entitiesById :Map<*, *>;
+  selectedReadId :string;
+  departmentOptions :Map;
+  readIdsForReport :Set;
+  deviceOptions :Map;
+  results :List;
   actions :{
-    selectEntity :(entityKeyId :string) => void
-  }
+    deselectReadsForReport :(set :Set) => void;
+    selectEntity :(entityKeyId ?:string) => void;
+    selectReadsForReport :(set :Set) => void;
+    toggleAddReadsToReportModal :(value :boolean) => void;
+  };
 };
 
 type State = {
@@ -102,7 +96,7 @@ const ReportDefinitionRow = styled.div`
   width: 100%;
   color: #807F85;
 
-  padding-top: ${props => props.paddingTop || 0}px;
+  padding-top: ${(props) => props.paddingTop || 0}px;
 
   div {
     width: 49%;
@@ -121,19 +115,6 @@ const ReportDefinitionRow = styled.div`
 
 class SelectedVehicleSidebar extends React.Component<Props, State> {
 
-  getSelectedVehicle = () => {
-    const { neighborsById, selectedReadId, vehiclesEntitySetId } = this.props;
-
-    let vehicle;
-    neighborsById.get(selectedReadId, List()).forEach((neighborObj) => {
-      if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
-        vehicle = neighborObj.get('neighborDetails', Map());
-      }
-    });
-
-    return vehicle;
-  }
-
   getLatLong = (entityKeyId) => {
     const { entitiesById } = this.props;
 
@@ -141,10 +122,7 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
   }
 
   openGoogleMaps = (e, entityKeyId) => {
-    const { entitiesById } = this.props;
-
     e.stopPropagation();
-
     const [longitude, latitude] = this.getLatLong(entityKeyId);
     const path = `http://www.google.com/maps/place/${latitude},${longitude}`;
     window.open(path, '_blank');
@@ -173,14 +151,14 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
 
     details.Department = read
       .get(PROPERTY_TYPES.AGENCY_NAME, List())
-      .map(d => getDisplayNameForId(departmentOptions, d))
+      .map((d) => getDisplayNameForId(departmentOptions, d))
       .join(', ');
 
     details.Source = read.get(PROPERTY_TYPES.OL_DATA_SOURCE, List()).join(', ');
 
     details.Device = read
       .get(PROPERTY_TYPES.CAMERA_ID, List())
-      .map(d => getDisplayNameForId(deviceOptions, d))
+      .map((d) => getDisplayNameForId(deviceOptions, d))
       .join(', ');
 
     details.Year = read.get(PROPERTY_TYPES.YEAR, List()).join(', ');
@@ -214,9 +192,9 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     );
   }
 
-  selectEntity = (e, data) => {
-    const { actions, vehiclesEntitySetId } = this.props;
-    actions.selectEntity({ data, vehiclesEntitySetId });
+  selectEntity = (data ?:string) => {
+    const { actions } = this.props;
+    actions.selectEntity(data);
   }
 
   addToReport = () => {
@@ -224,21 +202,22 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     actions.toggleAddReadsToReportModal(true);
   }
 
-  getReportsForRead = (readEntityKeyId) => {
-    const { neighborsById, reportEntityKeyIds, reportEntitySetId } = this.props;
-
-    const reports = neighborsById
-      .get(readEntityKeyId, List())
-      .filter(neighbor => neighbor.getIn(['neighborEntitySet', 'id']) === reportEntitySetId)
-      .map(neighbor => neighbor.get('neighborDetails', Map()))
-      .filter(nd => reportEntityKeyIds.has(getEntityKeyId(nd)));
-
-    if (!reports.size) {
-      return null;
-    }
-
-    return <ReadReportTooltip reports={reports} />
-  }
+  // NOTE: 2021-11-02 - this is useful, consider bringing it back
+  // getReportsForRead = (readEntityKeyId) => {
+  //   const { neighborsById, reportEntityKeyIds, reportEntitySetId } = this.props;
+  //
+  //   const reports = neighborsById
+  //     .get(readEntityKeyId, List())
+  //     .filter(neighbor => neighbor.getIn(['neighborEntitySet', 'id']) === reportEntitySetId)
+  //     .map(neighbor => neighbor.get('neighborDetails', Map()))
+  //     .filter(nd => reportEntityKeyIds.has(getEntityKeyId(nd)));
+  //
+  //   if (!reports.size) {
+  //     return null;
+  //   }
+  //
+  //   return <ReadReportTooltip reports={reports} />
+  // }
 
   renderReadList = () => {
     const {
@@ -259,8 +238,6 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
       const isInReport = readIdsForReport.has(entityKeyId);
       const isSelected = entityKeyId === selectedReadId;
 
-      const reportTooltip = this.getReportsForRead(entityKeyId)
-
       const getOnChange = (entityKeyId, ignoreIfSelected) => {
         if (ignoreIfSelected && isSelected) {
           return;
@@ -273,13 +250,13 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
         else {
           actions.selectReadsForReport(idSet);
         }
-      }
+      };
 
       const WrapperComponent = isSelected ? SelectedPaddedSection : PaddedSection;
 
       return (
         <Fragment key={entityKeyId}>
-          <WrapperComponent borderBottom clickable onClick={e => this.selectEntity(e, entityKeyId)}>
+          <WrapperComponent borderBottom clickable onClick={e => this.selectEntity(entityKeyId)}>
             <Row>
               <FlexRow>
                 <Checkbox
@@ -287,9 +264,8 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
                     onClick={() => getOnChange(entityKeyId, true)}
                     onChange={() => getOnChange(entityKeyId)} />
                 <span>{timestamp.isValid() ? timestamp.format('MM/DD/YY hh:mm a') : 'Invalid timestamp'}</span>
-                {reportTooltip}
               </FlexRow>
-              <RoundButton onClick={e => this.openGoogleMaps(e, entityKeyId)}>
+              <RoundButton onClick={(e) => this.openGoogleMaps(e, entityKeyId)}>
                 <FontAwesomeIcon icon={faMap} />
               </RoundButton>
             </Row>
@@ -303,27 +279,31 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
   }
 
   renderHeader = () => {
-    const { actions, selectedEntityKeyIds, entitiesById } = this.props;
+    const {
+      actions,
+      selectedEntityKeyIds,
+      entitiesById,
+      results: vehicleRecords,
+      selectedReadId,
+    } = this.props;
 
-    const vehicle = this.getSelectedVehicle();
+    const vehicleRecord = vehicleRecords.filter((record) => getEntityKeyId(record) === selectedReadId).first();
+    const plate = getPlate(vehicleRecord);
 
-    const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
-    const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'CA');
-
-    const isHit = !!selectedEntityKeyIds.find(entityKeyId => !!entitiesById
+    const isHit = !!selectedEntityKeyIds.find((entityKeyId) => !!entitiesById
       .getIn([entityKeyId, PROPERTY_TYPES.HIT_TYPE, 0]));
 
     return (
       <SidebarHeader
           backButtonText="Back to search results"
           backButtonOnClick={() => actions.selectEntity()}
-          mainContent={<VehicleHeader state={state} plate={plate} isHit={isHit} />}
+          mainContent={<VehicleHeader plate={plate} isHit={isHit} />}
           noPadBottom
           light />
     );
   }
 
-  renderReportSection = (vehicle) => {
+  renderReportSection = () => {
     const { actions, selectedEntityKeyIds, readIdsForReport } = this.props;
 
     const isInReport = selectedEntityKeyIds.subtract(readIdsForReport).isEmpty();
@@ -348,42 +328,25 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
   }
 
   render() {
-
-    const vehicle = this.getSelectedVehicle();
-    if (!vehicle) {
-      return null;
-    }
-
     return (
       <ScrollableSidebar>
         {this.renderHeader()}
-        {this.renderReportSection(vehicle)}
+        {this.renderReportSection()}
         {this.renderReadList()}
       </ScrollableSidebar>
     );
   }
 }
 
-
 function mapStateToProps(state :Map<*, *>) :Object {
-  const app = state.get(STATE.APP);
   const explore = state.get(STATE.EXPLORE);
-  const report = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
-
-  const reportEntityKeyIds = report.get(REPORT.REPORTS).keySeq().toSet();
-
   return {
-    vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
-    reportEntitySetId: getEntitySetId(app, APP_TYPES.REPORTS),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     selectedReadId: explore.get(EXPLORE.SELECTED_READ_ID),
     readIdsForReport: explore.get(EXPLORE.READ_IDS_TO_ADD_TO_REPORT),
-    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
-    reportVehicles: report.get(REPORT.VEHICLE_ENTITY_KEY_IDS),
-    reportEntityKeyIds,
     departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
   };
