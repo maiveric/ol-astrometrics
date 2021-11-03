@@ -73,6 +73,7 @@ export const PROPERTY_TYPES = {
   REPORT_CREATED_DATE_TIME: 'ol.datetimeadministered',
   REPORT_CREATOR_ID: 'general.id',
 
+  EKID: 'openlattice.@id',
   OL_APP_DETAILS: 'ol.appdetails',
   OL_DATA_SOURCE: 'ol.datasource',
   PUBLIC_SAFETY_AGENCY_NAME: 'publicsafety.agencyname',
