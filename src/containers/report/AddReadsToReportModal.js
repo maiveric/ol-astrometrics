@@ -3,35 +3,43 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
-import moment from 'moment';
-import { Set, Map, OrderedMap } from 'immutable';
-import { withRouter } from 'react-router';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/pro-light-svg-icons';
 
+import moment from 'moment';
+import styled from 'styled-components';
+import { faPlus } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  List,
+  Map,
+  OrderedMap,
+  Set,
+  getIn,
+} from 'immutable';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+import { bindActionCreators } from 'redux';
+
+import * as ReportActionFactory from './ReportActionFactory';
+import { ReportHeaderRow } from './ReportRow';
+
+import InfoButton from '../../components/buttons/InfoButton';
+import NewReportConfig from '../../config/formconfig/NewReportConfig';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
 import SubtleButton from '../../components/buttons/SubtleButton';
-import InfoButton from '../../components/buttons/InfoButton';
-import NewReportConfig from '../../config/formconfig/NewReportConfig';
-import { ReportHeaderRow } from './ReportRow';
+import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 import { VehicleHeader } from '../../components/vehicles/VehicleCard';
+import { getEntityKeyId, getValue } from '../../utils/DataUtils';
+import { ID_FIELDS } from '../../utils/constants/DataConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
-  STATE,
   EXPLORE,
   PARAMETERS,
   REPORT,
   SEARCH_PARAMETERS,
+  STATE,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { ID_FIELDS } from '../../utils/constants/DataConstants';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getValue } from '../../utils/DataUtils';
-import * as ReportActionFactory from './ReportActionFactory';
-import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
   isLoadingReports :boolean,
@@ -42,6 +50,7 @@ type Props = {
   entitiesById :Map,
   readsByReport :Map,
   readIdsForReport :Set,
+  results :List,
   actions :{
     toggleReportModal :(isOpen :boolean) => void,
     setReportValue :({ field :string, value :string }) => void,
@@ -249,7 +258,8 @@ class AddReadsToReportModal extends React.Component<Props, State> {
       readIdsForReport,
       readsByReport,
       caseNum,
-      name
+      name,
+      results,
     } = this.props;
 
     const now = moment().toISOString(true);
@@ -258,8 +268,9 @@ class AddReadsToReportModal extends React.Component<Props, State> {
       ? Set()
       : readsByReport.get(reportEntityKeyId, Set()).map(n => getEntityKeyId(n.get('neighborDetails', Map())));
 
-    const readIdValues = readIdsForReport.subtract(existingReads).map(id => ({
-      [ID_FIELDS.READ_ID]: id
+    const readIdValues = readIdsForReport.subtract(existingReads).map((readEntityKeyId) => ({
+      [ID_FIELDS.READ_ID]: readEntityKeyId,
+      read: results.find((result) => getIn(result, [PROPERTY_TYPES.EKID, 0]) === readEntityKeyId)
     })).toJS();
 
     const values = {
@@ -348,18 +359,15 @@ class AddReadsToReportModal extends React.Component<Props, State> {
 
     return (
       <>
-
         <SectionRow>
           <InfoButton round onClick={() => this.setState({ isCreating: true })}>
             <FontAwesomeIcon icon={faPlus} />
           </InfoButton>
           <ButtonLabel>Create new report</ButtonLabel>
         </SectionRow>
-
         {reports.entrySeq().map(this.renderReportRow)}
-
       </>
-    )
+    );
   }
 
   render() {
@@ -438,9 +446,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
     caseNum: reports.get(REPORT.NEW_REPORT_CASE),
     name: reports.get(REPORT.NEW_REPORT_NAME),
     parameters: parameters.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),
-    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
     readIdsForReport: explore.get(EXPLORE.READ_IDS_TO_ADD_TO_REPORT),
+    results: explore.get(EXPLORE.SEARCH_RESULTS),
     isSubmitting: submit.get(SUBMIT.SUBMITTING)
   };
 }

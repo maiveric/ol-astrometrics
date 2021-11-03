@@ -604,10 +604,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
     filter: explore.get(EXPLORE.FILTER),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
-    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
-    isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
-    selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
     hasHotlistPlates: !!explore.get(EXPLORE.HOTLIST_PLATES).size,
 
     searchParameters: params.get(SEARCH_PARAMETERS.SEARCH_PARAMETERS),

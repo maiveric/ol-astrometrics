@@ -7,7 +7,6 @@ import styled from 'styled-components';
 import moment from 'moment';
 import { List, Map } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons';
 import { faVideo } from '@fortawesome/pro-solid-svg-icons';
 
 import { countWithLabel } from '../../utils/DataUtils';
@@ -21,7 +20,6 @@ type Props = {
   isStolen :boolean,
   onClick :() => void,
   timestampDesc? :boolean,
-  deviceOptions :Map
 };
 
 const Card = styled.div`
@@ -32,7 +30,7 @@ const Card = styled.div`
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
-  opacity: ${props => (props.isUnselected ? 0.75 : 1)};
+  opacity: ${(props) => (props.isUnselected ? 0.75 : 1)};
   margin-bottom: 16px;
 
   &:hover {
@@ -53,7 +51,7 @@ const BasicRow = styled.div`
 `;
 
 const HeaderRow = styled(BasicRow)`
-  padding: ${props => (props.noPadding ? 0 : 16)}px;
+  padding: ${(props) => (props.noPadding ? 0 : 16)}px;
   border-bottom: 1px solid #1F1E24;
 
   div:first-child {
@@ -64,10 +62,10 @@ const HeaderRow = styled(BasicRow)`
 
     span {
       padding: 2px 5px;
-      background-color: ${props => (props.printable ? '#ffffff' : '#98979D')};
+      background-color: ${(props) => (props.printable ? '#ffffff' : '#98979D')};
       border-radius: 5px;
-      border: ${props => (props.printable ? '1px solid black' : 'none')};
-      color: ${props => (props.printable ? 'black' : '#070709')};
+      border: ${(props) => (props.printable ? '1px solid black' : 'none')};
+      color: ${(props) => (props.printable ? 'black' : '#070709')};
       font-size: 11px;
       font-weight: bold;
       display: flex;
@@ -79,7 +77,7 @@ const HeaderRow = styled(BasicRow)`
       padding-left: 8px;
       font-weight: 600;
       font-size: 16px;
-      color: ${props => (props.printable ? 'black' : '#ffffff')};
+      color: ${(props) => (props.printable ? 'black' : '#ffffff')};
     }
 
   }
@@ -137,11 +135,6 @@ const ReadDetails = styled(BasicRow)`
   }
 `;
 
-const HitType = styled.div`
-  padding-left: 8px;
-  color: #EE5345 !important;
-`;
-
 const StolenTag = styled.div`
   width: 64px;
   height: 19px;
@@ -172,7 +165,7 @@ export const VehicleHeader = ({
 }) => (
   <HeaderRow noPadding={noPadding} printable={printable}>
     <div>
-      <span>{state}</span>
+      {state && <span>{state}</span>}
       <div>{plate}</div>
       {isStolen ? <StolenTag><p>Stolen</p></StolenTag> : null}
     </div>
@@ -214,19 +207,14 @@ const VehicleCard = ({
   const plate = vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
   const state = vehicle.getIn([PROPERTY_TYPES.STATE, 0], 'CA');
 
-  const vehicleImages = records.flatMap(record => record.get(PROPERTY_TYPES.VEHICLE_IMAGE, List()));
-  const plateImages = records.flatMap(record => record.get(PROPERTY_TYPES.LICENSE_PLATE_IMAGE, List()));
-
-  const getUniqueValues = (fqn) => {
-    const allValues = records.flatMap(record => record.get(fqn, List()));
-    return allValues.filter((val, index) => allValues.indexOf(val) === index);
-  };
+  const vehicleImages = records.flatMap((record) => record.get(PROPERTY_TYPES.VEHICLE_IMAGE, List()));
+  const plateImages = records.flatMap((record) => record.get(PROPERTY_TYPES.LICENSE_PLATE_IMAGE, List()));
 
   let timestamp;
   records
-    .flatMap(record => record.get(PROPERTY_TYPES.TIMESTAMP, List()))
-    .map(dt => moment(dt))
-    .filter(dt => dt.isValid())
+    .flatMap((record) => record.get(PROPERTY_TYPES.TIMESTAMP, List()))
+    .map((dt) => moment(dt))
+    .filter((dt) => dt.isValid())
     .forEach((dt) => {
       if (!timestamp) {
         timestamp = dt;
@@ -243,23 +231,16 @@ const VehicleCard = ({
   const timestampLabel = timestampDesc ? 'Latest' : 'Earliest';
   const timestampStr = timestamp ? `${timestampLabel} on ${timestamp.format('MM/DD/YY hh:mm A')}` : '';
 
-  const hitTypes = getUniqueValues(PROPERTY_TYPES.HIT_TYPE);
-
   return (
     <Card onClick={onClick} isUnselected={isUnselected}>
-
       <VehicleHeader state={state} plate={plate} isStolen={isStolen} />
-
       <Section>
-
         <VehicleImageRow plateSrc={plateImages.get(0)} vehicleSrc={vehicleImages.get(0)} />
-
         <ReadDetails>
           <FontAwesomeIcon icon={faVideo} />
           <span>{numReadsText}</span>
           <span>{timestampStr}</span>
         </ReadDetails>
-
       </Section>
     </Card>
   );

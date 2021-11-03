@@ -31,7 +31,6 @@ import {
 import { EDIT_SEARCH_PARAMETERS } from '../parameters/ParametersActionFactory';
 
 const {
-  ENTITY_NEIGHBORS_BY_ID,
   ENTITIES_BY_ID,
   FILTER,
   HOTLIST_PLATES,
@@ -48,7 +47,6 @@ const {
 } = EXPLORE;
 
 const INITIAL_STATE :Map<> = fromJS({
-  [ENTITY_NEIGHBORS_BY_ID]: Map(),
   [ENTITIES_BY_ID]: Map(),
   [FILTER]: '',
   [HOTLIST_PLATES]: Set(),
@@ -63,94 +61,8 @@ const INITIAL_STATE :Map<> = fromJS({
   [TOTAL_RESULTS]: 0
 });
 
-const getSelectedDataFromNeighbors = (state, data, vehiclesEntitySetId) => {
-  const readEntityKeyId = data;
-
-  let selectedEntityKeyIds = Set();
-  let idsToMatch = Set.of(readEntityKeyId);
-  let selectedReadId = readEntityKeyId;
-
-  state.getIn([ENTITY_NEIGHBORS_BY_ID, readEntityKeyId], List()).forEach((neighborObj) => {
-    if (neighborObj.getIn(['neighborEntitySet', 'id']) === vehiclesEntitySetId) {
-      const entityKeyId = getEntityKeyId(neighborObj.get('neighborDetails') || Map());
-      if (entityKeyId) {
-        idsToMatch = idsToMatch.add(entityKeyId);
-      }
-    }
-  });
-
-  state.get(ENTITY_NEIGHBORS_BY_ID).entrySeq().forEach(([entityKeyId, neighborList]) => {
-    neighborList.forEach((neighbor) => {
-      if (idsToMatch.has(getEntityKeyId(neighbor.get('neighborDetails') || Map()))) {
-        selectedEntityKeyIds = selectedEntityKeyIds.add(entityKeyId);
-      }
-    });
-  });
-
-  if (selectedEntityKeyIds.size && !selectedEntityKeyIds.has(selectedReadId)) {
-    selectedReadId = selectedEntityKeyIds.first();
-  }
-
-  return { selectedEntityKeyIds, selectedReadId };
-}
-
-const getSeletedDataFromSearchResults = (state, data) => {
-  let selectedEntityKeyIds = Set();
-  const plate = data;
-
-  state.get(SEARCH_RESULTS).filter((result) => getPlate(result) === plate).forEach(result => {
-    selectedEntityKeyIds = selectedEntityKeyIds.add(getEntityKeyId(result));
-  });
-
-  const selectedReadId = selectedEntityKeyIds.first();
-
-  return { selectedEntityKeyIds, selectedReadId };
-}
-
-const updateEntitiesIdForNeighbors = (initEntitiesById, neighborLists) => {
-  let entitiesById = initEntitiesById;
-  neighborLists.forEach((neighborList) => {
-    neighborList.forEach((neighborObj) => {
-      const association = neighborObj.get('associationDetails', Map());
-      const neighbor = neighborObj.get('neighborDetails', Map());
-      if (association) {
-        const associationEntityKeyId = getEntityKeyId(association);
-        entitiesById = entitiesById.set(
-          associationEntityKeyId,
-          entitiesById.get(associationEntityKeyId, Map()).merge(association)
-        );
-      }
-      if (neighbor) {
-        const neighborEntityKeyId = getEntityKeyId(neighbor);
-        entitiesById = entitiesById.set(
-          neighborEntityKeyId,
-          entitiesById.get(neighborEntityKeyId, Map()).merge(neighbor)
-        );
-      }
-    });
-  });
-
-  return entitiesById;
-};
-
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
-
-    // case loadEntityNeighbors.case(action.type): {
-    //   return loadEntityNeighbors.reducer(state, action, {
-    //     REQUEST: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, true),
-    //     SUCCESS: () => {
-    //       const neighborsById = fromJS(action.value);
-    //
-    //       const entitiesById = updateEntitiesIdForNeighbors(state.get(ENTITIES_BY_ID), neighborsById.valueSeq());
-    //
-    //       return state
-    //         .set(ENTITY_NEIGHBORS_BY_ID, state.get(ENTITY_NEIGHBORS_BY_ID).merge(neighborsById))
-    //         .set(ENTITIES_BY_ID, entitiesById);
-    //     },
-    //     FINALLY: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, false)
-    //   });
-    // }
 
     case loadHotlistPlates.case(action.type): {
       return loadHotlistPlates.reducer(state, action, {
@@ -168,7 +80,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           .set(SEARCH_DATE_TIME, moment().toISOString(true))
           .set(TOTAL_RESULTS, 0),
         SUCCESS: () => {
-          const { results, vehicleEntitySetId } = action.value;
+          const { results } = action.value;
           const { hits, numHits } = results;
           const reads = fromJS(hits);
           let entitiesById = state.get(ENTITIES_BY_ID);
@@ -176,26 +88,10 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
             entitiesById = entitiesById.set(getEntityKeyId(result), result);
           });
 
-          let neighborsById = Map();
-          reads.forEach((result) => {
-            const plate = getPlate(result);
-            neighborsById = neighborsById.set(getEntityKeyId(result), fromJS([{
-              'neighborEntitySet': {
-                'id': vehicleEntitySetId
-              },
-              'neighborDetails': {
-                [PROPERTY_TYPES.PLATE]: [plate],
-                [PROPERTY_TYPES.ID]: [plate],
-                'openlattice.@id': [plate],
-                isIntermediate: true
-              }
-            }]));
-          });
           return state
             .set(SEARCH_RESULTS, reads)
             .set(ENTITIES_BY_ID, entitiesById)
-            .set(TOTAL_RESULTS, numHits)
-            .set(ENTITY_NEIGHBORS_BY_ID, neighborsById);
+            .set(TOTAL_RESULTS, numHits);
         },
         FAILURE: () => state.set(SEARCH_RESULTS, List()).set(TOTAL_RESULTS, 0),
         FINALLY: () => state.set(IS_SEARCHING_DATA, false)
@@ -213,22 +109,27 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     }
 
     case SELECT_ENTITY: {
-      const { data, vehiclesEntitySetId, isIntermediate } = action.value;
+
+      const entityKeyId = action.value;
+
+      const targetVehicleRecord = state
+        .get(SEARCH_RESULTS)
+        .find((vehicleRecord) => getEntityKeyId(vehicleRecord) === entityKeyId);
+
+      const targetPlate = getPlate(targetVehicleRecord || Map());
 
       let selectedEntityKeyIds = Set();
-      let selectedReadId = undefined;
-
-      if (data) {
-        ({ selectedEntityKeyIds, selectedReadId } = isIntermediate
-          ? getSeletedDataFromSearchResults(state, data, vehiclesEntitySetId)
-          : getSelectedDataFromNeighbors(state, data, vehiclesEntitySetId))
-      }
+      state.get(SEARCH_RESULTS)
+        .filter((vehicleRecord) => getPlate(vehicleRecord) === targetPlate)
+        .forEach((vehicleRecord) => {
+          selectedEntityKeyIds = selectedEntityKeyIds.add(getEntityKeyId(vehicleRecord));
+        });
 
       let newState = state
         .set(SELECTED_ENTITY_KEY_IDS, selectedEntityKeyIds)
-        .set(SELECTED_READ_ID, selectedReadId);
+        .set(SELECTED_READ_ID, entityKeyId || selectedEntityKeyIds.first());
 
-      if (!selectedReadId) {
+      if (!entityKeyId) {
         newState = newState.set(READ_IDS_TO_ADD_TO_REPORT, Set());
       }
 

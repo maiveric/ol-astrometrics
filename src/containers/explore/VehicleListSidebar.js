@@ -5,12 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import {
-  List,
-  Map,
-  Set,
-  fromJS
-} from 'immutable';
+import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -18,7 +13,6 @@ import type { RequestSequence } from 'redux-reqseq';
 
 import { ScrollableSidebar, SidebarHeader, PaddedSection } from '../../components/body/Sidebar';
 import DropdownButton from '../../components/buttons/DropdownButton';
-import FilterIcon from '../../components/icons/FilterIcon';
 import Spinner from '../../components/spinner/Spinner';
 import Pagination from '../../components/pagination/Pagination';
 import VehicleCard from '../../components/vehicles/VehicleCard';
@@ -26,12 +20,7 @@ import { STATE, EXPLORE, SEARCH_PARAMETERS } from '../../utils/constants/StateCo
 import { APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, countWithLabel } from '../../utils/DataUtils';
 import { getEntitySetId } from '../../utils/AppUtils';
-import {
-  getVehicleList,
-  getRecordsByVehicleId,
-  getFilteredVehicles,
-  getPlate
-} from '../../utils/VehicleUtils';
+import { getPlate } from '../../utils/VehicleUtils';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
@@ -39,16 +28,12 @@ import * as ReportActionFactory from '../report/ReportActionFactory';
 
 type Props = {
   isLoadingResults :boolean;
-  isLoadingNeighbors :boolean;
   results :List<*>;
   selectedEntityKeyIds :Set<*>;
   hotlistPlates :Set<*>;
-  selectedReadId :string;
-  neighborsById :List<*>;
-  filter :string;
   departmentOptions :Map;
   deviceOptions :Map;
-  vehiclesEntitySetId :string;
+  selectedReadPlate :string;
   actions :{
     editSearchParameters :RequestSequence;
     executeSearch :RequestSequence;
@@ -132,36 +117,9 @@ class Sidebar extends React.Component<Props, State> {
     actions.loadDataModel();
   }
 
-  getFilterOptions = (records) => {
-    const { actions } = this.props;
-    let hitTypes = List();
-    records
-      .forEach(recordList => recordList
-        .forEach(record => record.get(PROPERTY_TYPES.HIT_TYPE, List())
-          .forEach((hitType) => {
-            if (!hitTypes.includes(hitType)) {
-              hitTypes = hitTypes.push(hitType);
-            }
-          })));
-
-    return [
-      {
-        label: 'All',
-        onClick: () => actions.setFilter('')
-      },
-      ...hitTypes.map(hitType => ({
-        label: hitType,
-        onClick: () => actions.setFilter(hitType)
-      })).toJS()
-    ];
-  }
-
-  renderFilters = (records) => {
-    const { filter } = this.props;
+  renderFilters = () => {
     const { sort } = this.state;
-    const filterTitle = filter.length ? filter : 'All';
-
-    const sortOptions = Object.values(SORT_TYPE).map(label => ({
+    const sortOptions = Object.values(SORT_TYPE).map((label :any) => ({
       label,
       onClick: () => this.setState({ sort: label })
     }));
@@ -171,82 +129,39 @@ class Sidebar extends React.Component<Props, State> {
           <FilterLabel>Sort by </FilterLabel>
           <DropdownButton title={sort} options={sortOptions} invisible />
         </FilterGroup>
-        <FilterGroup>
-          <article>
-            <DropdownButton title="" options={this.getFilterOptions(records)} Icon={FilterIcon} invisible />
-          </article>
-        </FilterGroup>
       </FilterBar>
     );
   }
 
-  getVehicleList = () => {
-    const {
-      filter,
-      results,
-      neighborsById,
-      vehiclesEntitySetId
-    } = this.props;
-
-    const vehicleList = getVehicleList(results, neighborsById, vehiclesEntitySetId);
-    const recordsByVehicleId = getRecordsByVehicleId(vehicleList);
-    const vehicles = getFilteredVehicles(vehicleList, recordsByVehicleId, filter);
-
-    return { vehicles, recordsByVehicleId };
-  }
-
-  onVehicleClick = (entityKeyId, isIntermediate) => {
-    const { actions, selectedEntityKeyIds, vehiclesEntitySetId } = this.props;
+  onVehicleClick = (entityKeyId) => {
+    const { actions, selectedEntityKeyIds } = this.props;
     const data = selectedEntityKeyIds.has(entityKeyId) ? undefined : entityKeyId;
-    actions.selectEntity({ data, vehiclesEntitySetId, isIntermediate });
+    actions.selectEntity(data);
   }
 
-  sortVehicles = (vehicles, recordsByVehicleId) => {
+  sortVehicleRecords = (vehicleRecords) => {
+
     const { sort } = this.state;
-
-    const getLicensePlate = vehicle => vehicle.getIn([PROPERTY_TYPES.PLATE, 0], '');
-
-    const getTimestamps = vehicle => recordsByVehicleId.get(getEntityKeyId(vehicle), List())
-      .flatMap(record => record.get(PROPERTY_TYPES.TIMESTAMP, List()))
-      .map(timestamp => moment(timestamp))
-      .filter(datetime => datetime.isValid());
-
-    const getNumResults = vehicle => recordsByVehicleId.get(getEntityKeyId(vehicle), List()).size;
+    const vehicleRecordsByPlate = vehicleRecords.groupBy(getPlate);
+    const getNumResults = (record) => vehicleRecordsByPlate.get(getPlate(record), List()).count();
+    const getDateLoggedMoment = (record) => moment(record.getIn([PROPERTY_TYPES.TIMESTAMP, 0], ''));
 
     switch (sort) {
       case SORT_TYPE.LICENSE_PLATE:
-        return vehicles.sort((v1, v2) => (getLicensePlate(v1) < getLicensePlate(v2) ? -1 : 1));
+        return vehicleRecords.sort((r1, r2) => (getPlate(r1) < getPlate(r2) ? -1 : 1));
 
       case SORT_TYPE.NUM_APPEARANCES:
-        return vehicles.sort((v1, v2) => (getNumResults(v1) > getNumResults(v2) ? -1 : 1));
+        return vehicleRecords.sort((r1, r2) => (getNumResults(r1) > getNumResults(r2) ? -1 : 1));
 
       case SORT_TYPE.NEWEST:
-        return vehicles.map((vehicle) => {
-          let latest;
-          getTimestamps(vehicle).forEach((datetime) => {
-            if (!latest || datetime.isAfter(latest)) {
-              latest = datetime;
-            }
-          });
-          return [vehicle, latest];
-        }).sort(([v1, latest1], [v2, latest2]) => (latest1.isAfter(latest2) ? -1 : 1))
-          .map(([vehicle]) => vehicle);
+        return vehicleRecords.sort((r1, r2) => (getDateLoggedMoment(r1).isAfter(getDateLoggedMoment(r2)) ? -1 : 1));
 
       case SORT_TYPE.OLDEST:
-        return vehicles.map((vehicle) => {
-          let earliest;
-          getTimestamps(vehicle).forEach((datetime) => {
-            if (!earliest || datetime.isBefore(earliest)) {
-              earliest = datetime;
-            }
-          });
-          return [vehicle, earliest];
-        }).sort(([v1, earliest1], [v2, earliest2]) => (earliest1.isBefore(earliest2) ? -1 : 1))
-          .map(([vehicle]) => vehicle);
+        return vehicleRecords.sort((r1, r2) => (getDateLoggedMoment(r1).isBefore(getDateLoggedMoment(r2)) ? -1 : 1));
 
       case SORT_TYPE.RELEVANCE:
       default:
-        return vehicles;
+        return vehicleRecords;
     }
   }
 
@@ -268,7 +183,7 @@ class Sidebar extends React.Component<Props, State> {
     );
   }
 
-  renderVehicles = (vehiclePage, recordsByVehicleId) => {
+  renderVehicles = (vehicleRecordsByPlatePage) => {
     const {
       departmentOptions,
       deviceOptions,
@@ -277,58 +192,52 @@ class Sidebar extends React.Component<Props, State> {
     } = this.props;
     const { sort } = this.state;
 
-    return vehiclePage.map((vehicle) => {
-      const entityKeyId = getEntityKeyId(vehicle);
-      const plate = getPlate(vehicle);
-      const isIntermediate = vehicle.get('isIntermediate');
+    return vehicleRecordsByPlatePage.map((vehicleRecords, plate) => {
+      const vehicleRecord = vehicleRecords.first();
+      const entityKeyId = getEntityKeyId(vehicleRecord);
       const isStolen = hotlistPlates.has(plate.toLowerCase());
-
       return (
         <VehicleCard
             key={entityKeyId}
             isUnselected={plate !== selectedReadPlate}
-            onClick={() => this.onVehicleClick(entityKeyId, isIntermediate)}
-            vehicle={vehicle}
+            onClick={() => this.onVehicleClick(entityKeyId)}
+            vehicle={vehicleRecord}
             departmentOptions={departmentOptions}
             deviceOptions={deviceOptions}
-            records={recordsByVehicleId.get(entityKeyId, List())}
-            count={recordsByVehicleId.get(entityKeyId).size}
+            records={vehicleRecords}
+            count={vehicleRecords.count()}
             isStolen={isStolen}
             timestampDesc={sort !== SORT_TYPE.OLDEST} />
       );
-    });
+    }).valueSeq();
   }
 
   render() {
-    const { isLoadingResults } = this.props;
+
+    const {
+      isLoadingResults,
+      results: vehicleRecords,
+    } = this.props;
     const { page } = this.state;
 
     if (isLoadingResults) {
       return <ScrollableSidebar><Spinner /></ScrollableSidebar>;
     }
 
-    const { vehicles, recordsByVehicleId } = this.getVehicleList();
-
-    const sortedVehicles = this.sortVehicles(
-      vehicles.map(vehicle => vehicle.get('neighborDetails', Map())),
-      recordsByVehicleId
-    );
-
-    const vehiclePage = sortedVehicles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const sortedVehicleRecords = this.sortVehicleRecords(vehicleRecords);
+    const vehicleRecordsByPlate = sortedVehicleRecords.groupBy(getPlate);
+    const vehicleRecordsByPlatePage = vehicleRecordsByPlate.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     return (
       <ScrollableSidebar>
-        {this.renderHeader(vehicles.size)}
+        {this.renderHeader(vehicleRecordsByPlate.count())}
         <PaddedSection>
-
-          {this.renderFilters(recordsByVehicleId.valueSeq())}
-
-          {this.renderVehicles(vehiclePage, recordsByVehicleId)}
-
+          {this.renderFilters()}
+          {this.renderVehicles(vehicleRecordsByPlatePage)}
           <Pagination
-              numPages={Math.ceil(sortedVehicles.size / PAGE_SIZE)}
+              numPages={Math.ceil(vehicleRecordsByPlate.count() / PAGE_SIZE)}
               activePage={page}
-              onChangePage={newPage => this.setState({ page: newPage })} />
+              onChangePage={(newPage) => this.setState({ page: newPage })} />
         </PaddedSection>
       </ScrollableSidebar>
     );
@@ -338,28 +247,19 @@ class Sidebar extends React.Component<Props, State> {
 function mapStateToProps(state :Map<*, *>) :Object {
   const app = state.get(STATE.APP);
   const explore = state.get(STATE.EXPLORE);
-  const report = state.get(STATE.REPORT);
   const parameters = state.get(STATE.PARAMETERS);
 
   const selectedReadId = explore.get(EXPLORE.SELECTED_READ_ID);
   const results = explore.get(EXPLORE.SEARCH_RESULTS);
 
-  const selectedReadPlate = results.filter(read => getEntityKeyId(read) === selectedReadId).map(getPlate).first();
+  const selectedReadPlate = results.filter((read) => getEntityKeyId(read) === selectedReadId).map(getPlate).first();
 
   return {
     recordEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
-    vehiclesEntitySetId: getEntitySetId(app, APP_TYPES.CARS),
-    displayFullSearchOptions: explore.get(EXPLORE.DISPLAY_FULL_SEARCH_OPTIONS),
     results,
-    selectedReadId,
     selectedReadPlate,
     selectedEntityKeyIds: explore.get(EXPLORE.SELECTED_ENTITY_KEY_IDS),
-    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     isLoadingResults: explore.get(EXPLORE.IS_SEARCHING_DATA),
-    isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
-    searchParameters: explore.get(EXPLORE.SEARCH_PARAMETERS),
-    geocodedAddresses: explore.get(EXPLORE.ADDRESS_SEARCH_RESULTS),
-    filter: explore.get(EXPLORE.FILTER),
     hotlistPlates: explore.get(EXPLORE.HOTLIST_PLATES),
     departmentOptions: parameters.get(SEARCH_PARAMETERS.AGENCY_OPTIONS),
     deviceOptions: parameters.get(SEARCH_PARAMETERS.DEVICE_OPTIONS),
