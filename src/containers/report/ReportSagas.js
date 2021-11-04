@@ -63,11 +63,15 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
       const orgId = getSelectedOrganizationId(app);
       const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
       const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
-      readsByReport = yield call(SearchApi.searchEntityNeighborsWithFilter, reportsEntitySetId, {
-        entityKeyIds: reports.keySeq().toJS(),
-        sourceEntitySetIds: [readsEntitySetId, ...agencyVehicleRecordsEntitySets.keySeq().toJS()],
-        destinationEntitySetIds: []
-      });
+      readsByReport = yield call(
+        SearchApi.searchEntityNeighborsWithFilter,
+        reportsEntitySetId,
+        {
+          entityKeyIds: reports.keySeq().toJS(),
+          sourceEntitySetIds: [readsEntitySetId, ...agencyVehicleRecordsEntitySets.keySeq().toJS()],
+          destinationEntitySetIds: []
+        }
+      );
 
       readsByReport = fromJS(readsByReport);
     }
