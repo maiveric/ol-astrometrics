@@ -298,7 +298,7 @@ function* submitWorkerNew(action) {
                 if (alias === 'read' && entityValues.read) {
                   const agencyName = getIn(entityValues.read, [PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME, 0]);
                   const agencyEntitySetId = agencyVehicleRecordsEntitySets.findKey((v) => v === agencyName);
-                  entityIdObject.entitySetId = agencyEntitySetId;
+                  entityIdsByAlias[alias].push({ ...entityIdObject, entitySetId: agencyEntitySetId });
                 }
 
                 entityIdsByAlias[alias].push(entityIdObject);
