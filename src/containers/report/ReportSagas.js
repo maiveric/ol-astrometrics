@@ -5,20 +5,25 @@
 import {
   call,
   put,
+  select,
   takeEvery,
-  select
 } from '@redux-saga/core/effects';
 import { Map, fromJS } from 'immutable';
 import { SearchApi } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
-import { getEntityKeyId } from '../../utils/DataUtils';
-import { getAppFromState, getEntitySetId, getUserIdFromState } from '../../utils/AppUtils';
-import { APP_TYPES } from '../../utils/constants/DataModelConstants';
+import { LOAD_REPORTS, loadReports } from './ReportActionFactory';
+
 import {
-  LOAD_REPORTS,
-  loadReports
-} from './ReportActionFactory';
+  getAppFromState,
+  getEntitySetId,
+  getSelectedOrganizationId,
+  getUserIdFromState,
+} from '../../utils/AppUtils';
+import { getEntityKeyId } from '../../utils/DataUtils';
+import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from '../../utils/constants';
+import { APP_TYPES } from '../../utils/constants/DataModelConstants';
+import { APP } from '../../utils/constants/StateConstants';
 
 declare var __MAPBOX_TOKEN__;
 
@@ -49,19 +54,21 @@ function* loadReportsWorker(action :SequenceAction) :Generator<*, *, *> {
     const reportsForUser = reportNeighbors[userEntityKeyId];
 
     if (reportsForUser) {
-
       fromJS(reportsForUser).forEach((neighborObj) => {
         const neighborDetails = neighborObj.get('neighborDetails');
         const entityKeyId = getEntityKeyId(neighborDetails);
         reports = reports.set(entityKeyId, neighborDetails);
       });
 
+      const orgId = getSelectedOrganizationId(app);
+      const appSettings = app.getIn([APP.SETTINGS_BY_ORG_ID, orgId]);
+      const agencyVehicleRecordsEntitySets = appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
       readsByReport = yield call(
         SearchApi.searchEntityNeighborsWithFilter,
         reportsEntitySetId,
         {
           entityKeyIds: reports.keySeq().toJS(),
-          sourceEntityKeyIds: [readsEntitySetId],
+          sourceEntitySetIds: [readsEntitySetId, ...agencyVehicleRecordsEntitySets.keySeq().toJS()],
           destinationEntitySetIds: []
         }
       );
