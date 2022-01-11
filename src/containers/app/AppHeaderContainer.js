@@ -108,7 +108,7 @@ const LogoutButton = styled.button`
 `;
 
 const SupportLink = styled.a.attrs(() => ({
-  href: 'mailto:support@openlattice.com'
+  href: 'mailto:brandon@openlattice.com'
 }))`
   border-radius: 3px;
   border: none;
