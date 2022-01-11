@@ -60,7 +60,7 @@ export default class UnderMaintenance extends React.Component {
         <Text>
           <span>
             <span>Astrometrics is currently under maintenance. Please check back later, or either email </span>
-            <a href="mailto:support@openlattice.com">support@openlattice.com</a>
+            <a href="mailto:brandon@openlattice.com">support@openlattice.com</a>
             <span> or call 650-597-2989 if you have any questions.</span>
           </span>
         </Text>
