@@ -6,6 +6,8 @@ import React from 'react';
 
 import Papa from 'papaparse';
 import styled, { css } from 'styled-components';
+import { faCloudDownload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List, Map, OrderedMap } from 'immutable';
 import { DateTimePicker } from 'lattice-ui-kit';
 import { connect } from 'react-redux';
@@ -13,17 +15,15 @@ import {
   withRouter
 } from 'react-router';
 import { bindActionCreators } from 'redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
 
 import * as AuditActionFactory from './AuditActionFactory';
 
 import BasicButton from '../../components/buttons/BasicButton';
+import FileSaver from '../../utils/FileSaver';
 import InfoButton from '../../components/buttons/InfoButton';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import Spinner from '../../components/spinner/Spinner';
 import StyledInput from '../../components/controls/StyledInput';
-import FileSaver from '../../utils/FileSaver';
 import * as EdmActionFactory from '../edm/EdmActionFactory';
 import { Cell, HeaderCell, Table } from '../../components/body/Table';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';

@@ -4,23 +4,22 @@
 
 import React, { Component } from 'react';
 
-
 import styled from 'styled-components';
-import { withRouter } from 'react-router';
-import { List, Map, Set } from 'immutable';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMoon, faSun } from '@fortawesome/pro-light-svg-icons';
-// import { faSun } from '@fortawesome/pro-solid-svg-icons';
+import { Map } from 'immutable';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+import { bindActionCreators } from 'redux';
 
+import * as ExploreActionFactory from './ExploreActionFactory';
+
+import BasicButton from '../../components/buttons/BasicButton';
 import InnerNavBar from '../../components/nav/InnerNavBar';
 import NavLinkWrapper from '../../components/nav/NavLinkWrapper';
-import BasicButton from '../../components/buttons/BasicButton';
 import * as Routes from '../../core/router/Routes';
-import * as ExploreActionFactory from './ExploreActionFactory';
-import { STATE, EXPLORE } from '../../utils/constants/StateConstants';
 import { MAP_STYLE } from '../../utils/constants/MapConstants';
+import { EXPLORE, STATE } from '../../utils/constants/StateConstants';
 
 const NavigationContentWrapper = styled(InnerNavBar)`
   padding: 0 28px;
