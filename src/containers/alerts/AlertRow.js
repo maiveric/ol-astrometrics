@@ -3,27 +3,29 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
+
 import moment from 'moment';
-import { List, Map } from 'immutable';
-import { withRouter } from 'react-router';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { AuthUtils } from 'lattice-auth';
+import styled from 'styled-components';
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
+import { List, Map } from 'immutable';
+import { AuthUtils } from 'lattice-auth';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
+import { bindActionCreators } from 'redux';
+
+import * as AlertActionFactory from './AlertActionFactory';
 
 import SubtleButton from '../../components/buttons/SubtleButton';
+import { getEntitySetId } from '../../utils/AppUtils';
+import { ALERT_TYPES, APP_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
-  STATE,
   ALERTS,
   EDM,
   SEARCH_PARAMETERS,
+  STATE,
   SUBMIT
 } from '../../utils/constants/StateConstants';
-import { APP_TYPES, PROPERTY_TYPES, ALERT_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntitySetId } from '../../utils/AppUtils';
-import * as AlertActionFactory from './AlertActionFactory';
 
 type Props = {
   alert :Map,

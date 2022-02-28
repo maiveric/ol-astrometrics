@@ -3,15 +3,16 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
-import moment from 'moment';
-import { List, Map } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faVideo } from '@fortawesome/pro-solid-svg-icons';
 
+import moment from 'moment';
+import styled from 'styled-components';
+import { faVideo } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { List, Map } from 'immutable';
+
+import { HEADER_HEIGHT, INNER_NAV_BAR_HEIGHT, SIDEBAR_WIDTH } from '../../core/style/Sizes';
 import { countWithLabel } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { SIDEBAR_WIDTH, HEADER_HEIGHT, INNER_NAV_BAR_HEIGHT } from '../../core/style/Sizes';
 
 type Props = {
   vehicle :Map<*, *>,
