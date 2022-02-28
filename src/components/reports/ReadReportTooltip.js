@@ -3,10 +3,11 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
-import { List } from 'immutable';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/pro-regular-svg-icons';
+import { List } from 'immutable';
 
 import { getEntityKeyId, getValue } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';

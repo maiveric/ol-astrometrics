@@ -1,8 +1,9 @@
 import React from 'react';
-import styled, { css } from 'styled-components';
 
+import styled, { css } from 'styled-components';
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
+
 import BasicButton from './BasicButton';
 
 type Props = {

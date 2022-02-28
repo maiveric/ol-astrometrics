@@ -3,9 +3,10 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
+import { faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faPlus } from '@fortawesome/pro-light-svg-icons';
 
 const Button = styled.button`
   border-radius: 3px;
