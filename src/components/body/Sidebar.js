@@ -1,11 +1,10 @@
 import React from 'react';
-
 import styled, { css } from 'styled-components';
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 
 import SubtleButton from '../buttons/SubtleButton';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
+import { SIDEBAR_WIDTH, HEADER_HEIGHT } from '../../core/style/Sizes';
 
 const FIELDS = {
   BACKGROUND: 'BACKGROUND',

@@ -3,43 +3,41 @@
  */
 
 import React from 'react';
-
 import ReactToPrint from 'react-to-print';
-import moment from 'moment';
 import styled, { css } from 'styled-components';
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import moment from 'moment';
 import {
+  Set,
   Map,
-  OrderedMap,
   OrderedSet,
-  Set
+  OrderedMap
 } from 'immutable';
-import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
+import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronUp, faChevronDown } from '@fortawesome/pro-light-svg-icons';
 
 import ReportRow from './ReportRow';
-import * as ReportActionFactory from './ReportActionFactory';
-
-import InfoButton from '../../components/buttons/InfoButton';
-import ReportVehicleInfo from '../../components/vehicles/ReportVehicleInfo';
 import Spinner from '../../components/spinner/Spinner';
+import InfoButton from '../../components/buttons/InfoButton';
 import SubtleButton from '../../components/buttons/SubtleButton';
-import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
-import * as SubmitActionFactory from '../submit/SubmitActionFactory';
-import { SidebarHeader } from '../../components/body/Sidebar';
+import ReportVehicleInfo from '../../components/vehicles/ReportVehicleInfo';
 import { VehicleHeader } from '../../components/vehicles/VehicleCard';
-import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
-import { getCoordinates, getEntityKeyId, getValue } from '../../utils/DataUtils';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { SidebarHeader } from '../../components/body/Sidebar';
 import {
-  PARAMETERS,
-  REPORT,
-  SEARCH_PARAMETERS,
   STATE,
+  REPORT,
+  PARAMETERS,
+  SEARCH_PARAMETERS,
   SUBMIT
 } from '../../utils/constants/StateConstants';
+import { SIDEBAR_WIDTH } from '../../core/style/Sizes';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { getCoordinates, getEntityKeyId, getValue } from '../../utils/DataUtils';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
+import * as ReportActionFactory from './ReportActionFactory';
+import * as SubmitActionFactory from '../submit/SubmitActionFactory';
 
 type Props = {
   report :Map,

@@ -3,10 +3,9 @@
  */
 
 import React from 'react';
-
 import styled from 'styled-components';
-import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAngleLeft, faAngleRight } from '@fortawesome/pro-regular-svg-icons';
 
 const PageList = styled.ul`
   display: flex;

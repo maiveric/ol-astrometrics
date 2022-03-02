@@ -6,7 +6,7 @@ import React from 'react';
 
 import moment from 'moment';
 import styled from 'styled-components';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   List,

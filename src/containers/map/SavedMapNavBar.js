@@ -1,28 +1,27 @@
 import React from 'react';
-
-import moment from 'moment';
 import styled from 'styled-components';
-import { faSave, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Map, OrderedMap } from 'immutable';
+import moment from 'moment';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { Map, OrderedMap } from 'immutable';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSave, faTrash } from '@fortawesome/pro-light-svg-icons';
 
-import * as DrawActionFactory from './DrawActionFactory';
-
-import InnerNavBar from '../../components/nav/InnerNavBar';
 import SearchableSelect from '../../components/controls/SearchableSelect';
 import SecondaryButton from '../../components/buttons/SecondaryButton';
-import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
+import InnerNavBar from '../../components/nav/InnerNavBar';
+import { getEntityKeyId } from '../../utils/DataUtils';
 import { getDrawCoordsFromFeatures } from '../../utils/MapUtils';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { NEW_MAP } from '../../utils/constants/ExploreConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import {
+  STATE,
   DRAW,
-  PARAMETERS,
   SAVED_MAP,
-  STATE
+  PARAMETERS
 } from '../../utils/constants/StateConstants';
+import * as DrawActionFactory from './DrawActionFactory';
+import * as ParametersActionFactory from '../parameters/ParametersActionFactory';
 
 const NavBar = styled(InnerNavBar)`
   justify-content: space-between;
