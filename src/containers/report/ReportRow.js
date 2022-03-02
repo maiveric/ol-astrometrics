@@ -3,20 +3,18 @@
  */
 
 import React from 'react';
-
 import styled from 'styled-components';
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map } from 'immutable';
-import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
+import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-
-import * as ReportActionFactory from './ReportActionFactory';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight } from '@fortawesome/pro-regular-svg-icons';
 
 import SubtleButton from '../../components/buttons/SubtleButton';
-import { getEntityKeyId, getValue } from '../../utils/DataUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { getEntityKeyId, getValue } from '../../utils/DataUtils';
+import * as ReportActionFactory from './ReportActionFactory';
 
 type Props = {
   report :Map,

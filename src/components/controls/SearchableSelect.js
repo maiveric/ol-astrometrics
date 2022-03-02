@@ -4,12 +4,13 @@
 
 import React from 'react';
 
-import styled, { css } from 'styled-components';
-import { faChevronDown, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map } from 'immutable';
+import styled, { css } from 'styled-components';
+import { faTimes } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import Spinner from '../spinner/Spinner';
+import downArrowIcon from '../../assets/svg/down-arrow.svg';
 
 /*
  * styled components
@@ -83,15 +84,8 @@ const SearchInput = styled.input.attrs((_) => ({
 `;
 
 const SearchIcon = styled.div`
-  align-items: center;
   display: flex;
-  justify-content: center;
   margin-left: -30px;
-  pointer-events: none;
-
-  &:hover {
-    cursor: pointer;
-  }
 `;
 
 const SearchButton = styled.button`
@@ -397,8 +391,8 @@ class SearchableSelect extends React.Component<Props, State> {
           }
           {
             (onClear && value) ? null : (
-              <SearchIcon>
-                <FontAwesomeIcon icon={faChevronDown} />
+              <SearchIcon floatRight={selectOnly}>
+                <img src={downArrowIcon} alt="" />
               </SearchIcon>
             )
           }

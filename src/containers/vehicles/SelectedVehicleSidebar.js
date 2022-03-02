@@ -6,7 +6,7 @@ import React, { Fragment } from 'react';
 
 import moment from 'moment';
 import styled from 'styled-components';
-import { faMap } from '@fortawesome/free-solid-svg-icons';
+import { faMap } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List, Map, Set } from 'immutable';
 import { connect } from 'react-redux';
