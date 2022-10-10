@@ -196,7 +196,7 @@ class AppHeaderContainer extends Component<Props> {
 
     return (
       <RightSideContentWrapper>
-        <OrgSelect>{ this.renderOrgSelector() }</OrgSelect>
+        {/* <OrgSelect>{ this.renderOrgSelector() }</OrgSelect> */}
         <UsernameAndIcon username={this.getDisplayName()} />
         <SupportLink>
           Support

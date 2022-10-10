@@ -405,6 +405,7 @@ class SearchParameters extends React.Component<Props, State> {
               </InputGroup>
             </Row>
 
+            {/*
             <Row>
               <InlineLabel>Show hotlist vehicles only</InlineLabel>
               <YesNoToggle
@@ -412,6 +413,7 @@ class SearchParameters extends React.Component<Props, State> {
                   isDisabled={!hasHotlistPlates}
                   onToggle={onHotlistChange} />
             </Row>
+            */}
 
           </MenuSection>
 
