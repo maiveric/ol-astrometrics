@@ -23,7 +23,7 @@ import Spinner from '../../components/spinner/Spinner';
 import StyledInput, { StyledTextArea } from '../../components/controls/StyledInput';
 import SubtleButton from '../../components/buttons/SubtleButton';
 import * as SubmitActionFactory from '../submit/SubmitActionFactory';
-import { getEntitySetId } from '../../utils/AppUtils';
+import { getAgencyVehicleRecordsEntitySets, getAppSettings, getEntitySetId } from '../../utils/AppUtils';
 import { getDateSearchTerm, getSearchTerm } from '../../utils/DataUtils';
 import { SEARCH_REASONS } from '../../utils/constants/DataConstants';
 import { APP_TYPES, PROPERTY_TYPES, ALERT_TYPES } from '../../utils/constants/DataModelConstants';
@@ -45,6 +45,7 @@ type Props = {
   expirationDate :string,
   additionalEmails :string,
   readsEntitySetId :string,
+  vehicleEntitySetIds :Map,
   platePropertyTypeId :string,
   timestampPropertyTypeId :string,
   parameters :Map,
@@ -272,6 +273,7 @@ class NewAlertModal extends React.Component<Props, State> {
     const {
       plate,
       readsEntitySetId,
+      vehicleEntitySetIds,
       hotlistEntitySetId,
       platePropertyTypeId,
       timestampPropertyTypeId
@@ -282,7 +284,7 @@ class NewAlertModal extends React.Component<Props, State> {
 
     if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
       return {
-        entitySetIds: [readsEntitySetId],
+        entitySetIds: [readsEntitySetId, ...vehicleEntitySetIds.keySeq().toJS()],
         start: 0,
         maxHits: 3000,
         constraints: [
@@ -332,6 +334,7 @@ class NewAlertModal extends React.Component<Props, State> {
       expirationDate,
       additionalEmails,
       readsEntitySetId,
+      vehicleEntitySetIds,
       platePropertyTypeId,
       timestampPropertyTypeId
     } = this.props;
@@ -345,7 +348,7 @@ class NewAlertModal extends React.Component<Props, State> {
     const createDate = moment().toISOString(true);
 
     const constraints = {
-      entitySetIds: [readsEntitySetId],
+      entitySetIds: [readsEntitySetId, ...vehicleEntitySetIds.keySeq().toJS()],
       start: 0,
       maxHits: 3000,
       constraints: [
@@ -635,6 +638,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
   return {
     readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
+    vehicleEntitySetIds: getAgencyVehicleRecordsEntitySets(getAppSettings(app)),
     hotlistEntitySetId: getEntitySetId(app, APP_TYPES.HOTLIST_READS),
     isLoadingAlerts: alerts.get(ALERTS.IS_LOADING_ALERTS),
     caseNum: alerts.get(ALERTS.CASE_NUMBER),
