@@ -8,6 +8,8 @@ import {
   SEARCH_PARAMETERS
 } from './constants/StateConstants';
 
+import { AGENCY_VEHICLE_RECORDS_ENTITY_SETS } from './constants/index';
+
 export const getAppFromState = state => state.get(STATE.APP, Map());
 export const getEdmFromState = state => state.get(STATE.EDM, Map());
 export const getAuditFromState = state => state.get(STATE.AUDIT, Map());
@@ -16,6 +18,9 @@ export const getParamsFromState = state => state.getIn([STATE.PARAMETERS, SEARCH
 export const getDrawFromState = state => state.get(STATE.DRAW, Map());
 
 export const getSelectedOrganizationId = (app :Map) => app.get(APP.SELECTED_ORG_ID);
+
+export const getAppSettings = app  => app.getIn([APP.SETTINGS_BY_ORG_ID, getSelectedOrganizationId(app)]);
+export const getAgencyVehicleRecordsEntitySets = appSettings => appSettings.get(AGENCY_VEHICLE_RECORDS_ENTITY_SETS) || Map();
 
 export const getEntitySetId = (app :Map, fqn :string) :string => app.getIn([
   APP.CONFIG_BY_ORG_ID,

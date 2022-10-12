@@ -70,11 +70,9 @@ class ExploreNavigationContainer extends Component<Props> {
           <NavLinkWrapper to={Routes.MAP_ROUTE}>
             Map
           </NavLinkWrapper>
-          {/*
           <NavLinkWrapper to={Routes.ALERTS_ROUTE}>
             Alerts
           </NavLinkWrapper>
-          */}
           <NavLinkWrapper to={Routes.REPORTS_ROUTE}>
             Reports
           </NavLinkWrapper>
