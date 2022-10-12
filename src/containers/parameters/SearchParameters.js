@@ -599,7 +599,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const report = state.get(STATE.REPORT);
 
   const geocodedAddresses = params.get(SEARCH_PARAMETERS.ADDRESS_SEARCH_RESULTS, List());
-
+  console.log("Search parameter app: "+app)
+  console.log("entity set ids: "+getEntitySetId(app, APP_TYPES.RECORDS))
   return {
     recordEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES),

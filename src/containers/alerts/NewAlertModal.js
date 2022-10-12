@@ -632,6 +632,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const parameters = state.get(STATE.PARAMETERS);
   const edm = state.get(STATE.EDM);
   const submit = state.get(STATE.SUBMIT);
+  console.log("New Alert  app: "+app)
+  console.log("entity set ids: "+getEntitySetId(app, APP_TYPES.RECORDS))
 
   return {
     readsEntitySetId: getEntitySetId(app, APP_TYPES.RECORDS),
