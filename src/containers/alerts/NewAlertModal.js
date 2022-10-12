@@ -598,12 +598,21 @@ class NewAlertModal extends React.Component<Props, State> {
 
     if (!alertType) {
       return (
+          <FormContainer>
+            {this.renderHeaderSection('Create new custom vehicle alert')}
+            {this.renderCustomAlertFields()}
+            {this.renderEmailSection()}
+            {this.renderSubmitOrCancel()}
+          </FormContainer>
+      );
+      /* Skipping a screen to choose CUSTOM_VEHICLE_ALERT or Hotlist alert
+      /*return (
         <FormContainer>
           {this.renderHeaderSection('New Alert')}
           {this.renderAlertTypeButton('Hotlist Alert', ALERT_TYPES.HOTLIST_ALERT)}
           {this.renderAlertTypeButton('Custom Vehicle Alert', ALERT_TYPES.CUSTOM_VEHICLE_ALERT)}
         </FormContainer>
-      )
+      )*/
     }
 
     if (alertType === ALERT_TYPES.CUSTOM_VEHICLE_ALERT) {
