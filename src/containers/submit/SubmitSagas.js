@@ -295,13 +295,19 @@ function* submitWorkerNew(action) {
                 const entityIdObject = getEntityIdObject(entitySetId, idOrIndex, isId);
 
                 // NOTE: 2021-11-02 - putting this hack in place to fix bugs ... all of this needs to go
+                let agencyEntitySetId;
                 if (alias === 'read' && entityValues.read) {
                   const agencyName = getIn(entityValues.read, [PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME, 0]);
                   const agencyEntitySetId = agencyVehicleRecordsEntitySets.findKey((v) => v === agencyName);
-                  entityIdsByAlias[alias].push({ ...entityIdObject, entitySetId: agencyEntitySetId });
+                  if (agencyEntitySetId) {
+                    entityIdsByAlias[alias].push({ ...entityIdObject, entitySetId: agencyEntitySetId });
+                  }
                 }
 
-                entityIdsByAlias[alias].push(entityIdObject);
+                // NOTE: 2022-10-21 - do nothing with app.vehiclerecord when agencyEntitySetId exists
+                if (!agencyEntitySetId) {
+                  entityIdsByAlias[alias].push(entityIdObject);
+                }
 
                 if (!isId) {
                   entities[entitySetId].push(entityDetails);
