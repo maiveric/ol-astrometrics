@@ -150,7 +150,7 @@ class SelectedVehicleSidebar extends React.Component<Props, State> {
     details.Color = read.get(PROPERTY_TYPES.COLOR, List()).join(', ');
 
     details.Department = read
-      .get(PROPERTY_TYPES.AGENCY_NAME, List())
+      .get(PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME, List())
       .map((d) => getDisplayNameForId(departmentOptions, d))
       .join(', ');
 
