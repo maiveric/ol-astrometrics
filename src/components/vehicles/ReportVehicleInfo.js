@@ -114,7 +114,7 @@ const ReportVehicleInfo = ({
   }
   const color = getValue(read, PROPERTY_TYPES.COLOR);
 
-  const department = getDisplayNameForId(departmentOptions, getValue(read, PROPERTY_TYPES.AGENCY_NAME));
+  const department = getDisplayNameForId(departmentOptions, getValue(read, PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME));
   const device = getDisplayNameForId(deviceOptions, getValue(read, PROPERTY_TYPES.CAMERA_ID));
   const source = getValue(read, PROPERTY_TYPES.OL_DATA_SOURCE);
 
