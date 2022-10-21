@@ -164,7 +164,7 @@ const getSearchRequest = (
         type: 'advanced',
         searchFields: [{
           searchTerm: searchParameters.get(PARAMETERS.DEPARTMENT),
-          property: getPropertyTypeId(PROPERTY_TYPES.AGENCY_NAME),
+          property: getPropertyTypeId(PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME),
           exact: true
         }]
       }]
