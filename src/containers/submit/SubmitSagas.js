@@ -293,12 +293,14 @@ function* submitWorkerNew(action) {
               if (idOrIndex !== undefined && idOrIndex !== null) {
 
                 const entityIdObject = getEntityIdObject(entitySetId, idOrIndex, isId);
-
-                // NOTE: 2021-11-02 - putting this hack in place to fix bugs ... all of this needs to go
                 let agencyEntitySetId;
+
+                // NOTE: 2021-11-02 - putting this hack in place to fix bugs...all of this needs to go
                 if (alias === 'read' && entityValues.read) {
+
                   const agencyName = getIn(entityValues.read, [PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME, 0]);
-                  const agencyEntitySetId = agencyVehicleRecordsEntitySets.findKey((v) => v === agencyName);
+                  agencyEntitySetId = agencyVehicleRecordsEntitySets.findKey((v) => v === agencyName);
+
                   if (agencyEntitySetId) {
                     entityIdsByAlias[alias].push({ ...entityIdObject, entitySetId: agencyEntitySetId });
                   }

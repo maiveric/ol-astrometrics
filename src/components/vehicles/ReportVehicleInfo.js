@@ -146,10 +146,12 @@ const ReportVehicleInfo = ({
                   <span>Make/model</span>
                   <div>{makeModel}</div>
                 </article>
+                {/*
                 <article>
                   <span>Color</span>
                   <div>{color}</div>
                 </article>
+                */}
               </>
             )
           }
