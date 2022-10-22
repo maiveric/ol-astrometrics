@@ -142,16 +142,16 @@ const ReportVehicleInfo = ({
           {
             printable ? null : (
               <>
+                {makeModel &&
                 <article>
                   <span>Make/model</span>
                   <div>{makeModel}</div>
-                </article>
-                {/*
+                </article>}
+                {color &&
                 <article>
                   <span>Color</span>
                   <div>{color}</div>
-                </article>
-                */}
+                </article>}
               </>
             )
           }
