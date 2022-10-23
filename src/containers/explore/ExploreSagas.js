@@ -80,32 +80,31 @@ export function* loadHotlistPlatesWatcher() :Generator<*, *, *> {
 }
 
 const getSearchRequest = (
-  entitySetId,
+  entitySetId, // app.vehiclerecord
   propertyTypesByFqn,
   searchParameters,
   hotlistPlates,
-  agencyVehicleRecordsEntitySetIds = []
+  agencyVehicleRecordsEntitySets
 ) => {
   const baseSearch = {
-    entitySetIds: [entitySetId, ...agencyVehicleRecordsEntitySetIds],
+    entitySetIds: undefined,
     start: 0,
-    maxHits: 3000
+    maxHits: 250
   };
 
   const searchFields = getSearchFields(searchParameters);
-
   const getPropertyTypeId = (fqn) => propertyTypesByFqn.getIn([fqn, 'id']);
-
   const timestampPropertyTypeId = getPropertyTypeId(PROPERTY_TYPES.TIMESTAMP);
-
   const constraintGroups = [];
 
   /* handle time constraints */
   if (searchFields.includes(SEARCH_TYPES.TIME_RANGE)) {
+
     const start = moment(searchParameters.get(PARAMETERS.START));
     const end = moment(searchParameters.get(PARAMETERS.END));
     const startStr = start.isValid() ? start.toISOString(true) : '*';
     const endStr = end.isValid() ? end.toISOString(true) : '*';
+
     constraintGroups.push({
       constraints: [{
         type: 'simple',
@@ -142,6 +141,7 @@ const getSearchRequest = (
 
   /* Handle license plate constraints */
   if (searchFields.includes(SEARCH_TYPES.PLATE)) {
+
     const plate = searchParameters.get(PARAMETERS.PLATE);
     saveLicensePlateSearch(plate);
 
@@ -159,11 +159,17 @@ const getSearchRequest = (
 
   /* Handle department/agency constraints */
   if (searchFields.includes(SEARCH_TYPES.DEPARTMENT)) {
+
+    // NOTE: 2022-10-23 - search within only one agency entity set
+    const agencyName = searchParameters.get(PARAMETERS.DEPARTMENT);
+    const agencyEntitySetId = agencyVehicleRecordsEntitySets.findKey((v) => v === agencyName);
+    baseSearch.entitySetIds = [agencyEntitySetId || entitySetId];
+
     constraintGroups.push({
       constraints: [{
         type: 'advanced',
         searchFields: [{
-          searchTerm: searchParameters.get(PARAMETERS.DEPARTMENT),
+          searchTerm: agencyName,
           property: getPropertyTypeId(PROPERTY_TYPES.PUBLIC_SAFETY_AGENCY_NAME),
           exact: true
         }]
@@ -283,6 +289,11 @@ const getSearchRequest = (
     });
   }
 
+  // NOTE: 2022-10-23 - include app.vehiclerecord and all agency
+  // entity sets if no department/agency constraints were applied
+  baseSearch.entitySetIds = baseSearch.entitySetIds || [
+    entitySetId, ...agencyVehicleRecordsEntitySets.keySeq().toJS()
+  ];
   return Object.assign({}, baseSearch, { constraints: constraintGroups });
 };
 
@@ -307,7 +318,7 @@ function* executeSearchWorker(action :SequenceAction) :Generator<*, *, *> {
       propertyTypesByFqn,
       searchParameters,
       hotlistPlates,
-      agencyVehicleRecordsEntitySets.keySeq().toJS(),
+      agencyVehicleRecordsEntitySets
     );
 
     const logSearchAction = submit({

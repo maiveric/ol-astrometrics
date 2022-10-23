@@ -286,7 +286,7 @@ class NewAlertModal extends React.Component<Props, State> {
       return {
         entitySetIds: [readsEntitySetId, ...vehicleEntitySetIds.keySeq().toJS()],
         start: 0,
-        maxHits: 3000,
+        maxHits: 250,
         constraints: [
           {
             constraints: [{
@@ -309,7 +309,7 @@ class NewAlertModal extends React.Component<Props, State> {
       return {
         entitySetIds: [hotlistEntitySetId],
         start: 0,
-        maxHits: 3000,
+        maxHits: 250,
         constraints: [
           {
             constraints: [{
@@ -350,7 +350,7 @@ class NewAlertModal extends React.Component<Props, State> {
     const constraints = {
       entitySetIds: [readsEntitySetId, ...vehicleEntitySetIds.keySeq().toJS()],
       start: 0,
-      maxHits: 3000,
+      maxHits: 250,
       constraints: [
         {
           constraints: [{
